@@ -5,15 +5,23 @@
 # Driver: stock ESPHome `waveshare_epaper`, model `5.65in-f` (>= 2026.9.0).
 #         No custom/external component (SPEC Revision 2).
 #
-# PIN MAP  (single source of truth — finalised in P0.2)
+# PIN MAP  (single source of truth — P0.2)
 #   SPI CLK   -> GPIO12
 #   SPI MOSI  -> GPIO11
 #   EPD CS    -> GPIO10
 #   EPD DC    -> GPIO9
 #   EPD RST   -> GPIO8
 #   EPD BUSY  -> GPIO7
-#   BAT ADC   -> GPIO4      (P1.1, via on-board divider)
-#   Board     -> esp32-s3-devkitc-1  (PLACEHOLDER; P0.2 picks the low-quiescent part)
+#   BAT ADC   -> GPIO4      (P1.1, via on-board divider; ADC1_CH3)
+#
+# BOARD (P0.2): Heemol ESP32-S3 N16R8 — an ESP32-S3-DevKitC-1 form-factor board
+#   carrying an ESP32-S3-WROOM-1 module, 16 MB flash / 8 MB octal PSRAM.
+#   Deep-sleep quiescent (CITED, not measured): **5-15 mA** for a stock
+#   ESP32-S3-DevKitC-1 class board — the AMS1117-3.3 LDO (~5 mA always-on),
+#   the CP2102N USB-UART bridge (2-5 mA) and the power LED (2-3 mA); the
+#   ESP32-S3 chip itself is ~7 uA (datasheet v1.6 section 4.7).
+#   Source: hubble.com/community/guides/esp32-deep-sleep-current-...
+#   To be measured on the bench in P3.1.
 #
 # P0.1 scope: render a 7-colour test pattern on the bare panel from ESPHome.
 # ============================================================================
@@ -40,9 +48,10 @@ esphome:
       - component.update: epaper_display
 
 esp32:
-  # PLACEHOLDER board — P0.2 selects the low-quiescent ESP32-S3 target.
+  # Heemol ESP32-S3 N16R8 (DevKitC-1 form factor, ESP32-S3-WROOM-1-N16R8).
   board: esp32-s3-devkitc-1
   variant: esp32s3
+  flash_size: 16MB
   framework:
     type: esp-idf
 

@@ -39,8 +39,16 @@ a proven sleep design (LILYGO/Lolin ESP32-S3 Mini, Adafruit Feather ESP32-S3). R
 its idle current, and the pin map in the device YAML header.
 
 **Acceptance criteria:**
-- [ ] One board/module selected, with a cited deep-sleep quiescent figure.
-- [ ] Pin map (SPI CLK/MOSI/CS/DC/RST/BUSY + ADC + power) written into the device YAML header.
+- [x] One board/module selected, with a cited deep-sleep quiescent figure.
+      — **Heemol ESP32-S3 N16R8** (DevKitC-1 form factor, ESP32-S3-WROOM-1-N16R8,
+      16 MB flash / 8 MB octal PSRAM). Cited quiescent for a stock ESP32-S3-DevKitC-1 class board:
+      **5-15 mA** (AMS1117-3.3 LDO ~5 mA + CP2102N USB-UART 2-5 mA + power LED 2-3 mA; the chip
+      itself is ~7 uA, datasheet v1.6 §4.7). Source: hubble.com ESP32 deep-sleep guide. To be
+      measured in P3.1. **See the battery-life conflict in P0.3.**
+- [x] Pin map (SPI CLK/MOSI/CS/DC/RST/BUSY + ADC + power) written into the device YAML header.
+
+**Resolution (2026-09-28):** board + pin map recorded in the `epaper-art-frame.yaml` header;
+`esp32.board: esp32-s3-devkitc-1`, `flash_size: 16MB`, octal PSRAM. Chosen by user (ask-first).
 
 **Dependencies:** none · **Scope:** XS · **Files:** `config/esphome/epaper-art-frame.yaml`
 (comment header) · **Ask first — user purchase.**
