@@ -20,11 +20,11 @@
 #   (8 MB flash + 8 MB PSRAM), onboard TP4056M LiPo charger + PCF85063A RTC.
 #   Vendor deep-sleep claim: 7 uA (chip-level; requires all peripherals off and
 #   JP1 OPEN to disconnect the WS2812B LED).
-#   !! OPEN RISK: Soldered's own docs "Overview" page instead lists ESP32-S3FN8,
-#      "8 MB Flash and 512 KB SRAM" (i.e. NO PSRAM). This project REQUIRES PSRAM
-#      (~1.0 MB of 7-colour frame buffers vs 512 KB SRAM). VERIFY PSRAM on
-#      arrival; if absent, re-target. See todo.md P0.2.
-#   Sources: docs.soldered.com (hardware-details, overview); amazon.nl B0FZDDH33Y.
+#   PSRAM: **8 MB (N8R8), confirmed** (user-verified 2026-09-28 against the
+#   product listing). The 7-colour driver's ~1 MB of frame buffers fits.
+#   (Soldered's stale "Overview" doc page lists ESP32-S3FN8 / 512 KB SRAM; that
+#   page is the outlier and is superseded by the N8R8 product spec.)
+#   Sources: docs.soldered.com (hardware-details); amazon.nl B0FZDDH33Y.
 #
 # POWER & BATTERY (P0.3, Rev 4): 3000 mAh single-cell LiPo via the NULA's onboard
 #   JST connector + TP4056M charger (no separate TP4056 module needed).
@@ -59,7 +59,7 @@ esphome:
 
 esp32:
   # Soldered NULA DeepSleep ESP32-S3 (ESP32-S3-WROOM-1-N8R8: 8 MB flash + 8 MB
-  # PSRAM — PSRAM pending verification, see header RISK).
+  # PSRAM — PSRAM confirmed 8 MB).
   board: esp32-s3-devkitc-1
   variant: esp32s3
   flash_size: 8MB

@@ -44,16 +44,15 @@ its idle current, and the pin map in the device YAML header.
       Marketed as ESP32-S3-WROOM-1-N8R8 (8 MB flash + 8 MB PSRAM); vendor deep-sleep claim **7 uA**
       (chip-level; requires all peripherals off + **JP1 open** to cut the WS2812B LED).
       Sources: docs.soldered.com (hardware-details), amazon.nl listing. Measured in P3.1.
-      **!! Open risk:** the same vendor's *overview* doc page lists ESP32-S3FN8 with "8 MB Flash and
-      512 KB SRAM" — i.e. **NO PSRAM**. This project needs ~1.0 MB of frame buffer (7-colour × 10
-      buffers), so PSRAM is mandatory. **Verify on arrival; re-target if absent.**
+      PSRAM **confirmed 8 MB (N8R8)** (user-verified 2026-09-28), so the 7-colour driver's ~1.0 MB
+      of frame buffer fits.
 - [x] Pin map (SPI CLK/MOSI/CS/DC/RST/BUSY + ADC + power) written into the device YAML header.
       **PROVISIONAL**, derived from the NULA pinout v1.0.0; confirm before wiring.
 
 **Resolution (2026-09-28; revised Rev 4):** re-targeted from the Heemol N16R8 DevKitC-1 to the NULA
 DeepSleep — the DevKitC-1 class draws 5-15 mA deep sleep (~8-25 days), the NULA targets ~7 uA.
-`esp32.board: esp32-s3-devkitc-1`, `flash_size: 8MB`, octal PSRAM. **PSRAM presence unconfirmed —
-verify on arrival.** Chosen by user (ask-first).
+`esp32.board: esp32-s3-devkitc-1`, `flash_size: 8MB`, octal PSRAM. PSRAM confirmed 8 MB (N8R8).
+Chosen by user (ask-first).
 
 **Dependencies:** none · **Scope:** XS · **Files:** `config/esphome/epaper-art-frame.yaml`
 (comment header) · **Ask first — user purchase.**

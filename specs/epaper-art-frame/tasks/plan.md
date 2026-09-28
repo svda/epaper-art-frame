@@ -74,9 +74,8 @@ Both are "ask first — user purchase/action" items, recorded as spikes in `todo
 **Decision (P0.2/P0.3, 2026-09-28; revised Rev 4):** the **Soldered NULA DeepSleep ESP32-S3**
 (amazon.nl B0FZDDH33Y) + the existing **3000 mAh LiPo**, charged by the NULA's onboard **TP4056M**
 (no separate module). The NULA targets ~7 µA deep sleep, so the 6-12 month goal is met with margin
-and **no Phase-3 low-quiescent retrofit is needed**. **Open risk:** the vendor's *overview* docs
-contradict the PSRAM claim (they list ESP32-S3FN8 / 512 KB SRAM); the 7-colour driver needs ~1 MB,
-so verify PSRAM on arrival. See `SPEC.md` Power budget (Revision 4) and P3.1.
+and **no Phase-3 low-quiescent retrofit is needed**. PSRAM is **confirmed 8 MB (N8R8)**, so the
+7-colour driver's ~1 MB frame buffer fits. See `SPEC.md` Power budget (Revision 4) and P3.1.
 
 ---
 
@@ -112,7 +111,7 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 | Upstream 5.65in-f driver misbehaves on the physical panel | Medium — invalidates the firmware choice | Phase 0 bench test first; upstream is the reference; fallback is a pinned older ESPHome or Arduino+GxEPD2 |
 | BUSY polarity wrong → wrong idle detection | Low | Upstream 5.65in-f reads BUSY directly (no inversion); a mismatch shows as a timeout / `status_set_warning` in the bench test |
 | ~~Dev-board quiescent current ruins battery life~~ | **Resolved** | Rev 4 re-targets to the NULA DeepSleep (~7 µA deep sleep); P3.1 measures the real figure |
-| NULA PSRAM claim contradicted by vendor docs (may be FN8 / no PSRAM) | **High** — without PSRAM the 7-colour driver cannot run | Verify PSRAM on arrival (P0.2); fallback is the XIAO ESP32S3 (confirmed 8 MB PSRAM) or another board |
+| ~~NULA PSRAM claim unconfirmed~~ | **Resolved** | PSRAM confirmed 8 MB (N8R8) 2026-09-28 |
 | `online_image` decode + 7-colour buffer exceeds RAM | Medium | S3 + PSRAM; verify in Phase 1 using the spike component |
 | WiFi/`online_image` fetch height | Low | 600×448 image is ~tens of KB; matches GxEPD2's WiFi example scale |
 | Clock drift on a bare 24h sleep | Low | Accepted by design (intent); SNTP+nudge is a future refinement |

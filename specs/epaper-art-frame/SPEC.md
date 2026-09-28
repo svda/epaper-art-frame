@@ -140,9 +140,8 @@ listing, so the manifest is required (a bare static server has no listing either
 > for low standby: vendor deep-sleep **~7 µA** (chip-level; requires all peripherals off and **JP1
 > open** to disconnect the WS2812B LED), with an onboard **TP4056M** charger and JST connector. At
 > ~7 µA the runtime is battery-self-discharge bound, so the **6–12 month target is met with large
-> margin** — the Rev-3 "design out the dev-board parasitics" work is no longer needed. **Open
-> risk:** Soldered's own *overview* docs contradict the PSRAM claim (they list ESP32-S3FN8 / 512 KB
-> SRAM, i.e. no PSRAM); verify on arrival, since the 7-colour driver needs ~1 MB of buffer.
+> margin** — the Rev-3 "design out the dev-board parasitics" work is no longer needed. PSRAM is
+> **confirmed 8 MB (N8R8)**, so the 7-colour driver's ~1 MB frame buffer fits.
 
 | Phase | Current (approx.) | Duration/day |
 |---|---|---|
