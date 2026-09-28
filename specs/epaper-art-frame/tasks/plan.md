@@ -71,12 +71,12 @@ Two decisions carry disproportionate power weight and should be made *before* bu
 
 Both are "ask first — user purchase/action" items, recorded as spikes in `todo.md`.
 
-**Decision (P0.2/P0.3, 2026-09-28):** a **Heemol ESP32-S3 N16R8** DevKitC-1-class board + **3000 mAh
-LiPo + TP4056**. Its deep-sleep draw (~5–15 mA, board-dominated) gives only **~8–25 days**, because
-a DevKitC-1 carries an AMS1117 LDO, a CP2102N USB-UART and a power LED that stay powered. The dev
-board is kept for Phases 0–2 (bench work, USB-powered); **Phase 3 must add a low-quiescent power
-stage** (bypass/replace the LDO, drop the UART/LED loads, or move to a bare module) to reach the
-6–12 month goal. See `SPEC.md` Power budget (Revision 3) and P3.1.
+**Decision (P0.2/P0.3, 2026-09-28; revised Rev 4):** the **Soldered NULA DeepSleep ESP32-S3**
+(amazon.nl B0FZDDH33Y) + the existing **3000 mAh LiPo**, charged by the NULA's onboard **TP4056M**
+(no separate module). The NULA targets ~7 µA deep sleep, so the 6-12 month goal is met with margin
+and **no Phase-3 low-quiescent retrofit is needed**. **Open risk:** the vendor's *overview* docs
+contradict the PSRAM claim (they list ESP32-S3FN8 / 512 KB SRAM); the 7-colour driver needs ~1 MB,
+so verify PSRAM on arrival. See `SPEC.md` Power budget (Revision 4) and P3.1.
 
 ---
 
@@ -111,7 +111,8 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 |---|---|---|
 | Upstream 5.65in-f driver misbehaves on the physical panel | Medium — invalidates the firmware choice | Phase 0 bench test first; upstream is the reference; fallback is a pinned older ESPHome or Arduino+GxEPD2 |
 | BUSY polarity wrong → wrong idle detection | Low | Upstream 5.65in-f reads BUSY directly (no inversion); a mismatch shows as a timeout / `status_set_warning` in the bench test |
-| Dev-board quiescent current ruins battery life | **Realised** | P0.2 chose a DevKitC-1-class board: 5-15 mA deep sleep → ~8-25 days on 3000 mAh. Board kept for Phases 0-2; **Phase 3 owns the low-quiescent power stage** (SPEC Rev 3); P3.1 measures it |
+| ~~Dev-board quiescent current ruins battery life~~ | **Resolved** | Rev 4 re-targets to the NULA DeepSleep (~7 µA deep sleep); P3.1 measures the real figure |
+| NULA PSRAM claim contradicted by vendor docs (may be FN8 / no PSRAM) | **High** — without PSRAM the 7-colour driver cannot run | Verify PSRAM on arrival (P0.2); fallback is the XIAO ESP32S3 (confirmed 8 MB PSRAM) or another board |
 | `online_image` decode + 7-colour buffer exceeds RAM | Medium | S3 + PSRAM; verify in Phase 1 using the spike component |
 | WiFi/`online_image` fetch height | Low | 600×448 image is ~tens of KB; matches GxEPD2's WiFi example scale |
 | Clock drift on a bare 24h sleep | Low | Accepted by design (intent); SNTP+nudge is a future refinement |
@@ -122,8 +123,8 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | Which ESP32-S3 board/module (low-quiescent) | P0.2 |
-| Q2 | Battery capacity + charging board | P0.3 |
+| Q1 | Which ESP32-S3 board/module (low-quiescent) | **Resolved P0.2** — NULA DeepSleep ESP32-S3 |
+| Q2 | Battery capacity + charging board | **Resolved P0.3** — 3000 mAh LiPo + NULA onboard TP4056M |
 | Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no) | Confirm in P0.1 |
 | Q4 | On-device quantisation acceptable, or pre-dither now | Phase 2 |
 | Q5 | Wake time of day | Deferred |

@@ -5,33 +5,33 @@
 # Driver: stock ESPHome `waveshare_epaper`, model `5.65in-f` (>= 2026.9.0).
 #         No custom/external component (SPEC Revision 2).
 #
-# PIN MAP  (single source of truth — P0.2)
-#   SPI CLK   -> GPIO12
-#   SPI MOSI  -> GPIO11
-#   EPD CS    -> GPIO10
+# PIN MAP  (single source of truth — P0.2; PROVISIONAL, from NULA pinout v1.0.0)
+#   SPI CLK   -> GPIO12   (FSPICLK)
+#   SPI MOSI  -> GPIO11   (FSPID)
+#   EPD CS    -> GPIO10   (FSPICS0)
 #   EPD DC    -> GPIO9
 #   EPD RST   -> GPIO8
 #   EPD BUSY  -> GPIO7
-#   BAT ADC   -> GPIO4      (P1.1, via on-board divider; ADC1_CH3)
+#   BAT ADC   -> GPIO4    (ADC1_CH3; NULA has NO battery divider -> wire one)
+#   Confirm these against the NULA pinout image / Qwiic I2C pins before wiring.
 #
-# BOARD (P0.2): Heemol ESP32-S3 N16R8 — an ESP32-S3-DevKitC-1 form-factor board
-#   carrying an ESP32-S3-WROOM-1 module, 16 MB flash / 8 MB octal PSRAM.
-#   Deep-sleep quiescent (CITED, not measured): **5-15 mA** for a stock
-#   ESP32-S3-DevKitC-1 class board — the AMS1117-3.3 LDO (~5 mA always-on),
-#   the CP2102N USB-UART bridge (2-5 mA) and the power LED (2-3 mA); the
-#   ESP32-S3 chip itself is ~7 uA (datasheet v1.6 section 4.7).
-#   Source: hubble.com/community/guides/esp32-deep-sleep-current-...
-#   To be measured on the bench in P3.1.
+# BOARD (P0.2, Rev 4): Soldered **NULA DeepSleep ESP32-S3** — amazon.nl
+#   B0FZDDH33Y / soldered.com 333352. Marketed as ESP32-S3-WROOM-1-N8R8
+#   (8 MB flash + 8 MB PSRAM), onboard TP4056M LiPo charger + PCF85063A RTC.
+#   Vendor deep-sleep claim: 7 uA (chip-level; requires all peripherals off and
+#   JP1 OPEN to disconnect the WS2812B LED).
+#   !! OPEN RISK: Soldered's own docs "Overview" page instead lists ESP32-S3FN8,
+#      "8 MB Flash and 512 KB SRAM" (i.e. NO PSRAM). This project REQUIRES PSRAM
+#      (~1.0 MB of 7-colour frame buffers vs 512 KB SRAM). VERIFY PSRAM on
+#      arrival; if absent, re-target. See todo.md P0.2.
+#   Sources: docs.soldered.com (hardware-details, overview); amazon.nl B0FZDDH33Y.
 #
-# POWER & BATTERY (P0.3): 3000 mAh single-cell LiPo + TP4056 charger.
-#   Lifetime re-derived from the P0.2 BOARD quiescent (not the ~7 uA chip spec):
-#     3000 mAh / 15 mA  ~= 200 h  ~= 8 days    (stock DevKitC-1 class, worst)
-#     3000 mAh / 10 mA  ~= 300 h  ~= 12.5 days (typical dev-board figure)
-#     3000 mAh / 5 mA   ~= 600 h  ~= 25 days   (best case, stock)
-#   With the dev-board parasitics designed out (~50-200 uA low-Iq path):
-#     3000 mAh / 0.1 mA ~= 3.4 years.
-#   !! The SPEC's 6-12 month target is NOT met by this board as shipped. To be
-#      measured in P3.1 and resolved in Phase 3 (design out LDO + USB-UART + LED).
+# POWER & BATTERY (P0.3, Rev 4): 3000 mAh single-cell LiPo via the NULA's onboard
+#   JST connector + TP4056M charger (no separate TP4056 module needed).
+#   Lifetime at the vendor 7 uA figure is battery-self-discharge bound (the
+#   daily ~1 min wake is negligible), so the SPEC's 6-12 month target is met
+#   with large margin. P3.1 must MEASURE the real figure — the 7 uA excludes
+#   peripheral/LED leakage — and confirm JP1 is open for the lowest current.
 #
 # P0.1 scope: render a 7-colour test pattern on the bare panel from ESPHome.
 # ============================================================================
@@ -40,7 +40,7 @@ substitutions:
   device_name: epaper-art-frame
   friendly_name: E-Paper Art Frame
 
-  # Pin map — see header. P0.2 replaces the board + confirms these.
+  # Pin map — see header. PROVISIONAL (NULA pinout v1.0.0); confirm before wiring.
   clk_pin: GPIO12
   mosi_pin: GPIO11
   cs_pin: GPIO10
@@ -58,10 +58,11 @@ esphome:
       - component.update: epaper_display
 
 esp32:
-  # Heemol ESP32-S3 N16R8 (DevKitC-1 form factor, ESP32-S3-WROOM-1-N16R8).
+  # Soldered NULA DeepSleep ESP32-S3 (ESP32-S3-WROOM-1-N8R8: 8 MB flash + 8 MB
+  # PSRAM — PSRAM pending verification, see header RISK).
   board: esp32-s3-devkitc-1
   variant: esp32s3
-  flash_size: 16MB
+  flash_size: 8MB
   framework:
     type: esp-idf
 

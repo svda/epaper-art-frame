@@ -40,15 +40,20 @@ its idle current, and the pin map in the device YAML header.
 
 **Acceptance criteria:**
 - [x] One board/module selected, with a cited deep-sleep quiescent figure.
-      — **Heemol ESP32-S3 N16R8** (DevKitC-1 form factor, ESP32-S3-WROOM-1-N16R8,
-      16 MB flash / 8 MB octal PSRAM). Cited quiescent for a stock ESP32-S3-DevKitC-1 class board:
-      **5-15 mA** (AMS1117-3.3 LDO ~5 mA + CP2102N USB-UART 2-5 mA + power LED 2-3 mA; the chip
-      itself is ~7 uA, datasheet v1.6 §4.7). Source: hubble.com ESP32 deep-sleep guide. To be
-      measured in P3.1. **See the battery-life conflict in P0.3.**
+      — **Soldered NULA DeepSleep ESP32-S3** (amazon.nl B0FZDDH33Y / soldered.com 333352).
+      Marketed as ESP32-S3-WROOM-1-N8R8 (8 MB flash + 8 MB PSRAM); vendor deep-sleep claim **7 uA**
+      (chip-level; requires all peripherals off + **JP1 open** to cut the WS2812B LED).
+      Sources: docs.soldered.com (hardware-details), amazon.nl listing. Measured in P3.1.
+      **!! Open risk:** the same vendor's *overview* doc page lists ESP32-S3FN8 with "8 MB Flash and
+      512 KB SRAM" — i.e. **NO PSRAM**. This project needs ~1.0 MB of frame buffer (7-colour × 10
+      buffers), so PSRAM is mandatory. **Verify on arrival; re-target if absent.**
 - [x] Pin map (SPI CLK/MOSI/CS/DC/RST/BUSY + ADC + power) written into the device YAML header.
+      **PROVISIONAL**, derived from the NULA pinout v1.0.0; confirm before wiring.
 
-**Resolution (2026-09-28):** board + pin map recorded in the `epaper-art-frame.yaml` header;
-`esp32.board: esp32-s3-devkitc-1`, `flash_size: 16MB`, octal PSRAM. Chosen by user (ask-first).
+**Resolution (2026-09-28; revised Rev 4):** re-targeted from the Heemol N16R8 DevKitC-1 to the NULA
+DeepSleep — the DevKitC-1 class draws 5-15 mA deep sleep (~8-25 days), the NULA targets ~7 uA.
+`esp32.board: esp32-s3-devkitc-1`, `flash_size: 8MB`, octal PSRAM. **PSRAM presence unconfirmed —
+verify on arrival.** Chosen by user (ask-first).
 
 **Dependencies:** none · **Scope:** XS · **Files:** `config/esphome/epaper-art-frame.yaml`
 (comment header) · **Ask first — user purchase.**
@@ -62,13 +67,14 @@ the SPEC power budget.
 
 **Acceptance criteria:**
 - [x] Battery capacity + charging solution recorded; ~6-12 month estimate re-derived from the
-      chosen board's quiescent current. — **3000 mAh LiPo + TP4056** (user choice). Re-derived from
-      the P0.2 board quiescent (5-15 mA, *not* the chip's ~7 uA): **~8-25 days** (10 mA → ~12.5
-      days). The 6-12 month estimate holds only with the dev-board parasitics removed
-      (low-Iq path ~50-200 uA → ~3.4 years). **Recorded as a conflict; see Checkpoint A / P3.1.**
+      chosen board's quiescent current. — **3000 mAh single-cell LiPo**, charged by the NULA's
+      onboard **TP4056M** (a separate TP4056 module is no longer needed). At the vendor 7 uA figure
+      the runtime is battery-self-discharge bound, so the **6-12 month target is met with margin**;
+      even at a measured 200 uA it is ~1.7 years. P3.1 measures the real figure (7 uA excludes
+      peripheral/LED leakage) and confirms JP1 is open.
 
-**Resolution (2026-09-28):** recorded in the `epaper-art-frame.yaml` header. Ask-first purchase
-approved by user.
+**Resolution (2026-09-28; revised Rev 4):** recorded in the `epaper-art-frame.yaml` header.
+Ask-first purchase approved by user (amazon.nl B0FZDDH33Y).
 
 **Dependencies:** P0.2 · **Scope:** XS · **Files:** `config/esphome/epaper-art-frame.yaml`
 (comment header) · **Ask first — user purchase.**
@@ -210,16 +216,15 @@ manifest generator.
 
 ## Phase 3 — Battery & acceptance
 
-### P3.1: Battery integration + low-quiescent power stage + measurement
-**Description:** Wire the battery/charger from P0.3 (or onboard charger); measure actual deep-sleep
-and wake current. Because the P0.2 dev board draws 5-15 mA asleep (LDO + USB-UART + LED), this task
-must also **design out the board parasitics** — bypass/replace the AMS1117 LDO, remove the
-USB-UART/power-LED loads, or move to a bare ESP32-S3-WROOM-1 + low-Iq regulator — to reach the
-SPEC's 6-12 month target (SPEC Rev 3).
+### P3.1: Battery integration + deep-sleep measurement
+**Description:** Wire the 3000 mAh LiPo to the NULA's JST connector (onboard TP4056M charger) and
+measure actual deep-sleep and wake current. **Open JP1** to disconnect the WS2812B LED. The panel
+refresh dominates wake energy, so the deep-sleep figure sets battery life; confirm it is close to
+the vendor's 7 uA.
 
 **Acceptance criteria:**
-- [ ] Measured deep-sleep current recorded; actual lifetime estimate computed from measurement.
-- [ ] Low-quiescent power stage in place OR a documented decision to accept the dev-board figure.
+- [ ] Measured deep-sleep current recorded (JP1 open); lifetime estimate computed from it.
+- [ ] Measured figure consistent with the SPEC's 6-12 month target (or variance documented).
 
 **Verification:**
 - [ ] Multimeter (or coulomb counter) idle reading; extrapolated months figure.

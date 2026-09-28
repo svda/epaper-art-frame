@@ -29,9 +29,9 @@ configuration.
 | Property | Value |
 |---|---|
 | Display | Waveshare 5.65" 7-colour ACeP, 600×448 (4-wire SPI) |
-| Microcontroller | ESP32-S3 (with PSRAM) |
+| Microcontroller | ESP32-S3 (Soldered NULA DeepSleep, 8 MB flash + 8 MB PSRAM) |
 | Firmware | ESPHome ≥ 2026.9.0 (stock `waveshare_epaper`, `model: 5.65in-f`) |
-| Power | Single-cell LiPo (3.7 V) via low-quiescent regulator; TP4056 charger |
+| Power | Single-cell LiPo (3.7 V) → Soldered NULA DeepSleep (onboard TP4056M charger + JST) |
 | Wake cycle | ~24 h sleep, ~1 min awake (drift tolerated) |
 | Image source | Home Assistant `www/epaper/` served over plain HTTP (`/local/epaper/...`) |
 | Selection | `manifest.json` lists images; device cycles round-robin across wakes |
@@ -135,30 +135,27 @@ listing, so the manifest is required (a bare static server has no listing either
 
 ## Power budget
 
-> **Revision 3 (2026-09-28).** P0.2/P0.3 chose a **Heemol ESP32-S3 N16R8** (ESP32-S3-DevKitC-1
-> class) and a **3000 mAh LiPo**. That board's deep-sleep draw is **5–15 mA** (AMS1117 LDO ~5 mA +
-> CP2102N USB-UART 2–5 mA + power LED 2–3 mA; the chip alone is ~7 µA) — i.e. **~8–25 days**, not
-> the 6–12 months originally assumed. The board is retained for **Phases 0–2** (bench + firmware
-> bring-up, USB-powered); **Phase 3 owns the low-quiescent power stage** — design out/bypass the
-> LDO and UART bridge, remove the power LED, and/or move to a bare ESP32-S3-WROOM-1 + low-Iq
-> regulator. The 6–12 month target applies to the **final, low-quiescent build**, not the dev
-> board.
+> **Revision 4 (2026-09-28).** P0.2/P0.3 re-targeted from the Heemol DevKitC-1 to the **Soldered
+> NULA DeepSleep ESP32-S3** (amazon.nl B0FZDDH33Y) + the **3000 mAh LiPo**. The NULA is purpose-built
+> for low standby: vendor deep-sleep **~7 µA** (chip-level; requires all peripherals off and **JP1
+> open** to disconnect the WS2812B LED), with an onboard **TP4056M** charger and JST connector. At
+> ~7 µA the runtime is battery-self-discharge bound, so the **6–12 month target is met with large
+> margin** — the Rev-3 "design out the dev-board parasitics" work is no longer needed. **Open
+> risk:** Soldered's own *overview* docs contradict the PSRAM claim (they list ESP32-S3FN8 / 512 KB
+> SRAM, i.e. no PSRAM); verify on arrival, since the 7-colour driver needs ~1 MB of buffer.
 
 | Phase | Current (approx.) | Duration/day |
 |---|---|---|
-| Deep sleep (chip alone) | ~7 µA | ~23 h 59 m |
-| Deep sleep (stock DevKitC-1 board) | **5–15 mA** | ~23 h 59 m |
-| Deep sleep (low-Iq power stage) | ~50–200 µA | ~23 h 59 m |
+| Deep sleep (NULA, vendor) | **~7 µA** | ~23 h 59 m |
+| Deep sleep (LED connected / peripherals on) | tens of µA | ~23 h 59 m |
 | Wake: WiFi connect + fetch | ~80–120 mA | ~3–5 s |
 | Wake: e-paper refresh | ~30–60 mA | ~12–15 s |
 
-- **The dominant idle cost is the board, not the chip.** Most ESP32-S3 dev boards carry a USB-UART
-  bridge + LDO (and often a power LED) that draw milliamps even in deep sleep. This dwarfs the
-  chip's ~7 µA and must be designed out in Phase 3 (bare module + low-quiescent LDO, or a board
-  with a proven sleep design).
-- **Battery sizing:** at 3000 mAh — **stock board ~8–25 days** (≈12.5 days at 10 mA); a low-Iq
-  power stage reaches **~1.7–3.4 years** (50–200 µA). The 6–12 month goal sits between these and
-  is met by a partially-optimised power stage.
+- **The NULA is designed for this.** Unlike a DevKitC-1-class board (5–15 mA asleep), the NULA
+  targets the ESP32-S3 chip's ~7 µA by avoiding always-on USB-UART/LDO/LED loads; open JP1 to cut
+  the WS2812B.
+- **Battery sizing:** 3000 mAh at ~7 µA is self-discharge bound (years); even at a measured 200 µA
+  it is ~1.7 years. The 6–12 month goal has margin. P3.1 measures the real figure.
 
 ---
 
@@ -166,8 +163,8 @@ listing, so the manifest is required (a bare static server has no listing either
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | Phase 0 (hardware selection) |
-| Q2 | Battery capacity + connector/charging board | Phase 0 (hardware selection) |
+| Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | **Resolved P0.2** — NULA DeepSleep ESP32-S3 |
+| Q2 | Battery capacity + connector/charging board | **Resolved P0.3** — 3000 mAh LiPo + NULA onboard TP4056M |
 | Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no inversion flag) | Bench confirm in P0.1 |
 | Q4 | On-device quantisation quality acceptable, or pre-dither now | Phase 3 (image pipeline) |
 | Q5 | Wake time of day (drift accepted in v1) | Deferred — config choice |
@@ -187,6 +184,6 @@ listing, so the manifest is required (a bare static server has no listing either
 | Risk | Impact | Mitigation |
 |---|---|---|
 | ~~Custom component can't drive the panel correctly~~ *(removed in Rev 2 — upstream `5.65in-f` ships the driver)* | — | — |
-| Board quiescent current kills battery life | High | Design for sleep; choose board/module explicitly for it (Q1) |
+| ~~Board quiescent current kills battery life~~ *(resolved Rev 4 — NULA DeepSleep ~7 µA)* | — | P3.1 measures the real figure |
 | `online_image` + custom display memory layout mismatch | Medium | S3 + PSRAM; verify in Phase 1 with the spike output |
 | Manifest drifts out of sync with folder | Low | Generator script is the only writer; document it |
