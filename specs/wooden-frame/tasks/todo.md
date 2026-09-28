@@ -9,10 +9,10 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 ## Phase 1 — Measure & design
 
 ### F1.1: Measure the panel, electronics and leads; map the flying leads
-> **Status (2026-09-28):** recording worksheet created at
-> [`../drawings/cut-list.md`](../drawings/cut-list.md) (§1 measurements, §2 lead map, §3 USB-C).
-> **Blocked on your physical caliper readings + a photo of the lead bundle** — tick the criteria
-> below once §1–§3 are filled in.
+> **Status:** worksheet at [`../drawings/cut-list.md`](../drawings/cut-list.md). Module outline
+> measured **139.5 × 101.0 mm** (datasheet 138.5 × 100.5 was ~1 mm tight). Still needed: `PO_W/PO_H`,
+> `AW/AH`, `PT`, the `RD` stack mock-up, battery dims, the **lead map** (§2) and USB-C orientation
+> (§3). Tick the criteria once §1–§3 are complete.
 
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
 (`PT`), the panel's active area, and the rear stack (`RD`: NULA + LiPo + lead breakout + connector +
@@ -22,7 +22,8 @@ against the `epaper-art-frame` ESPHome `display` pin map. Flag any lead that is 
 rather than logic.
 
 **Acceptance criteria:**
-- [ ] All symbols (`PO_W`, `PO_H`, `PT`, `RD`) measured and recorded in `drawings/cut-list.md`.
+- [ ] All symbols (`MO_W`, `MO_H`, `PO_W`, `PO_H`, `AW`, `AH`, `PT`, `RD`, battery) measured and
+      recorded in `drawings/cut-list.md`. **Module outline done: 139.5 × 101.0 mm.**
 - [ ] Lead colour → signal map recorded; any non-logic (power-rail) lead identified.
 - [ ] Rear-stack mock-up photographed and its measured depth documented.
 - [ ] USB-C port orientation (which edge it faces) recorded (Q6).

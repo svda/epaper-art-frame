@@ -14,8 +14,8 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 
 | Symbol | Meaning | Measured (mm) | Photo ref |
 |---|---|---|---|
-| `MO_W` | **Module (F) outline width** — panel + onboard driver PCB (**true footprint**) | | |
-| `MO_H` | **Module (F) outline height** | | |
+| `MO_W` | **Module (F) outline width** — panel + onboard driver PCB (**true footprint**) | **139.5** | manual |
+| `MO_H` | **Module (F) outline height** | **101.0** | manual |
 | `PO_W` | Panel outline width (glass edge, smaller than module) | | |
 | `PO_H` | Panel outline height | | |
 | `AW` | Active / visible area width | | |
@@ -29,7 +29,11 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 Notes / anything unexpected:
 
 ```
-<record observations here>
+Module outline measured 139.5 x 101.0 mm (user, manual). Waveshare lists 138.5 x 100.5 mm,
+so the datasheet is ~1.0 mm tight in width and ~0.5 mm in height. Measure-first validated:
+these measured values, not the catalogue, drive the rebate/cavity.
+ASSUMPTION to confirm: the 139.5 x 101.0 is the panel + PCB outline only, NOT including the
+exposed FPC/header or any protective film. If a film/connector protrudes, note it separately.
 ```
 
 ---
@@ -80,7 +84,7 @@ frame outer      = opening + 2F, and ≥ MO + 2×margin
 | Reveal `R` (design 3–5 mm) | chosen | |
 | Frame face width `F` (design 35–45 mm) | chosen | |
 | Front opening W × H | `PO − 2R` | × |
-| Rebate / inner W × H | `MO + 2` | × |
+| Rebate / inner W × H | `MO + 2` | **141.5 × 103.0** (from measured MO) |
 | Rebate depth | `PT + 0.5` | |
 | Cavity depth | `RD + 3` | |
 | Frame outer W × H | `opening + 2F` | × |
@@ -115,5 +119,6 @@ Nesting plan (sketch which member is cut where on the board):
 
 For a rough cross-check only, Waveshare lists the **Module (F)** as: **active area 114.9 × 85.8 mm**,
 **panel outline 125.4 × 99.5 × 0.91 mm**, **module outline 138.5 × 100.5 mm** (the module is ~13 mm
-wider than the panel because of its PCB tab). If your caliper reading is wildly different,
+wider than the panel because of its PCB tab). **The measured module was 139.5 × 101.0 mm — the
+datasheet is ~1 mm tight, so trust the calipers.** If your reading is wildly different from §1,
 re-measure before proceeding. **Cut to §1, never to this paragraph.**

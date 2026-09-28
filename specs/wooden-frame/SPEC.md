@@ -61,7 +61,7 @@ catalogues.** All frame dimensions are *derived* from measured values:
 
 | Symbol | Meaning | Source |
 |---|---|---|
-| `MO_W × MO_H` | **Module (F) outline** — panel + onboard driver PCB (**the true footprint**) | measured; Waveshare ref **138.5 × 100.5 mm** |
+| `MO_W × MO_H` | **Module (F) outline** — panel + onboard driver PCB (**the true footprint**) | measured: **139.5 × 101.0 mm** (Waveshare ref 138.5 × 100.5 — ~1 mm tight) |
 | `PO_W × PO_H` | Panel outline (glass edge), **smaller** than the module | measured; ref **125.4 × 99.5 mm** |
 | `AW × AH` | Active / visible area | measured; ref **114.9 × 85.8 mm** |
 | `PT` | Module thickness (panel ~0.91 mm + PCB + FPC connector/header) | measured |
@@ -83,8 +83,9 @@ frame outer        = opening + 2F, and ≥ MO + 2×margin   (F must clear the mo
 before cutting and give that side a wider member / more clearance.
 
 **Reference (to be verified, not assumed):** Waveshare lists **active area 114.9 × 85.8 mm**,
-**panel outline 125.4 × 99.5 × 0.91 mm**, and **Module (F) outline 138.5 × 100.5 mm**. Confirm all
-with calipers. **Do not cut to catalogue numbers — cut to the measured module.**
+**panel outline 125.4 × 99.5 × 0.91 mm**, **Module (F) outline 138.5 × 100.5 mm**. The module
+measured **139.5 × 101.0 mm** — the datasheet is ~1 mm tight, which is exactly why this spec is
+measure-first. Confirm everything with calipers; **do not cut to catalogue numbers.**
 
 ---
 
