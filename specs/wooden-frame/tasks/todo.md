@@ -10,10 +10,10 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 
 ### F1.1: Measure the panel, electronics and leads; map the flying leads
 > **Status:** worksheet at [`../drawings/cut-list.md`](../drawings/cut-list.md). Measured so far:
-> module outline **139.5 × 101.0 mm** (datasheet ~1 mm tight), panel outline **125.0 × 100.0 mm**.
-> Still needed: `AW/AH`, `PT`, the `RD` stack mock-up, battery dims, the header protrusion
-> edge/`HD_proj`, the **lead map** (§2) and USB-C orientation (§3). Tick the criteria once
-> §1–§3 are complete.
+> module **139.5 × 101.0**, panel **125.0 × 100.0**, active **115.0 × 85.0** mm (all close to the
+> datasheet except the module, ~1 mm tight). Still needed: `PT`, the `RD` stack mock-up, battery
+> dims, the header protrusion edge/`HD_proj`, the **lead map** (§2) and USB-C orientation (§3).
+> Tick the criteria once §1–§3 are complete.
 
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
 (`PT`), the panel's active area, and the rear stack (`RD`: NULA + LiPo + lead breakout + connector +
@@ -24,7 +24,8 @@ rather than logic.
 
 **Acceptance criteria:**
 - [ ] All symbols (`MO_W`, `MO_H`, `PO_W`, `PO_H`, `AW`, `AH`, `PT`, `RD`, battery) measured and
-      recorded in `drawings/cut-list.md`. **Done: module 139.5 × 101.0, panel 125.0 × 100.0.**
+      recorded in `drawings/cut-list.md`. **Done: module 139.5 × 101.0, panel 125.0 × 100.0,
+      active 115.0 × 85.0.**
 - [ ] Lead colour → signal map recorded; any non-logic (power-rail) lead identified.
 - [ ] Rear-stack mock-up photographed and its measured depth documented.
 - [ ] USB-C port orientation (which edge it faces) recorded (Q6).

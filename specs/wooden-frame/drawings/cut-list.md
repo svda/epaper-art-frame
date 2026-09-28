@@ -23,8 +23,8 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 | `ED` | Overall envelope **depth** incl. header (if it protrudes off the back) | | |
 | `PO_W` | Panel outline width (glass edge, smaller than module) | **125.0** | manual |
 | `PO_H` | Panel outline height | **100.0** | manual |
-| `AW` | Active / visible area width | | |
-| `AH` | Active / visible area height | | |
+| `AW` | Active / visible area width | **115.0** | manual |
+| `AH` | Active / visible area height | **85.0** | manual |
 | `PT` | Module thickness (panel + PCB + FPC connector/header) | | |
 | `RD` | Rear stack depth — **mock up** NULA + LiPo + module PCB/header + wiring + a service loop, measure the total | | |
 | `BW` | LiPo width | | |
@@ -45,9 +45,10 @@ Panel outline (PO) measured 125.0 x 100.0 mm - close to the datasheet 125.4 x 99
   -> Module is ~14.5 mm WIDER than the panel (139.5 vs 125.0): the PCB tab is on the WIDTH.
   -> Panels and modules agree in height (101 vs 100).
 
-REVEAL BUDGET: the frame's reveal R overlaps the panel border, NOT the image. The border is
-approximately (PO - AW)/2. With AW ~114.9 x 85.8:  border ~5.0 mm (W) and ~7.1 mm (H).
-  -> Keep R <= ~5 mm or the front face clips the active area (confirm with the AW measurement).
+REVEAL BUDGET (measured): border = (PO - AW)/2
+   horizontal = (125.0 - 115.0)/2 = 5.0 mm;  vertical = (100.0 - 85.0)/2 = 7.5 mm
+  -> R must be <= 5.0 mm on the width, or the front face clips the image.
+  -> RECOMMEND R = 4 mm (1 mm margin) -> front opening 117 x 92 mm.
 ```
 
 ---
@@ -95,7 +96,7 @@ frame outer      = opening + 2F, and ≥ EW + 2×margin
 
 | Derived | Formula | Value (mm) |
 |---|---|---|
-| Reveal `R` (design 3–5 mm) | chosen | |
+| Reveal `R` (design 3–5 mm) | chosen; **recommend 4 mm** (border is 5.0 mm W) | |
 | Frame face width `F` (design 35–45 mm) | chosen | |
 | Front opening W × H | `PO − 2R` | R=3 → **119 × 94**; R=4 → **117 × 92**; R=5 → **115 × 90** |
 | Rebate / inner W × H | `EW + 2` | × (needs `EW`/`EH`) |
