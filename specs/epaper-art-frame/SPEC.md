@@ -190,5 +190,6 @@ listing, so the manifest is required (a bare static server has no listing either
 |---|---|---|
 | ~~Custom component can't drive the panel correctly~~ *(removed in Rev 2 — upstream `5.65in-f` ships the driver)* | — | — |
 | ~~Board quiescent current kills battery life~~ *(resolved Rev 4 — NULA DeepSleep ~7 µA)* | — | P3.1 measures the real figure |
+| ESP32-S3 DIO flash default + octal PSRAM → boot crash | **High** — device won't boot | Set `esp32.flash_mode: qio` (WROOM-1 R8 = Quad flash + Octal PSRAM). Bench-verified: DIO crashed in `esp_psram_extram_test`; QIO boots with PSRAM OK |
 | `online_image` + custom display memory layout mismatch | Medium | S3 + PSRAM; verify in Phase 1 with the spike output |
 | Manifest drifts out of sync with folder | Low | Generator script is the only writer; document it |

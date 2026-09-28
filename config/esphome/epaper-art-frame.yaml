@@ -63,6 +63,10 @@ esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
   flash_size: 8MB
+  # WROOM-1 N8R8 = Quad flash + Octal PSRAM -> QIO flash. The DIO default
+  # crashed in esp_psram_extram_test at boot (verified on the Heemol N16R8 bench
+  # board, same silicon family); QIO fixes it.
+  flash_mode: qio
   framework:
     type: esp-idf
 

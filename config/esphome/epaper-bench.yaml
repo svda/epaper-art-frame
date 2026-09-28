@@ -1,0 +1,86 @@
+# ============================================================================
+# Bench test — Waveshare 5.65" Module (F) on a Heemol ESP32-S3 N16R8
+# ============================================================================
+# NOT the device config. Throwaway bench harness to validate the panel and the
+# stock `waveshare_epaper` 5.65in-f driver — i.e. P0.1's deferred acceptance
+# (test pattern renders + BUSY polarity). No wifi/api/ota.
+#
+# WIRING (module header -> Heemol):
+#   VCC -> 3V3    GND  -> GND
+#   DIN -> GPIO11 (MOSI)   CLK -> GPIO12 (SCK)
+#   CS  -> GPIO10   DC -> GPIO9   RST -> GPIO8   BUSY -> GPIO7
+#
+# Power the module VCC at 3.3 V (not 5 V). 4-wire SPI is write-only: no MISO.
+# ============================================================================
+
+esphome:
+  name: epaper-bench
+  on_boot:
+    priority: 600
+    then:
+      - delay: 2s
+      - component.update: epaper_display
+
+esp32:
+  # Heemol ESP32-S3 N16R8 (DevKitC-1 form factor, ESP32-S3-WROOM-1-N16R8).
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  # N16R8 = Quad flash + Octal PSRAM -> QIO flash (not the DIO default).
+  flash_mode: qio
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+spi:
+  clk_pin: GPIO12
+  mosi_pin: GPIO11
+
+display:
+  - platform: waveshare_epaper
+    id: epaper_display
+    model: 5.65in-f
+    cs_pin: GPIO10
+    dc_pin: GPIO9
+    reset_pin: GPIO8
+    busy_pin: GPIO7
+    # Rendered once from on_boot for the bench test.
+    update_interval: never
+    lambda: |-
+      const int W = 600;
+      const int H = 448;
+
+      // 7 ACeP565 colours, ordered to exercise every colour code in
+      // waveshare_epaper's 7-colour path (0x0..0x6).
+      const Color bars[7] = {
+        Color(0, 0, 0),        // 0x0 black
+        Color(0, 0, 255),      // 0x3 blue
+        Color(0, 255, 0),      // 0x2 green
+        Color(255, 255, 0),    // 0x5 yellow
+        Color(255, 128, 0),    // 0x6 orange
+        Color(255, 0, 0),      // 0x4 red
+        Color(255, 255, 255),  // 0x1 white
+      };
+
+      it.fill(Color(255, 255, 255));
+
+      // 7 vertical colour bars.
+      const int bar_w = W / 7;
+      for (int i = 0; i < 7; i++) {
+        it.filled_rectangle(i * bar_w, 60, bar_w, 328, bars[i]);
+      }
+
+      // Geometry marks: full border, corner blocks, both diagonals.
+      it.rectangle(0, 0, W, H, Color(0, 0, 0));
+      it.filled_rectangle(0, 0, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(W - 24, 0, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(0, H - 24, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(W - 24, H - 24, 24, 24, Color(0, 0, 0));
+      it.line(0, 0, W - 1, H - 1, Color(0, 0, 0));
+      it.line(W - 1, 0, 0, H - 1, Color(0, 0, 0));

@@ -9,6 +9,15 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 ## Phase 0 — De-risk (spike)
 
 ### P0.1: Bench test — stock `waveshare_epaper` `5.65in-f` drives the panel
+> **Bench progress (2026-09-28, Heemol N16R8):**
+> - **Fixed a boot-blocker:** the default DIO flash mode crashed in
+>   `esp_psram_extram_test` at boot (flash cache corruption) with octal PSRAM. Setting
+>   `esp32.flash_mode: qio` (WROOM-1 R8 = Quad flash + Octal PSRAM) fixes it — PSRAM now reports
+>   `Available: YES, Size: 8192 KB` and the display initializes. Applied to both the bench and
+>   device configs.
+> - **Open:** `Timeout while displaying image!` (35 s BUSY timeout) — the panel's BUSY line stays
+>   HIGH, so the render never completes. Wiring/power/BUSY on the panel side under investigation.
+
 **Description:** Author the device YAML stub that renders a 7-colour test pattern on the Waveshare
 5.65" ACeP panel using ESPHome's built-in `waveshare_epaper` driver with `model: 5.65in-f`
 (≥ 2026.9.0). Config: `esp32` (S3 + PSRAM), `spi`, the `display` with `cs/dc/reset/busy` pins, and
