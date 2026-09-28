@@ -15,8 +15,11 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 >   `esp32.flash_mode: qio` (WROOM-1 R8 = Quad flash + Octal PSRAM) fixes it — PSRAM now reports
 >   `Available: YES, Size: 8192 KB` and the display initializes. Applied to both the bench and
 >   device configs.
-> - **Open:** `Timeout while displaying image!` (35 s BUSY timeout) — the panel's BUSY line stays
->   HIGH, so the render never completes. Wiring/power/BUSY on the panel side under investigation.
+> - **Open:** `Timeout while displaying image!` (35 s BUSY timeout). A 100 ms BUSY probe shows
+>   **GPIO7 stuck HIGH from boot** — it never idles and never pulses, and a blind refresh
+>   (`busy_pin` omitted) completes without the wait but BUSY stays high. So the panel is not
+>   responding at all → panel-side power/wiring (VCC / GND / BUSY), to be confirmed physically.
+>   ESPHome side verified: QIO boot, PSRAM 8 MB, pins CLK12/MOSI11/CS10/DC9/RST8/BUSY7, SPI 2 MHz.
 
 **Description:** Author the device YAML stub that renders a 7-colour test pattern on the Waveshare
 5.65" ACeP panel using ESPHome's built-in `waveshare_epaper` driver with `model: 5.65in-f`
