@@ -109,7 +109,7 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Upstream 5.65in-f driver misbehaves on the physical panel | Medium — invalidates the firmware choice | Phase 0 bench test first; upstream is the reference; fallback is a pinned older ESPHome or Arduino+GxEPD2 |
-| BUSY polarity wrong → wrong idle detection | Low | Upstream 5.65in-f reads BUSY directly (no inversion); a mismatch shows as a timeout / `status_set_warning` in the bench test |
+| BUSY polarity — **realised & fixed** | — | This panel's BUSY is active-LOW: set `busy_pin: {number: ..., inverted: true}`. Bench-verified 2026-09-28 (no inversion → 35 s timeout) |
 | ~~Dev-board quiescent current ruins battery life~~ | **Resolved** | Rev 4 re-targets to the NULA DeepSleep (~7 µA deep sleep); P3.1 measures the real figure |
 | ~~NULA PSRAM claim unconfirmed~~ | **Resolved** | PSRAM confirmed 8 MB (N8R8) 2026-09-28 |
 | `online_image` decode + 7-colour buffer exceeds RAM | Medium | S3 + PSRAM; verify in Phase 1 using the spike component |
@@ -124,7 +124,7 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 |---|---|---|
 | Q1 | Which ESP32-S3 board/module (low-quiescent) | **Resolved P0.2** — NULA DeepSleep ESP32-S3 |
 | Q2 | Battery capacity + charging board | **Resolved P0.3** — 3000 mAh LiPo + NULA onboard TP4056M |
-| Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no) | Confirm in P0.1 |
+| Q3 | ACeP565 BUSY inversion needed? — **YES, required** | **Resolved** — bench 2026-09-28 |
 | Q4 | On-device quantisation acceptable, or pre-dither now | Phase 2 |
 | Q5 | Wake time of day | Deferred |
 

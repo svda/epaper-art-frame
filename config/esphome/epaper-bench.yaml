@@ -49,7 +49,11 @@ display:
     cs_pin: GPIO10
     dc_pin: GPIO9
     reset_pin: GPIO8
-    busy_pin: GPIO7
+    # BUSY test: the panel's BUSY reads HIGH constantly, and ESPHome waits for it
+    # to go LOW (IDLE). Try the inverted read to test active-high-idle polarity.
+    busy_pin:
+      number: GPIO7
+      inverted: true
     # Rendered once from on_boot for the bench test.
     update_interval: never
     lambda: |-

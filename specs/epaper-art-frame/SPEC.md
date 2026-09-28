@@ -89,9 +89,9 @@ CDI/TCON/TRES/PWS), a 35 s idle timeout, and refresh/power-off/deep-sleep sequen
   coloured jumper wires. Map each wire to the ESPHome `display` pins before wiring, and strain-relieve
   the bundle. The module outline (**138.5 × 100.5 mm**) is larger than the panel (125.4 × 99.5 mm);
   physical routing/retention is owned by [`../wooden-frame/SPEC.md`](../wooden-frame/SPEC.md).
-- **BUSY polarity (Q3) resolved.** Upstream polls the BUSY pin directly via `wait_until_(IDLE/BUSY)`
-  with no inversion flag, so no `inverted:` option is required. Confirm on the bench that the panel
-  reaches IDLE (a wrong polarity surfaces as a timeout / `status_set_warning`).
+- **BUSY polarity (Q3) — RESOLVED: inversion REQUIRED.** Bench-verified 2026-09-28 (Heemol N16R8):
+  this panel's BUSY is **active-LOW**, so the display's `busy_pin` must be configured with
+  `inverted: true`. Without it the driver times out (35 s) waiting for IDLE and never renders.
 - **Pin the ESPHome version** to a release containing `5.65in-f` (≥ 2026.9.0).
 
 **Exit criteria:** a known test pattern renders 7 colours with correct geometry and no corruption,
@@ -169,7 +169,7 @@ listing, so the manifest is required (a bare static server has no listing either
 |---|---|---|
 | Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | **Resolved P0.2** — NULA DeepSleep ESP32-S3 |
 | Q2 | Battery capacity + connector/charging board | **Resolved P0.3** — 3000 mAh LiPo + NULA onboard TP4056M |
-| Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no inversion flag) | Bench confirm in P0.1 |
+| Q3 | ACeP565 BUSY inversion needed? — **YES, required** (`inverted: true`) | **Resolved** — bench-confirmed 2026-09-28 |
 | Q4 | On-device quantisation quality acceptable, or pre-dither now | Phase 3 (image pipeline) |
 | Q5 | Wake time of day (drift accepted in v1) | Deferred — config choice |
 

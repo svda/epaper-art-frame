@@ -1,0 +1,80 @@
+# ============================================================================
+# DIAGNOSTIC — is the panel's BUSY line driven, and does it render without it?
+# ============================================================================
+# Not a deliverable. Two probes at once:
+#   1. binary_sensor + interval: logs GPIO7 (BUSY) level every second, so we can
+#      see whether BUSY is driven/toggling or stuck/floating.
+#   2. display has NO busy_pin -> ESPHome skips the BUSY wait entirely and just
+#      pushes the image + refresh. If the panel renders now, the SPI/power path
+#      is fine and only the BUSY line is the problem.
+# ============================================================================
+
+esphome:
+  name: epaper-diag
+  on_boot:
+    priority: 600
+    then:
+      - delay: 3s
+      - component.update: epaper_display
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  flash_mode: qio
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+spi:
+  clk_pin: GPIO12
+  mosi_pin: GPIO11
+
+# Probe: read the BUSY line (GPIO7) that the display would normally use.
+binary_sensor:
+  - platform: gpio
+    id: busy_sense
+    name: "EPD BUSY GPIO7"
+    pin:
+      number: GPIO7
+      mode: INPUT
+
+interval:
+  - interval: 100ms
+    then:
+      - lambda: 'ESP_LOGI("diag", "BUSY(GPIO7)=%d", id(busy_sense).state);'
+
+display:
+  - platform: waveshare_epaper
+    id: epaper_display
+    model: 5.65in-f
+    cs_pin: GPIO10
+    dc_pin: GPIO9
+    reset_pin: GPIO8
+    # busy_pin intentionally OMITTED: driver does not wait for BUSY.
+    update_interval: never
+    lambda: |-
+      const int W = 600;
+      const int H = 448;
+      const Color bars[7] = {
+        Color(0, 0, 0), Color(0, 0, 255), Color(0, 255, 0), Color(255, 255, 0),
+        Color(255, 128, 0), Color(255, 0, 0), Color(255, 255, 255),
+      };
+      it.fill(Color(255, 255, 255));
+      const int bar_w = W / 7;
+      for (int i = 0; i < 7; i++) {
+        it.filled_rectangle(i * bar_w, 60, bar_w, 328, bars[i]);
+      }
+      it.rectangle(0, 0, W, H, Color(0, 0, 0));
+      it.filled_rectangle(0, 0, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(W - 24, 0, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(0, H - 24, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(W - 24, H - 24, 24, 24, Color(0, 0, 0));
+      it.line(0, 0, W - 1, H - 1, Color(0, 0, 0));
+      it.line(W - 1, 0, 0, H - 1, Color(0, 0, 0));

@@ -99,7 +99,12 @@ display:
     cs_pin: ${cs_pin}
     dc_pin: ${dc_pin}
     reset_pin: ${reset_pin}
-    busy_pin: ${busy_pin}
+    # Q3 RESOLVED (bench 2026-09-28): this panel's BUSY is active-LOW — ESPHome
+    # must invert it. Without inversion the driver times out waiting for IDLE
+    # (35 s) and never renders.
+    busy_pin:
+      number: ${busy_pin}
+      inverted: true
     # Rendered once from on_boot for the P0.1 bench test.
     update_interval: never
     lambda: |-
