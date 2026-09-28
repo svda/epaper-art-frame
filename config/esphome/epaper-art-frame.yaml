@@ -23,6 +23,16 @@
 #   Source: hubble.com/community/guides/esp32-deep-sleep-current-...
 #   To be measured on the bench in P3.1.
 #
+# POWER & BATTERY (P0.3): 3000 mAh single-cell LiPo + TP4056 charger.
+#   Lifetime re-derived from the P0.2 BOARD quiescent (not the ~7 uA chip spec):
+#     3000 mAh / 15 mA  ~= 200 h  ~= 8 days    (stock DevKitC-1 class, worst)
+#     3000 mAh / 10 mA  ~= 300 h  ~= 12.5 days (typical dev-board figure)
+#     3000 mAh / 5 mA   ~= 600 h  ~= 25 days   (best case, stock)
+#   With the dev-board parasitics designed out (~50-200 uA low-Iq path):
+#     3000 mAh / 0.1 mA ~= 3.4 years.
+#   !! The SPEC's 6-12 month target is NOT met by this board as shipped. To be
+#      measured in P3.1 and resolved in Phase 3 (design out LDO + USB-UART + LED).
+#
 # P0.1 scope: render a 7-colour test pattern on the bare panel from ESPHome.
 # ============================================================================
 

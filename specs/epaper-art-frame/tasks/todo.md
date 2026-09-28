@@ -61,8 +61,14 @@ regulator, plus TP4056 or the board's onboard charger. Record capacity and expec
 the SPEC power budget.
 
 **Acceptance criteria:**
-- [ ] Battery capacity + charging solution recorded; ~6–12 month estimate re-derived from the
-      chosen board's quiescent current.
+- [x] Battery capacity + charging solution recorded; ~6-12 month estimate re-derived from the
+      chosen board's quiescent current. — **3000 mAh LiPo + TP4056** (user choice). Re-derived from
+      the P0.2 board quiescent (5-15 mA, *not* the chip's ~7 uA): **~8-25 days** (10 mA → ~12.5
+      days). The 6-12 month estimate holds only with the dev-board parasitics removed
+      (low-Iq path ~50-200 uA → ~3.4 years). **Recorded as a conflict; see Checkpoint A / P3.1.**
+
+**Resolution (2026-09-28):** recorded in the `epaper-art-frame.yaml` header. Ask-first purchase
+approved by user.
 
 **Dependencies:** P0.2 · **Scope:** XS · **Files:** `config/esphome/epaper-art-frame.yaml`
 (comment header) · **Ask first — user purchase.**
