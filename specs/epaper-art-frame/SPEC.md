@@ -8,11 +8,12 @@ Slug: `epaper-art-frame`
 > and observes the daily wake; it does not direct the device (a deep-sleep device is unreachable
 > while asleep, which is ~99.9% of the time).
 >
-> The one non-standard, must-work piece is the display driver. ESPHome has no turnkey model for
-> the Waveshare 5.65" 7-colour ACeP panel (only `7.30in-f`, `inkplate6color`, `Spectra-E6`,
-> `T133A01`). The plan therefore begins with a spike that ports the panel's init/waveform —
-> already open-source in GxEPD2's `GxEPD2_565c_ACeP_565` — into an ESPHome **external component**
-> reusing ESPHome's existing 7-colour renderer (`waveshare_epaper`'s `7.30in-f` colour path).
+> **Revision 2 (2026-09-28).** The original premise — that ESPHome had no driver for the
+> Waveshare 5.65" 7-colour ACeP panel and that a custom external component (`epaper_acep565`)
+> ported from GxEPD2 was required — is no longer true. Upstream `waveshare_epaper` now ships
+> `model: 5.65in-f` (`WaveshareEPaper5P65InF`), which already reuses ESPHome's 7-colour renderer
+> and carries the ACeP565 init/waveform for 600×448. The custom component is therefore dropped and
+> the device uses stock ESPHome. This removes the spec's highest-rated risk.
 
 ---
 
@@ -29,7 +30,7 @@ configuration.
 |---|---|
 | Display | Waveshare 5.65" 7-colour ACeP, 600×448 (4-wire SPI) |
 | Microcontroller | ESP32-S3 (with PSRAM) |
-| Firmware | ESPHome + custom external component `epaper_acep565` |
+| Firmware | ESPHome ≥ 2026.9.0 (stock `waveshare_epaper`, `model: 5.65in-f`) |
 | Power | Single-cell LiPo (3.7 V) via low-quiescent regulator; TP4056 charger |
 | Wake cycle | ~24 h sleep, ~1 min awake (drift tolerated) |
 | Image source | Home Assistant `www/epaper/` served over plain HTTP (`/local/epaper/...`) |
@@ -42,7 +43,9 @@ configuration.
 
 - **Microcontroller: ESP32-S3**, replacing the Pico 2 W (the Pico's CYW43439 WiFi chip cannot
   sleep below ~1.5 mA; the ESP32-S3 deep-sleeps at ~7 µA).
-- **Firmware: ESPHome**, accepting the custom-component cost over Arduino+GxEPD2.
+- **Firmware: ESPHome (stock `waveshare_epaper` `5.65in-f`).** Originally assumed a custom external
+  component over Arduino+GxEPD2; upstream now provides the panel driver, so no custom C++ is
+  needed (Revision 2).
 - **Source: HTTP static file server = HA's `www/` folder.**
 - **Cadence: once a day.** Selection: cycle through folder contents.
 - **Power: battery** (not yet purchased), so low quiescent current is a first-class requirement.
@@ -55,37 +58,38 @@ configuration.
 ┌─────────────────────────────────────────────────────────────────┐
 │                        epaper-art-frame                         │
 ├───────────────┬─────────────────┬───────────────┬───────────────┤
-│ epaper_acep565│ device config   │ image pipeline│ hA-integration│
-│ (external     │ (ESPHome YAML)  │ (manifest +   │ (observation  │
-│  component)   │                 │  generator)   │  only)        │
+│ panel driver  │ device config   │ image pipeline│ hA-integration│
+│ (ESPHome stock│ (ESPHome YAML)  │ (manifest +   │ (observation  │
+│ waveshare_    │                 │  generator)   │  only)        │
+│ epaper        │                 │               │               │
+│ 5.65in-f)     │                 │               │               │
 ├───────────────┼─────────────────┼───────────────┼───────────────┤
 │ 7-colour      │ deep sleep 24h  │ manifest.json │ device auto-  │
 │ ACeP565 init  │ on_boot fetch+  │ generator     │ discovery     │
 │ + waveform    │ render + cycle  │ script        │ battery/      │
-│ (port from    │ online_image    │ (optional     │ last-image    │
-│  GxEPD2)      │ globals restore │  pre-dither)  │ sensors       │
+│ 600×448       │ online_image    │ (optional     │ last-image    │
+│ (upstream)    │ globals restore │  pre-dither)  │ sensors       │
 └───────────────┴─────────────────┴───────────────┴───────────────┘
 ```
 
 ---
 
-## Module 1 — `epaper_acep565` (external component)
+## Module 1 — Panel driver (stock ESPHome `waveshare_epaper`)
 
-The only genuinely novel code. It must make the 5.65" 7-colour ACeP panel render correctly from
-ESPHome.
+**Revision 2 — no custom code.** ESPHome 2026.9.0 ships `model: 5.65in-f`
+(`WaveshareEPaper5P65InF`, `waveshare_epaper`), a purpose-built driver for this exact panel. It
+already reuses the 7-colour `Color` palette and 3-bit-per-pixel packing from `WaveshareEPaper7C`,
+and carries the ACeP565 init/waveform for 600×448 (`cmddata_5P65InF`: PSR/PWR/PFS/BTST/PLL/TSE/
+CDI/TCON/TRES/PWS), a 35 s idle timeout, and refresh/power-off/deep-sleep sequencing.
 
-- **Reuse ESPHome's 7-colour rendering path.** `waveshare_epaper`'s `7.30in-f` already implements
-  the 7-colour `Color` palette and the 3-bit-per-pixel buffer packing that ACeP panels need.
-- **Replace the panel-specific parts** with the ACeP565 values from GxEPD2's
-  `GxEPD2_565c_ACeP_565` (open source): resolution 600×448, init sequence, and refresh/waveform
-  timing (~12 s refresh per GxEPD2).
-- **Interface.** A standard ESPHome `display` platform (`spi`, `cs_pin`, `dc_pin`,
-  `reset_pin`, `busy_pin`), so the rest of the config treats it like any other display.
-- **BUSY polarity.** GxEPD2 does not flag the 5.65" as needing inversion (ESPHome's note about
-  inverted BUSY applies to `7.30in-f`, `7.50in V2`, `gdew0154m09`) — verify during the spike and
-  make it a config option (`inverted: true/false`) rather than hard-coding.
+- **No external component.** The device config declares `display: platform: waveshare_epaper,
+  model: 5.65in-f` with `cs_pin`, `dc_pin`, `reset_pin`, `busy_pin`, `spi`.
+- **BUSY polarity (Q3) resolved.** Upstream polls the BUSY pin directly via `wait_until_(IDLE/BUSY)`
+  with no inversion flag, so no `inverted:` option is required. Confirm on the bench that the panel
+  reaches IDLE (a wrong polarity surfaces as a timeout / `status_set_warning`).
+- **Pin the ESPHome version** to a release containing `5.65in-f` (≥ 2026.9.0).
 
-**Exit criteria:** a known test image renders 7 colours with correct geometry and no corruption,
+**Exit criteria:** a known test pattern renders 7 colours with correct geometry and no corruption,
 from ESPHome, against the bare panel.
 
 ---
@@ -152,7 +156,7 @@ listing, so the manifest is required (a bare static server has no listing either
 |---|---|---|
 | Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | Phase 0 (hardware selection) |
 | Q2 | Battery capacity + connector/charging board | Phase 0 (hardware selection) |
-| Q3 | Whether the ACeP565 BUSY needs inversion | Phase 0 spike |
+| Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no inversion flag) | Bench confirm in P0.1 |
 | Q4 | On-device quantisation quality acceptable, or pre-dither now | Phase 3 (image pipeline) |
 | Q5 | Wake time of day (drift accepted in v1) | Deferred — config choice |
 
@@ -170,7 +174,7 @@ listing, so the manifest is required (a bare static server has no listing either
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Custom component can't drive the panel correctly | **High** — the whole device | Phase 0 spike first; GxEPD2's ACeP565 is a proven, open reference implementation; fallback is Arduino+GxEPD2 |
+| ~~Custom component can't drive the panel correctly~~ *(removed in Rev 2 — upstream `5.65in-f` ships the driver)* | — | — |
 | Board quiescent current kills battery life | High | Design for sleep; choose board/module explicitly for it (Q1) |
 | `online_image` + custom display memory layout mismatch | Medium | S3 + PSRAM; verify in Phase 1 with the spike output |
 | Manifest drifts out of sync with folder | Low | Generator script is the only writer; document it |

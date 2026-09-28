@@ -1,0 +1,6 @@
+# Python toolchain (ESPHome venv)
+.venv/
+
+# Python cruft
+__pycache__/
+*.pyc

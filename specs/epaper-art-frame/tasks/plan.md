@@ -8,13 +8,13 @@ Task list: [`todo.md`](./todo.md)
 ## Overview
 
 Build a battery-powered wall-art frame driven by an ESP32-S3 running ESPHome, showing images
-from a network folder on a Waveshare 5.65" 7-colour ACeP e-paper panel, once a day. The single
-novel piece is a custom ESPHome **external component** that ports the panel's init/waveform from
-GxEPD2 into ESPHome's existing 7-colour renderer; everything else is standard ESPHome config,
-a manifest generator script, and thin HA observation.
+from a network folder on a Waveshare 5.65" 7-colour ACeP e-paper panel, once a day. As of
+Revision 2 there is **no custom firmware code**: ESPHome ≥ 2026.9.0 ships `waveshare_epaper`
+`model: 5.65in-f`, a purpose-built ACeP565 driver. The work is standard ESPHome config, a
+manifest generator script, and thin HA observation.
 
 Four capabilities, four phases. **Phase 0 must succeed before anything else is worth doing** —
-if the panel can't be driven from ESPHome, the firmware decision is invalidated.
+the panel must render from ESPHome (now a bench confirmation of an upstream driver, not a port).
 
 ---
 
@@ -24,9 +24,9 @@ if the panel can't be driven from ESPHome, the firmware decision is invalidated.
   HA observes the brief daily wake only.
 - **Manifest is the source of truth for the rotation.** A bare static server has no directory
   listing, so the device can't discover folder contents by itself; `manifest.json` lists them.
-- **Preserve ESPHome's 7-colour rendering; only port the panel specifics.** The 7-colour palette
-  and 3-bit packing already exist in `waveshare_epaper` (`7.30in-f`); the external component swaps
-  in ACeP565's resolution + init + waveform and changes nothing else.
+- **Use the upstream 5.65in-f driver; no custom component.** Upstream `WaveshareEPaper5P65InF`
+  already reuses the 7-colour palette/3-bit packing and carries ACeP565's resolution + init +
+  waveform. Requires ESPHome ≥ 2026.9.0.
 - **Cycle state on flash, not RAM.** `global` + `restore_value` survives the deep-sleep reboot.
 - **New top-level directories, not HA package files.** The YAML lives under a device directory
   (e.g. `config/esphome/` or a sibling repo area); it is *not* an HA automation and never goes in
@@ -37,7 +37,7 @@ if the panel can't be driven from ESPHome, the firmware decision is invalidated.
 ## Sequencing rationale
 
 ```
-Phase 0  spike: epaper_acep565 external component + bench test   ← panel must render, or stop
+Phase 0  bench test: stock waveshare_epaper 5.65in-f + pattern   ← panel must render, or stop
    │
 Phase 1  device config: deep sleep + fetch + render + cycle      ← delivers the device
    │
@@ -46,10 +46,9 @@ Phase 2  image pipeline: manifest + generator (+ HA www folder)  ← makes rotat
 Phase 3  battery + enclosure + live acceptance                   ← months-on-battery proof
 ```
 
-- **Why the panel spike is first.** The entire burden of "ESPHome over Arduino" rests on one
-  unverified assumption: that the ACeP565 panel can be driven from an ESPHome component. That must
-  be proven on the bench (panel + dev board, USB-powered) before any battery/power/software
-  investment. This is also the cheapest possible point of failure to hit.
+- **Why the panel bench test is first.** The device depends on the panel rendering correctly from
+  ESPHome. The driver now exists upstream, so this is a bench confirmation (panel + dev board,
+  USB-powered), not a port — but it still gates everything downstream.
 - **Why device config before the image pipeline.** The config is what makes the spike usable;
   the manifest has no value until there's a device that consumes it.
 - **Hardware gate.** Phases 0–2 need physical hardware (ESP32-S3 + the panel the user owns + a
@@ -90,8 +89,7 @@ Both are "ask first — user purchase/action" items, recorded as spikes in `todo
 The standing bar every task clears, in addition to its own acceptance criteria:
 
 - [ ] `esphome` config validates (`esphome config <yaml>`) with no warnings for this device.
-- [ ] The external component compiles (`esphome compile <yaml>`) against the pinned ESPHome
-      version.
+- [ ] Firmware compiles (`esphome compile <yaml>`) against the pinned ESPHome version (≥ 2026.9.0).
 - [ ] No secrets (WiFi password) committed — use `secrets.yaml` which is git-ignored.
 - [ ] Pin assignments documented once, in one place (the device YAML header).
 - [ ] Every physical wiring change is photographed/logged so a future session can reproduce it.
@@ -104,8 +102,8 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Panel can't be driven from ESPHome | **High** — invalidates the firmware choice | Phase 0 spike first; GxEPD2 `ACeP565` is the proven reference; explicit fallback to Arduino+GxEPD2 documented in SPEC |
-| BUSY polarity wrong → permanent display damage | **High** | ESPHome flags inverted-BUSY panels in its docs; make polarity a config option and verify before any long refresh |
+| Upstream 5.65in-f driver misbehaves on the physical panel | Medium — invalidates the firmware choice | Phase 0 bench test first; upstream is the reference; fallback is a pinned older ESPHome or Arduino+GxEPD2 |
+| BUSY polarity wrong → wrong idle detection | Low | Upstream 5.65in-f reads BUSY directly (no inversion); a mismatch shows as a timeout / `status_set_warning` in the bench test |
 | Dev-board quiescent current ruins battery life | High | Phase 0 hardware selection explicitly optimises for it; Phase 3 measures it |
 | `online_image` decode + 7-colour buffer exceeds RAM | Medium | S3 + PSRAM; verify in Phase 1 using the spike component |
 | WiFi/`online_image` fetch height | Low | 600×448 image is ~tens of KB; matches GxEPD2's WiFi example scale |
@@ -119,7 +117,7 @@ The standing bar every task clears, in addition to its own acceptance criteria:
 |---|---|---|
 | Q1 | Which ESP32-S3 board/module (low-quiescent) | P0.2 |
 | Q2 | Battery capacity + charging board | P0.3 |
-| Q3 | ACeP565 BUSY inversion needed? | P0.1 (spike) |
+| Q3 | ACeP565 BUSY inversion needed? (resolved upstream: no) | Confirm in P0.1 |
 | Q4 | On-device quantisation acceptable, or pre-dither now | Phase 2 |
 | Q5 | Wake time of day | Deferred |
 
@@ -132,7 +130,7 @@ P0.3 (buy battery/charger), and any decision to fall back to Arduino+GxEPD2 if t
 
 | Phase | Tasks | Capability | Hardware needed |
 |---|---|---|---|
-| 0 — De-risk (spike) | 3 | `epaper_acep565`, hardware selection | panel + ESP32-S3 |
+| 0 — De-risk (bench) | 3 | panel driver confirm, hardware selection | panel + ESP32-S3 |
 | 1 — Device config | 4 | deep sleep, fetch, render, cycle | panel + ESP32-S3 |
 | 2 — Image pipeline | 3 | manifest, generator, HA www | — |
 | 3 — Battery & acceptance | 3 | battery, enclosure, live proof | battery/charger |

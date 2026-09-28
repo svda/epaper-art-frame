@@ -8,27 +8,27 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 
 ## Phase 0 — De-risk (spike)
 
-### P0.1: Spike — `epaper_acep565` external component drives the panel
-**Description:** Write the ESPHome external component that renders 7 colours on the Waveshare
-5.65" ACeP panel. Clone ESPHome's `waveshare_epaper` 7-colour path (`7.30in-f`) and replace the
-panel-specific parts — resolution `600×448`, init sequence, refresh/waveform timing — with the
-values from GxEPD2's `GxEPD2_565c_ACeP_565` (`GxEPD2_565c`). Expose `cs_pin`, `dc_pin`,
-`reset_pin`, `busy_pin` (with `inverted` option), `spi`.
-- Read GxEPD2's `GxEPD2_565c.h/.cpp` for the exact init + refresh sequence before writing.
-- Do **not** modify ESPHome core; ship this as an `external_components:` git/`local` source.
+### P0.1: Bench test — stock `waveshare_epaper` `5.65in-f` drives the panel
+**Description:** Author the device YAML stub that renders a 7-colour test pattern on the Waveshare
+5.65" ACeP panel using ESPHome's built-in `waveshare_epaper` driver with `model: 5.65in-f`
+(≥ 2026.9.0). Config: `esp32` (S3 + PSRAM), `spi`, the `display` with `cs/dc/reset/busy` pins, and
+a `lambda` drawing 7 colour bars + geometry marks. No custom component — Revision 2 removed it.
+- Pin the ESPHome version to ≥ 2026.9.0 (first release containing `5.65in-f`).
+- Do **not** modify ESPHome core or add an `external_components:` source.
 
 **Acceptance criteria:**
-- [ ] `esphome compile` succeeds against the pinned ESPHome version.
+- [x] `esphome config` validates and `esphome compile` succeeds against the pinned ESPHome version.
+      — done 2026-09-28 on ESPHome 2026.9.0 (zero config warnings).
 - [ ] A test pattern (7 colour bars + geometry marks) renders on the physical panel with correct
-      colours in the correct positions, no corruption.
-- [ ] BUSY polarity confirmed (Q3) and recorded; `inverted:` set to match.
+      colours in the correct positions, no corruption. — **deferred: needs panel + ESP32-S3.**
+- [ ] BUSY polarity confirmed (Q3) and recorded — no inversion expected. — **deferred: needs panel.**
 
 **Verification:**
 - [ ] Photograph the rendered test pattern; compare against expected 7-colour layout.
 
-**Dependencies:** none (component can be authored before hardware arrives) · **Files:** new
-`config/esphome/components/epaper_acep565/…`, `config/esphome/epaper-art-frame.yaml` (stub) ·
-**Scope:** M
+**Dependencies:** none (YAML can be authored before hardware arrives) · **Files:**
+`config/esphome/epaper-art-frame.yaml` (stub), `.gitignore`, `config/esphome/secrets.yaml`
+(git-ignored) · **Scope:** S
 
 ---
 
