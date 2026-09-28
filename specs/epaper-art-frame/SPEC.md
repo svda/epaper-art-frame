@@ -84,6 +84,9 @@ CDI/TCON/TRES/PWS), a 35 s idle timeout, and refresh/power-off/deep-sleep sequen
 
 - **No external component.** The device config declares `display: platform: waveshare_epaper,
   model: 5.65in-f` with `cs_pin`, `dc_pin`, `reset_pin`, `busy_pin`, `spi`.
+- **Panel is the F variant (no driver HAT).** It connects via a ribbon/FPC and **flying leads**;
+  map each lead to the ESPHome `display` pins before wiring, and strain-relieve the bundle. The
+  physical routing/retention is owned by [`../wooden-frame/SPEC.md`](../wooden-frame/SPEC.md).
 - **BUSY polarity (Q3) resolved.** Upstream polls the BUSY pin directly via `wait_until_(IDLE/BUSY)`
   with no inversion flag, so no `inverted:` option is required. Confirm on the bench that the panel
   reaches IDLE (a wrong polarity surfaces as a timeout / `status_set_warning`).

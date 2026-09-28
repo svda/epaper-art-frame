@@ -43,6 +43,10 @@ frame.
 - **Material / finish:** hardwood (oak / ash / walnut / maple) with an **oil or wax finish**.
 - **Panel retention:** panel rests in a machined **rebate**, held by thin **removable retaining
   stops** (wood stops or z-clips). Nothing is bonded to the panel.
+- **Panel interface:** the panel is the **F variant — there is no driver HAT**, only a ribbon/FPC
+  and a bundle of **flying leads**. No rigid driver board sits in the cavity (good for depth), but
+  the leads are the fragile part: they need **strain relief, a service loop, and a defined route**
+  to the NULA.
 - **Glazing:** **none** (assumed) — the panel is matte and already reads as paper; glass/acrylic adds
   glare, weight and depth.
 
@@ -57,7 +61,7 @@ catalogues.** All frame dimensions are *derived* from measured values:
 |---|---|---|
 | `PO_W × PO_H` | Panel **outline** (outer edge of the glass/board) | measured with calipers |
 | `PT` | Panel thickness | measured |
-| `RD` | Rear stack depth: NULA + LiPo + connector + wiring | measured / mock-up |
+| `RD` | Rear stack depth: NULA + LiPo + lead breakout + connector + wiring | measured / mock-up |
 | `R` | **Reveal** — how far the frame overlaps the panel edge, per side | design: **3–5 mm** |
 | `F` | Frame face width | design: **35–45 mm** |
 
@@ -165,6 +169,8 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 - Dry-fit every joint *and* the full electronics stack before any glue or finish
 - Leave **≥3 mm** clearance around the panel edge and **≥5 mm** around the LiPo (pouch cells swell)
 - Keep the panel's FPC/ribbon cable strain-free — never taut, never pinched
+- **Strain-relieve the flying-lead bundle**: anchor it to the frame, include a service loop, and
+  keep it off sharp edges
 - Keep the USB-C port reachable from the **bottom edge** (the frame hangs flush on the wall)
 - Fully cure the finish (≥72 h per the product data sheet) **before** closing electronics inside
 - Photograph each build stage and commit the cut list + photos under `specs/wooden-frame/`
@@ -183,6 +189,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 - **Never permanently bond** the panel or the LiPo to the frame (no glue, no permanent tape)
 - Never let solvents or solvent-based finishes touch the panel or electronics
 - Never sand, cut, drill, or clean the panel itself
+- Never pull, kink, crush or solder-stress the panel's flying leads
 - Never squeeze, bend or flex the panel or the LiPo
 - Never seal the LiPo in a way that prevents replacement
 - Never modify `epaper-art-frame`'s firmware/config from this spec (re-validate only)
@@ -209,7 +216,8 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 |---|---|---|
 | Cut to catalogue dimensions, not the real panel | **High** — wasted hardwood, re-cut | Measure first; dry-fit the panel before glue-up |
 | Mitchell corners open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
-| Rear cavity too shallow (stack-up underestimated) | Medium | Mock up the full stack (incl. FPC breakout) and measure `RD` before cutting the spacer |
+| Rear cavity too shallow (stack-up underestimated) | Medium | Mock up the full stack (NULA + LiPo + lead breakout + service loop) and measure `RD` before cutting the spacer |
+| Flying leads stressed or broken at the panel | **High** — panel unusable | Strain-relieve the lead bundle (service loop, anchored to the frame, never taut); never route over a sharp edge |
 | Panel stressed by the retaining stops | **High** — cracked panel | Stops bear on the frame/sub-panel, not the glass; ≥3 mm clearance; no clamping pressure on the panel |
 | Finish off-gassing inside the closed box | Medium | Cure ≥72 h before closing; oil/wax only, no solvent lacquer |
 | LiPo swell / not replaceable | Medium | ≥5 mm clearance; JST reachable; back panel screwed, not glued |
@@ -221,7 +229,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | Panel-to-MCU interface: direct **30-pin FPC breakout** or the Waveshare driver HAT? (Affects `RD` and internal layout — the HAT adds depth.) | First task, before cutting the spacer |
+| Q1 | ~~Panel-to-MCU interface: 30-pin FPC breakout vs Waveshare HAT?~~ **Resolved:** the F variant has **no driver HAT** — the panel connects via a ribbon/FPC and flying leads. Record the **lead colour → signal map** against the `epaper-art-frame` ESPHome pin map before wiring. | Recorded at measurement |
 | Q2 | Wall-mount method: **French cleat** (default assumption) vs two D-rings vs keyholes? | Confirmation before mounting hardware is fitted |
 | Q3 | Hardwood species + tone to suit the room? | Before buying timber |
 | Q4 | Orientation confirmed as **landscape** (600 wide × 448 tall)? | Before cutting |
