@@ -9,6 +9,11 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 ## Phase 1 — Measure & design
 
 ### F1.1: Measure the panel, electronics and leads; map the flying leads
+> **Status (2026-09-28):** recording worksheet created at
+> [`../drawings/cut-list.md`](../drawings/cut-list.md) (§1 measurements, §2 lead map, §3 USB-C).
+> **Blocked on your physical caliper readings + a photo of the lead bundle** — tick the criteria
+> below once §1–§3 are filled in.
+
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
 (`PT`), the panel's active area, and the rear stack (`RD`: NULA + LiPo + lead breakout + connector +
 service loop), mocked up as it will sit. Photograph the panel's **flying-lead bundle** and build the
