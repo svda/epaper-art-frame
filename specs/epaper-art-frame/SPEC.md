@@ -1,0 +1,176 @@
+# Spec: E-Paper Art Frame
+
+Status: **spec-approved, not yet built** · Revision 1 (2026-09-27)
+Slug: `epaper-art-frame`
+
+> This is a from-scratch hardware + firmware device that lives *alongside* the Home Assistant
+> config in this repo, not an HA automation. The HA surface is thin by design — HA serves images
+> and observes the daily wake; it does not direct the device (a deep-sleep device is unreachable
+> while asleep, which is ~99.9% of the time).
+>
+> The one non-standard, must-work piece is the display driver. ESPHome has no turnkey model for
+> the Waveshare 5.65" 7-colour ACeP panel (only `7.30in-f`, `inkplate6color`, `Spectra-E6`,
+> `T133A01`). The plan therefore begins with a spike that ports the panel's init/waveform —
+> already open-source in GxEPD2's `GxEPD2_565c_ACeP_565` — into an ESPHome **external component**
+> reusing ESPHome's existing 7-colour renderer (`waveshare_epaper`'s `7.30in-f` colour path).
+
+---
+
+## Objective
+
+A battery-powered wall display that shows curated art on a 7-colour e-paper panel, refreshing
+once a day from a network folder. The device wakes, fetches the next image, renders it, and
+sleeps for ~a day; dropping a file into the folder changes the rotation with no device-side
+configuration.
+
+### The system
+
+| Property | Value |
+|---|---|
+| Display | Waveshare 5.65" 7-colour ACeP, 600×448 (4-wire SPI) |
+| Microcontroller | ESP32-S3 (with PSRAM) |
+| Firmware | ESPHome + custom external component `epaper_acep565` |
+| Power | Single-cell LiPo (3.7 V) via low-quiescent regulator; TP4056 charger |
+| Wake cycle | ~24 h sleep, ~1 min awake (drift tolerated) |
+| Image source | Home Assistant `www/epaper/` served over plain HTTP (`/local/epaper/...`) |
+| Selection | `manifest.json` lists images; device cycles round-robin across wakes |
+| HA role | Serve images, observe the daily wake (battery voltage, last image) |
+
+---
+
+## Confirmed decisions (from interview)
+
+- **Microcontroller: ESP32-S3**, replacing the Pico 2 W (the Pico's CYW43439 WiFi chip cannot
+  sleep below ~1.5 mA; the ESP32-S3 deep-sleeps at ~7 µA).
+- **Firmware: ESPHome**, accepting the custom-component cost over Arduino+GxEPD2.
+- **Source: HTTP static file server = HA's `www/` folder.**
+- **Cadence: once a day.** Selection: cycle through folder contents.
+- **Power: battery** (not yet purchased), so low quiescent current is a first-class requirement.
+
+---
+
+## Capability map
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        epaper-art-frame                         │
+├───────────────┬─────────────────┬───────────────┬───────────────┤
+│ epaper_acep565│ device config   │ image pipeline│ hA-integration│
+│ (external     │ (ESPHome YAML)  │ (manifest +   │ (observation  │
+│  component)   │                 │  generator)   │  only)        │
+├───────────────┼─────────────────┼───────────────┼───────────────┤
+│ 7-colour      │ deep sleep 24h  │ manifest.json │ device auto-  │
+│ ACeP565 init  │ on_boot fetch+  │ generator     │ discovery     │
+│ + waveform    │ render + cycle  │ script        │ battery/      │
+│ (port from    │ online_image    │ (optional     │ last-image    │
+│  GxEPD2)      │ globals restore │  pre-dither)  │ sensors       │
+└───────────────┴─────────────────┴───────────────┴───────────────┘
+```
+
+---
+
+## Module 1 — `epaper_acep565` (external component)
+
+The only genuinely novel code. It must make the 5.65" 7-colour ACeP panel render correctly from
+ESPHome.
+
+- **Reuse ESPHome's 7-colour rendering path.** `waveshare_epaper`'s `7.30in-f` already implements
+  the 7-colour `Color` palette and the 3-bit-per-pixel buffer packing that ACeP panels need.
+- **Replace the panel-specific parts** with the ACeP565 values from GxEPD2's
+  `GxEPD2_565c_ACeP_565` (open source): resolution 600×448, init sequence, and refresh/waveform
+  timing (~12 s refresh per GxEPD2).
+- **Interface.** A standard ESPHome `display` platform (`spi`, `cs_pin`, `dc_pin`,
+  `reset_pin`, `busy_pin`), so the rest of the config treats it like any other display.
+- **BUSY polarity.** GxEPD2 does not flag the 5.65" as needing inversion (ESPHome's note about
+  inverted BUSY applies to `7.30in-f`, `7.50in V2`, `gdew0154m09`) — verify during the spike and
+  make it a config option (`inverted: true/false`) rather than hard-coding.
+
+**Exit criteria:** a known test image renders 7 colours with correct geometry and no corruption,
+from ESPHome, against the bare panel.
+
+---
+
+## Module 2 — Device config (ESPHome YAML)
+
+- **`deep_sleep`:** `sleep_duration: 24h`, `run_duration: ~60s`. On boot it runs once, then sleeps.
+  No strict clock time — drift is accepted (see intent).
+- **`on_boot` sequence:** connect → fetch `{base_url}/manifest.json` → advance a persistent
+  index → fetch the chosen image (`online_image` or `http_request` + `image`) → draw to the
+  display → publish sensors → sleep.
+- **Cycle index:** an ESPHome `global` with `restore_value: true` (persists across deep-sleep
+  reboot via flash Preferences). Round-robin over `manifest.json`'s list.
+- **Sensors:** `adc` battery voltage (with an internal divider configured for the board),
+  `text_sensor` last-image filename, `wifi_signal`.
+- **Config substitutions:** `image_base_url`, `wifi` credentials, panel pins.
+
+---
+
+## Module 3 — Image pipeline
+
+- **`config/www/epaper/manifest.json`** — a JSON array of image filenames. This is the single
+  source of truth for the rotation and is what survives "drop in / delete a file".
+- **Generator script** — a small script (run on the HA host, or a dev machine) that scans
+  `config/www/epaper/*.{png,jpg,jpeg}` and rewrites `manifest.json`. Runs on demand.
+- **Image preparation (v1):** ESPHome downloads the image and quantises to 7 colours on-device.
+  Acceptable for v1. A future enhancement pre-dithers/`600×448`-scales on the server for better
+  colour accuracy.
+
+**HA note:** `www/` is served by HA at `/local/...`; the device cannot rely on directory
+listing, so the manifest is required (a bare static server has no listing either).
+
+---
+
+## Module 4 — HA integration (observation only)
+
+- **Device discovery:** standard ESPHome native API. The device appears online only during its
+  brief daily wake.
+- **Optional automations** (deferred beyond v1): battery-low notification, regenerate-manifest
+  on folder change (requires a filesystem watcher, which HA doesn't provide natively for `www/`).
+
+---
+
+## Power budget
+
+| Phase | Current (approx.) | Duration/day |
+|---|---|---|
+| Deep sleep | ~7 µA (chip) + board quiescent | ~23 h 59 m |
+| Wake: WiFi connect + fetch | ~80–120 mA | ~3–5 s |
+| Wake: e-paper refresh | ~30–60 mA | ~12–15 s |
+| **Total** | — | ~<1 m/day |
+
+- **The dominant idle cost is the board, not the chip.** Most ESP32-S3 dev boards carry a USB-UART
+  bridge + LDO that draw ~100 µA–1 mA even in deep sleep. This dwarfs the chip's ~7 µA and must
+  be designed out (bare module + low-quiescent LDO, or a board with a proven sleep design).
+- **Battery sizing:** a 2500 mAh 18650 or LiPo gives **6–12 months** at these numbers, bounded
+  primarily by battery self-discharge and board quiescent, not the daily work.
+
+---
+
+## Open questions
+
+| # | Question | Resolved by |
+|---|---|---|
+| Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | Phase 0 (hardware selection) |
+| Q2 | Battery capacity + connector/charging board | Phase 0 (hardware selection) |
+| Q3 | Whether the ACeP565 BUSY needs inversion | Phase 0 spike |
+| Q4 | On-device quantisation quality acceptable, or pre-dither now | Phase 3 (image pipeline) |
+| Q5 | Wake time of day (drift accepted in v1) | Deferred — config choice |
+
+---
+
+## Non-goals
+
+- Live HA control / "show now" push (impossible while deep-sleeping).
+- Partial refresh, multipage, touch, enclosure design, dashboard.
+- Multi-image-per-day, motion wake, or any trigger other than the daily timer.
+
+---
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Custom component can't drive the panel correctly | **High** — the whole device | Phase 0 spike first; GxEPD2's ACeP565 is a proven, open reference implementation; fallback is Arduino+GxEPD2 |
+| Board quiescent current kills battery life | High | Design for sleep; choose board/module explicitly for it (Q1) |
+| `online_image` + custom display memory layout mismatch | Medium | S3 + PSRAM; verify in Phase 1 with the spike output |
+| Manifest drifts out of sync with folder | Low | Generator script is the only writer; document it |
