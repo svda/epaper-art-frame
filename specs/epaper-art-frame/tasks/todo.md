@@ -232,12 +232,16 @@ the vendor's 7 uA.
 
 ---
 
-### P3.2: Enclosure / mounting
+### P3.2: Enclosure / mounting — moved to the `wooden-frame` spec
 **Description:** Fit panel + board + battery into/onto a frame. Battery must be accessible for
 charging without disassembly.
+**Moved:** this task is now specified by [`../../wooden-frame/SPEC.md`](../../wooden-frame/SPEC.md)
+(slug `wooden-frame`), which supersedes the brief requirement below. Build and verify it there; this
+task is done when that spec's success criteria are met.
 
 **Acceptance criteria:**
-- [ ] Device hangs/stands; battery reachable for charging.
+- [ ] Device hangs/stands; battery reachable for charging. → verified by the `wooden-frame` success
+      criteria (see that spec).
 
 **Dependencies:** P3.1 · **Scope:** S · **Files:** none (hardware) · **Ask first — user-provided
 frame/enclosure.**

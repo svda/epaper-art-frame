@@ -173,7 +173,8 @@ listing, so the manifest is required (a bare static server has no listing either
 ## Non-goals
 
 - Live HA control / "show now" push (impossible while deep-sleeping).
-- Partial refresh, multipage, touch, enclosure design, dashboard.
+- Partial refresh, multipage, touch, dashboard. (Enclosure design is specified separately in
+  [`../wooden-frame/SPEC.md`](../wooden-frame/SPEC.md).)
 - Multi-image-per-day, motion wake, or any trigger other than the daily timer.
 
 ---
