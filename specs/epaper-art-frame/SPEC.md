@@ -135,18 +135,30 @@ listing, so the manifest is required (a bare static server has no listing either
 
 ## Power budget
 
+> **Revision 3 (2026-09-28).** P0.2/P0.3 chose a **Heemol ESP32-S3 N16R8** (ESP32-S3-DevKitC-1
+> class) and a **3000 mAh LiPo**. That board's deep-sleep draw is **5–15 mA** (AMS1117 LDO ~5 mA +
+> CP2102N USB-UART 2–5 mA + power LED 2–3 mA; the chip alone is ~7 µA) — i.e. **~8–25 days**, not
+> the 6–12 months originally assumed. The board is retained for **Phases 0–2** (bench + firmware
+> bring-up, USB-powered); **Phase 3 owns the low-quiescent power stage** — design out/bypass the
+> LDO and UART bridge, remove the power LED, and/or move to a bare ESP32-S3-WROOM-1 + low-Iq
+> regulator. The 6–12 month target applies to the **final, low-quiescent build**, not the dev
+> board.
+
 | Phase | Current (approx.) | Duration/day |
 |---|---|---|
-| Deep sleep | ~7 µA (chip) + board quiescent | ~23 h 59 m |
+| Deep sleep (chip alone) | ~7 µA | ~23 h 59 m |
+| Deep sleep (stock DevKitC-1 board) | **5–15 mA** | ~23 h 59 m |
+| Deep sleep (low-Iq power stage) | ~50–200 µA | ~23 h 59 m |
 | Wake: WiFi connect + fetch | ~80–120 mA | ~3–5 s |
 | Wake: e-paper refresh | ~30–60 mA | ~12–15 s |
-| **Total** | — | ~<1 m/day |
 
 - **The dominant idle cost is the board, not the chip.** Most ESP32-S3 dev boards carry a USB-UART
-  bridge + LDO that draw ~100 µA–1 mA even in deep sleep. This dwarfs the chip's ~7 µA and must
-  be designed out (bare module + low-quiescent LDO, or a board with a proven sleep design).
-- **Battery sizing:** a 2500 mAh 18650 or LiPo gives **6–12 months** at these numbers, bounded
-  primarily by battery self-discharge and board quiescent, not the daily work.
+  bridge + LDO (and often a power LED) that draw milliamps even in deep sleep. This dwarfs the
+  chip's ~7 µA and must be designed out in Phase 3 (bare module + low-quiescent LDO, or a board
+  with a proven sleep design).
+- **Battery sizing:** at 3000 mAh — **stock board ~8–25 days** (≈12.5 days at 10 mA); a low-Iq
+  power stage reaches **~1.7–3.4 years** (50–200 µA). The 6–12 month goal sits between these and
+  is met by a partially-optimised power stage.
 
 ---
 

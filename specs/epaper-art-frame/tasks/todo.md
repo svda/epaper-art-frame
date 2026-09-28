@@ -210,12 +210,16 @@ manifest generator.
 
 ## Phase 3 — Battery & acceptance
 
-### P3.1: Battery integration + measurement
+### P3.1: Battery integration + low-quiescent power stage + measurement
 **Description:** Wire the battery/charger from P0.3 (or onboard charger); measure actual deep-sleep
-and wake current.
+and wake current. Because the P0.2 dev board draws 5-15 mA asleep (LDO + USB-UART + LED), this task
+must also **design out the board parasitics** — bypass/replace the AMS1117 LDO, remove the
+USB-UART/power-LED loads, or move to a bare ESP32-S3-WROOM-1 + low-Iq regulator — to reach the
+SPEC's 6-12 month target (SPEC Rev 3).
 
 **Acceptance criteria:**
 - [ ] Measured deep-sleep current recorded; actual lifetime estimate computed from measurement.
+- [ ] Low-quiescent power stage in place OR a documented decision to accept the dev-board figure.
 
 **Verification:**
 - [ ] Multimeter (or coulomb counter) idle reading; extrapolated months figure.
