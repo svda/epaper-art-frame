@@ -43,10 +43,12 @@ frame.
 - **Material / finish:** hardwood (oak / ash / walnut / maple) with an **oil or wax finish**.
 - **Panel retention:** panel rests in a machined **rebate**, held by thin **removable retaining
   stops** (wood stops or z-clips). Nothing is bonded to the panel.
-- **Panel interface:** the panel is the **F variant — there is no driver HAT**, only a ribbon/FPC
-  and a bundle of **flying leads**. No rigid driver board sits in the cavity (good for depth), but
-  the leads are the fragile part: they need **strain relief, a service loop, and a defined route**
-  to the NULA.
+- **Panel interface:** the panel is the **Module (F)** — no Raspberry-Pi-style HAT, but the module
+  carries its **own onboard driver PCB**, with a 30-pin FPC (`AYF532435`) and an 8-pin header
+  exposing **VCC, GND, DIN, CLK, CS, DC, RST, BUSY** via coloured jumper wires. The **module outline
+  (138.5 × 100.5 mm)** is ~13 mm wider than the panel itself (125.4 × 99.5 mm), so the rear cavity
+  must clear the PCB tab, not just the panel. The leads still need **strain relief, a service loop,
+  and a defined route** to the NULA.
 - **Glazing:** **none** (assumed) — the panel is matte and already reads as paper; glass/acrylic adds
   glare, weight and depth.
 
@@ -59,24 +61,30 @@ catalogues.** All frame dimensions are *derived* from measured values:
 
 | Symbol | Meaning | Source |
 |---|---|---|
-| `PO_W × PO_H` | Panel **outline** (outer edge of the glass/board) | measured with calipers |
-| `PT` | Panel thickness | measured |
-| `RD` | Rear stack depth: NULA + LiPo + lead breakout + connector + wiring | measured / mock-up |
+| `MO_W × MO_H` | **Module (F) outline** — panel + onboard driver PCB (**the true footprint**) | measured; Waveshare ref **138.5 × 100.5 mm** |
+| `PO_W × PO_H` | Panel outline (glass edge), **smaller** than the module | measured; ref **125.4 × 99.5 mm** |
+| `AW × AH` | Active / visible area | measured; ref **114.9 × 85.8 mm** |
+| `PT` | Module thickness (panel ~0.91 mm + PCB + FPC connector/header) | measured |
+| `RD` | Rear stack depth: NULA + LiPo + module PCB & header + wiring + service loop | measured / mock-up |
 | `R` | **Reveal** — how far the frame overlaps the panel edge, per side | design: **3–5 mm** |
 | `F` | Frame face width | design: **35–45 mm** |
 
 Derived:
 
 ```
-front opening      = PO_W - 2R  ×  PO_H - 2R
+front opening      = PO_W - 2R  ×  PO_H - 2R      (reveal over the panel edge)
+rebate / inner     = MO_W + 2 mm  ×  MO_H + 2 mm  (must clear the module PCB and its tab)
 rebate depth       = PT + 0.5 mm
-internal cavity    = RD + 3 mm minimum (clearance)
-frame outer        = opening + 2F
+cavity depth       = RD + 3 mm minimum
+frame outer        = opening + 2F, and ≥ MO + 2×margin   (F must clear the module tab)
 ```
 
-**Expected (to be verified, not assumed):** the 5.65" 600×448 active area should measure roughly
-**114.5 × 85.5 mm**; the outline will be larger. **Do not cut to catalogue numbers — cut to the
-measured panel.**
+**The module PCB tab is asymmetric** (it extends ~13 mm on one side) — record its orientation
+before cutting and give that side a wider member / more clearance.
+
+**Reference (to be verified, not assumed):** Waveshare lists **active area 114.9 × 85.8 mm**,
+**panel outline 125.4 × 99.5 × 0.91 mm**, and **Module (F) outline 138.5 × 100.5 mm**. Confirm all
+with calipers. **Do not cut to catalogue numbers — cut to the measured module.**
 
 ---
 
@@ -216,7 +224,8 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 |---|---|---|
 | Cut to catalogue dimensions, not the real panel | **High** — wasted hardwood, re-cut | Measure first; dry-fit the panel before glue-up |
 | Mitchell corners open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
-| Rear cavity too shallow (stack-up underestimated) | Medium | Mock up the full stack (NULA + LiPo + lead breakout + service loop) and measure `RD` before cutting the spacer |
+| Frame sized to the **panel**, not the module → PCB tab clashes | **High** — frame won't close | Size the rebate/cavity to `MO + 2 mm`; record the asymmetric tab orientation before cutting |
+| Rear cavity too shallow (stack-up underestimated) | Medium | Mock up the full stack (NULA + LiPo + module PCB/header + wiring + service loop) and measure `RD` before cutting the spacer |
 | Flying leads stressed or broken at the panel | **High** — panel unusable | Strain-relieve the lead bundle (service loop, anchored to the frame, never taut); never route over a sharp edge |
 | Panel stressed by the retaining stops | **High** — cracked panel | Stops bear on the frame/sub-panel, not the glass; ≥3 mm clearance; no clamping pressure on the panel |
 | Finish off-gassing inside the closed box | Medium | Cure ≥72 h before closing; oil/wax only, no solvent lacquer |

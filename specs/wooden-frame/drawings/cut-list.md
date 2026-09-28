@@ -4,9 +4,9 @@ Spec: [`../SPEC.md`](../SPEC.md) · Plan: [`../tasks/plan.md`](../tasks/plan.md)
 Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 
 > **Measure, don't guess.** Fill the "Measured" cells with caliper readings from the *actual*
-> panel, NULA, LiPo and lead bundle. Do **not** copy catalogue/datasheet numbers into this file —
-> everything is derived from what you measure. The single sanity reference in §6 is explicitly
-> *not* for cutting.
+> **Module (F)**, NULA, LiPo and wire bundle. Do **not** copy catalogue/datasheet numbers into this
+> file — everything is derived from what you measure. The single sanity reference in §6 is
+> explicitly *not* for cutting.
 
 ---
 
@@ -14,12 +14,14 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 
 | Symbol | Meaning | Measured (mm) | Photo ref |
 |---|---|---|---|
-| `PO_W` | Panel outline width (outer edge) | | |
+| `MO_W` | **Module (F) outline width** — panel + onboard driver PCB (**true footprint**) | | |
+| `MO_H` | **Module (F) outline height** | | |
+| `PO_W` | Panel outline width (glass edge, smaller than module) | | |
 | `PO_H` | Panel outline height | | |
-| `PT` | Panel thickness | | |
-| `AW` | Panel active/visible area width | | |
-| `AH` | Panel active/visible area height | | |
-| `RD` | Rear stack depth — **mock up** NULA + LiPo + lead breakout + connector + a service loop, measure the total | | |
+| `AW` | Active / visible area width | | |
+| `AH` | Active / visible area height | | |
+| `PT` | Module thickness (panel + PCB + FPC connector/header) | | |
+| `RD` | Rear stack depth — **mock up** NULA + LiPo + module PCB/header + wiring + a service loop, measure the total | | |
 | `BW` | LiPo width | | |
 | `BH` | LiPo height | | |
 | `BT` | LiPo thickness | | |
@@ -66,20 +68,25 @@ Photograph the bundle first, then identify each lead. Cross-reference the ESPHom
 ## 4. Derived dimensions (F1.2 — compute after §1)
 
 ```
-front opening   = (PO_W - 2R) × (PO_H - 2R)
-rebate depth    = PT + 0.5 mm
-internal cavity = RD + 3 mm minimum
-frame outer     = opening + 2F
+front opening    = (PO_W - 2R) × (PO_H - 2R)     (reveal over the panel edge)
+rebate / inner   = (MO_W + 2) × (MO_H + 2)       (clear the module PCB + tab)
+rebate depth     = PT + 0.5 mm
+cavity depth     = RD + 3 mm minimum
+frame outer      = opening + 2F, and ≥ MO + 2×margin
 ```
 
 | Derived | Formula | Value (mm) |
 |---|---|---|
 | Reveal `R` (design 3–5 mm) | chosen | |
 | Frame face width `F` (design 35–45 mm) | chosen | |
-| Opening W × H | `PO − 2R` | × |
+| Front opening W × H | `PO − 2R` | × |
+| Rebate / inner W × H | `MO + 2` | × |
 | Rebate depth | `PT + 0.5` | |
 | Cavity depth | `RD + 3` | |
 | Frame outer W × H | `opening + 2F` | × |
+
+**Module tab:** which edge does the PCB tab (FPC connector + header) extend from? `____`
+(give that side extra clearance / a wider member).
 
 ---
 
@@ -106,6 +113,7 @@ Nesting plan (sketch which member is cut where on the board):
 
 ## 6. Sanity reference — NOT for cutting
 
-For a rough cross-check only: a 5.65" 600×448 (4:3) panel should have an **active area around
-114.5 × 85.5 mm**, with the outline larger. If your caliper reading is wildly different, re-measure
-before proceeding. **Cut to §1, never to this paragraph.**
+For a rough cross-check only, Waveshare lists the **Module (F)** as: **active area 114.9 × 85.8 mm**,
+**panel outline 125.4 × 99.5 × 0.91 mm**, **module outline 138.5 × 100.5 mm** (the module is ~13 mm
+wider than the panel because of its PCB tab). If your caliper reading is wildly different,
+re-measure before proceeding. **Cut to §1, never to this paragraph.**
