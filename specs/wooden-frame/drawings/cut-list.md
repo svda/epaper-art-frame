@@ -14,10 +14,15 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 
 | Symbol | Meaning | Measured (mm) | Photo ref |
 |---|---|---|---|
-| `MO_W` | **Module (F) outline width** — panel + onboard driver PCB (**true footprint**) | **139.5** | manual |
-| `MO_H` | **Module (F) outline height** | **101.0** | manual |
-| `PO_W` | Panel outline width (glass edge, smaller than module) | | |
-| `PO_H` | Panel outline height | | |
+| `MO_W` | **Module (F) outline width** — panel + onboard driver PCB | **139.5** | manual |
+| `MO_H` | **Module (F) outline height**, *excluding the protruding header* | **101.0** | manual |
+| `HD_edge` | Which edge the 8-pin header protrudes from (`top/bottom/left/right` or "off the back") | | |
+| `HD_proj` | Header protrusion beyond the board outline | | |
+| `EW` | **Overall envelope width incl. header** (add `HD_proj` if the header is on a short edge) | | |
+| `EH` | **Overall envelope height incl. header** (add `HD_proj` if the header is on a long edge) | | |
+| `ED` | Overall envelope **depth** incl. header (if it protrudes off the back) | | |
+| `PO_W` | Panel outline width (glass edge, smaller than module) | **125.0** | manual |
+| `PO_H` | Panel outline height | **100.0** | manual |
 | `AW` | Active / visible area width | | |
 | `AH` | Active / visible area height | | |
 | `PT` | Module thickness (panel + PCB + FPC connector/header) | | |
@@ -29,11 +34,20 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 Notes / anything unexpected:
 
 ```
-Module outline measured 139.5 x 101.0 mm (user, manual). Waveshare lists 138.5 x 100.5 mm,
+Module BODY outline measured 139.5 x 101.0 mm (user, manual). Waveshare lists 138.5 x 100.5 mm,
 so the datasheet is ~1.0 mm tight in width and ~0.5 mm in height. Measure-first validated:
 these measured values, not the catalogue, drive the rebate/cavity.
-ASSUMPTION to confirm: the 139.5 x 101.0 is the panel + PCB outline only, NOT including the
-exposed FPC/header or any protective film. If a film/connector protrudes, note it separately.
+The 101.0 mm height EXCLUDES the protruding 8-pin header -> record the header edge, its
+protrusion (HD_proj) and the overall envelope (EW x EH x ED). The rebate must clear the ENVELOPE,
+not just the body.
+
+Panel outline (PO) measured 125.0 x 100.0 mm - close to the datasheet 125.4 x 99.5 (good).
+  -> Module is ~14.5 mm WIDER than the panel (139.5 vs 125.0): the PCB tab is on the WIDTH.
+  -> Panels and modules agree in height (101 vs 100).
+
+REVEAL BUDGET: the frame's reveal R overlaps the panel border, NOT the image. The border is
+approximately (PO - AW)/2. With AW ~114.9 x 85.8:  border ~5.0 mm (W) and ~7.1 mm (H).
+  -> Keep R <= ~5 mm or the front face clips the active area (confirm with the AW measurement).
 ```
 
 ---
@@ -73,24 +87,27 @@ Photograph the bundle first, then identify each lead. Cross-reference the ESPHom
 
 ```
 front opening    = (PO_W - 2R) × (PO_H - 2R)     (reveal over the panel edge)
-rebate / inner   = (MO_W + 2) × (MO_H + 2)       (clear the module PCB + tab)
+rebate / inner   = (EW + 2) × (EH + 2)           (clear the module ENVELOPE incl. header)
 rebate depth     = PT + 0.5 mm
 cavity depth     = RD + 3 mm minimum
-frame outer      = opening + 2F, and ≥ MO + 2×margin
+frame outer      = opening + 2F, and ≥ EW + 2×margin
 ```
 
 | Derived | Formula | Value (mm) |
 |---|---|---|
 | Reveal `R` (design 3–5 mm) | chosen | |
 | Frame face width `F` (design 35–45 mm) | chosen | |
-| Front opening W × H | `PO − 2R` | × |
-| Rebate / inner W × H | `MO + 2` | **141.5 × 103.0** (from measured MO) |
+| Front opening W × H | `PO − 2R` | R=3 → **119 × 94**; R=4 → **117 × 92**; R=5 → **115 × 90** |
+| Rebate / inner W × H | `EW + 2` | × (needs `EW`/`EH`) |
 | Rebate depth | `PT + 0.5` | |
 | Cavity depth | `RD + 3` | |
 | Frame outer W × H | `opening + 2F` | × |
 
-**Module tab:** which edge does the PCB tab (FPC connector + header) extend from? `____`
-(give that side extra clearance / a wider member).
+**Header edge:** which edge does the 8-pin header protrude from, and by how far? `____`
+(the rebate must clear the envelope, not just the board outline).
+
+**Reveal:** keep `R` ≤ ~5 mm (panel border ≈ 5.0 mm on the width) so the front face doesn't clip
+the image. Choose `R` = `____` mm (3–5).
 
 ---
 

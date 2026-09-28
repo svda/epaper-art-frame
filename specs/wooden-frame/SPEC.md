@@ -62,7 +62,7 @@ catalogues.** All frame dimensions are *derived* from measured values:
 | Symbol | Meaning | Source |
 |---|---|---|
 | `MO_W × MO_H` | **Module (F) outline** — panel + onboard driver PCB (**the true footprint**) | measured: **139.5 × 101.0 mm** (Waveshare ref 138.5 × 100.5 — ~1 mm tight) |
-| `PO_W × PO_H` | Panel outline (glass edge), **smaller** than the module | measured; ref **125.4 × 99.5 mm** |
+| `PO_W × PO_H` | Panel outline (glass edge), **smaller** than the module | measured: **125.0 × 100.0 mm** (ref 125.4 × 99.5) |
 | `AW × AH` | Active / visible area | measured; ref **114.9 × 85.8 mm** |
 | `PT` | Module thickness (panel ~0.91 mm + PCB + FPC connector/header) | measured |
 | `RD` | Rear stack depth: NULA + LiPo + module PCB & header + wiring + service loop | measured / mock-up |
