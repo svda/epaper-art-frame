@@ -1,25 +1,27 @@
 # ============================================================================
 # Bench device — full pipeline on the Heemol ESP32-S3 N16R8, USB-powered
 # ============================================================================
-# Goal: WiFi -> fetch an image from Home Assistant (/local/epaper) -> render it
-# on the Waveshare 5.65" Module (F).
+# WiFi -> fetch manifest.json from Home Assistant -> pick the next image
+# (round-robin, persisted) -> fetch it -> render on the 5.65" Module (F).
 #
-# Deliberately NOT yet included: deep sleep (USB-powered), battery/ADC, the
-# manifest + round-robin cycle. Add those once this path works.
+# Deliberately NOT included yet: deep sleep and battery/ADC (USB-powered).
 #
 # WIRING (module header -> Heemol):
 #   VCC -> 3V3   GND -> GND   DIN -> GPIO11   CLK -> GPIO12
 #   CS  -> GPIO10  DC -> GPIO9  RST -> GPIO8   BUSY -> GPIO7 (INVERTED)
 #
-# Put a colour image at  <ha>/local/epaper/<image_file>  before flashing.
+# On Home Assistant, put in config/www/epaper/:
+#   - manifest.json : a JSON array of filenames, e.g. ["a.png","b.png"]
+#   - the images referenced by it
 # ============================================================================
 
 substitutions:
   device_name: epaper-bench
   friendly_name: E-Paper Bench
-  # Home Assistant base URL serving config/www/epaper as /local/epaper
   ha_url: "http://server:8123"
   image_dir: "local/epaper"
+  manifest_file: "manifest.json"
+  # Default/placeholder image (the manifest overrides it at runtime)
   image_file: "test.png"
 
 esphome:
@@ -31,7 +33,7 @@ esphome:
       - wait_until:
           condition:
             wifi.connected:
-      - component.update: art_image
+      - script.execute: fetch_manifest
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -62,6 +64,70 @@ wifi:
 captive_portal:
 
 http_request:
+
+globals:
+  # Round-robin position, persisted across restarts/deep sleep
+  - id: art_index
+    type: int
+    restore_value: true
+    initial_value: "0"
+  - id: art_count
+    type: int
+    restore_value: false
+    initial_value: "0"
+  - id: art_list
+    type: std::vector<std::string>
+    restore_value: false
+
+script:
+  - id: fetch_manifest
+    then:
+      - http_request.get:
+          url: "${ha_url}/${image_dir}/${manifest_file}"
+          on_response:
+            then:
+              - lambda: |-
+                  id(art_list).clear();
+                  id(art_count) = 0;
+                  if (response->status_code != 200) {
+                    ESP_LOGW("art", "manifest HTTP status %d", response->status_code);
+                    return;
+                  }
+                  std::string body;
+                  uint8_t buf[128];
+                  int r;
+                  while ((r = response->read(buf, sizeof(buf))) > 0)
+                    body.append(reinterpret_cast<char *>(buf), r);
+                  // Naive parse of a flat JSON array of strings: collect quoted runs.
+                  std::string cur;
+                  bool in_str = false;
+                  for (char c : body) {
+                    if (c == '"') {
+                      if (in_str && !cur.empty())
+                        id(art_list).push_back(cur);
+                      cur.clear();
+                      in_str = !in_str;
+                    } else if (in_str) {
+                      cur += c;
+                    }
+                  }
+                  id(art_count) = (int) id(art_list).size();
+                  ESP_LOGI("art", "manifest: %d image(s)", id(art_count));
+              - script.execute: show_next_image
+
+  - id: show_next_image
+    then:
+      - lambda: |-
+          if (id(art_count) <= 0) {
+            ESP_LOGW("art", "no images in manifest; nothing to show");
+            return;
+          }
+          int i = id(art_index) % id(art_count);
+          std::string url = std::string("${ha_url}/${image_dir}/") + id(art_list)[i];
+          ESP_LOGI("art", "showing %d/%d: %s", i + 1, id(art_count), url.c_str());
+          id(art_image).set_url(url);
+          id(art_image).update();
+          id(art_index) = (i + 1) % id(art_count);
 
 image:
   - platform: online_image
