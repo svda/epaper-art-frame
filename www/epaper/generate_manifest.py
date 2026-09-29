@@ -12,11 +12,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg"}
 MANIFEST_NAME = "manifest.json"
+# Files that live in this folder but are not artwork.
+NON_IMAGE = {MANIFEST_NAME, "palette-acep7.png"}
 
 
 def find_images(folder: Path) -> list[str]:
@@ -24,12 +27,26 @@ def find_images(folder: Path) -> list[str]:
     return sorted(
         p.name
         for p in folder.iterdir()
-        if p.is_file() and not p.name.startswith(".") and p.suffix.lower() in IMAGE_EXTS
+        if p.is_file()
+        and not p.name.startswith(".")
+        and p.name not in NON_IMAGE
+        and p.suffix.lower() in IMAGE_EXTS
     )
 
 
 def render(images: list[str]) -> str:
     return json.dumps(images) + "\n"
+
+
+def prepare_heics(folder: Path) -> None:
+    """Convert any .heic/.HEIC in *folder* to dithered PNGs via prepare_image.sh."""
+    script = folder / "prepare_image.sh"
+    if not script.exists():
+        raise SystemExit(f"{script.name} not found; cannot --prepare")
+    for p in sorted(folder.iterdir()):
+        if p.is_file() and p.suffix.lower() == ".heic":
+            out = p.with_suffix(".png")
+            subprocess.run([str(script), str(p), str(out)], check=True)
 
 
 def main() -> int:
@@ -39,9 +56,16 @@ def main() -> int:
         action="store_true",
         help="do not write; exit non-zero if manifest.json is out of date",
     )
+    parser.add_argument(
+        "--prepare",
+        action="store_true",
+        help="convert any .heic/.HEIC to dithered PNGs (via prepare_image.sh) first",
+    )
     args = parser.parse_args()
 
     folder = Path(__file__).resolve().parent
+    if args.prepare:
+        prepare_heics(folder)
     images = find_images(folder)
     desired = render(images)
     manifest = folder / MANIFEST_NAME

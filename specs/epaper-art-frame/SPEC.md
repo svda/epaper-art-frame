@@ -121,9 +121,10 @@ from ESPHome, against the bare panel.
   folder is tracked in this repo and copied to the HA host's `config/www/epaper/`.
 - **Generator script** — `www/epaper/generate_manifest.py` (run on a dev machine, or the HA
   host) scans `www/epaper/*.{png,jpg,jpeg}` and rewrites `manifest.json`. Runs on demand.
-- **Image preparation (v1):** ESPHome downloads the image and quantises to 7 colours on-device.
-  Acceptable for v1. A future enhancement pre-dithers/`600×448`-scales on the server for better
-  colour accuracy.
+- **Image preparation:** pre-dither on the host with `www/epaper/prepare_image.sh` — it converts
+  (including iPhone HEIC), scales/crops to 600×448 and dithers to the 7-colour palette
+  (`palette-acep7.png`, whose colours map exactly to the driver's codes). This supersedes
+  on-device quantisation (Q4), which bands badly on photos.
 
 **HA note:** `www/` is served by HA at `/local/...`; the device cannot rely on directory
 listing, so the manifest is required (a bare static server has no listing either).
@@ -171,7 +172,7 @@ listing, so the manifest is required (a bare static server has no listing either
 | Q1 | Exact ESP32-S3 board/module (low-quiescent) to purchase | **Resolved P0.2** — NULA DeepSleep ESP32-S3 |
 | Q2 | Battery capacity + connector/charging board | **Resolved P0.3** — 3000 mAh LiPo + NULA onboard TP4056M |
 | Q3 | ACeP565 BUSY inversion needed? — **YES, required** (`inverted: true`) | **Resolved** — bench-confirmed 2026-09-28 |
-| Q4 | On-device quantisation quality acceptable, or pre-dither now | Phase 3 (image pipeline) |
+| Q4 | On-device quantisation quality acceptable, or pre-dither now | **Resolved** — pre-dither (`prepare_image.sh`) |
 | Q5 | Wake time of day (drift accepted in v1) | Deferred — config choice |
 
 ---

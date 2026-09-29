@@ -230,15 +230,26 @@ device cycles through them over consecutive days.
 
 ---
 
-### P2.3 (optional): Pre-dither script
-**Description:** If P1.3 answered Q4 as "pre-dither required", add a server-side script that
-scales to 600×448 and dithers to the 7-colour palette before serving. Fold the output into the
-manifest generator.
+### P2.3: Pre-dither / image preparation tooling
+**Description:** Server-side/host-side script that scales/crops to 600×448 and dithers to the
+7-colour palette before serving, and folds into the manifest generator.
 
 **Acceptance criteria:**
-- [ ] Pre-dithered files render with visibly better fidelity than on-device quantisation.
+- [  ] Pre-dithered files render with visibly better fidelity than on-device quantisation.
+       — tooling built and verified to emit palette-only output; on-panel visual confirmation
+       still pending (needs a real photo printed).
 
-**Dependencies:** P1.3 (Q4) · **Scope:** M · **Files:** `generate_manifest.py` (extended).
+**Done:**
+- `www/epaper/prepare_image.sh` — ImageMagick wrapper: `-auto-orient`, sRGB, cover-crop to
+  600×448 (or `--fit`), Floyd–Steinberg dither to `palette-acep7.png`, `--rotate`, `--dither`.
+  Decodes HEIC directly (no extra installs). Verified: PNG and HEIC inputs → 600×448 with only
+  palette colours.
+- `www/epaper/palette-acep7.png` — the 7 colours, each verified to map to the right driver code.
+- `generate_manifest.py --prepare` — converts any `.heic`/`.HEIC` to dithered PNG before scanning;
+  the palette is excluded from the manifest.
+
+**Dependencies:** P1.3 (Q4) · **Scope:** M · **Files:** `www/epaper/prepare_image.sh`,
+`www/epaper/palette-acep7.png`, `www/epaper/generate_manifest.py`, `www/epaper/README.md`.
 
 ---
 
