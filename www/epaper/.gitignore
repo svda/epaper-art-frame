@@ -6,5 +6,8 @@
 *.heic
 *.HEIC
 
+# Generated at prep/deploy time (run: python3 generate_manifest.py).
+manifest.json
+
 # The palette is a golden file — keep it tracked.
 !palette-acep7.png
