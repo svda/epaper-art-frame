@@ -191,20 +191,23 @@ battery voltage + last-image + WiFi sensors publish.
 ## Phase 2 — Image pipeline
 
 ### P2.1: `manifest.json` + generator script
-**Description:** Create `config/www/epaper/manifest.json` and a generator script (Python) that
-scans `config/www/epaper/*.{png,jpg,jpeg}` and rewrites the manifest, sorting deterministically.
-The script is the only writer of the manifest.
+**Description:** Create `www/epaper/manifest.json` and a generator script (Python) that
+scans `www/epaper/*.{png,jpg,jpeg}` and rewrites the manifest, sorting deterministically.
+The script is the only writer of the manifest. The folder is the tracked source of truth;
+copy it to the HA host's `config/www/epaper/`.
 
 **Acceptance criteria:**
-- [ ] Script rewrites the manifest to exactly match folder contents; documented in a README line.
-- [ ] HA serves `/local/epaper/*` correctly.
+- [x] Script rewrites the manifest to exactly match folder contents; documented in a README line.
+      — `www/epaper/generate_manifest.py` (+ `--check`); documented in `www/epaper/README.md`.
+- [x] HA serves `/local/epaper/*` correctly. — verified: `manifest.json`, `test.png`, `art-1.png`
+      all return HTTP 200 from `http://server:8123/local/epaper/`.
 
 **Verification:**
-- [ ] Add + remove a file, regenerate, confirm manifest tracks it; fetch `manifest.json` over
-      HTTP from HA.
+- [x] Add + remove a file, regenerate, confirm manifest tracks it; fetch `manifest.json` over
+      HTTP from HA. — regenerated to `["art-1.png", "test.png"]`; device fetched and cycled it.
 
-**Dependencies:** none · **Scope:** S · **Files:** `config/www/epaper/manifest.json`,
-`config/www/epaper/generate_manifest.py`.
+**Dependencies:** none · **Scope:** S · **Files:** `www/epaper/manifest.json`,
+`www/epaper/generate_manifest.py`, `www/epaper/README.md`, `www/epaper/*.{png,jpg,jpeg}`.
 
 ---
 
@@ -218,7 +221,7 @@ device cycles through them over consecutive days.
 **Verification:**
 - [ ] Photograph the rotation; confirm no two consecutive days repeat.
 
-**Dependencies:** P2.1, Checkpoint B · **Scope:** S · **Files:** `config/www/epaper/*`.
+**Dependencies:** P2.1, Checkpoint B · **Scope:** S · **Files:** `www/epaper/*`.
 
 ---
 

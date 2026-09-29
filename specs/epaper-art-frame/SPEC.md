@@ -116,10 +116,11 @@ from ESPHome, against the bare panel.
 
 ## Module 3 — Image pipeline
 
-- **`config/www/epaper/manifest.json`** — a JSON array of image filenames. This is the single
-  source of truth for the rotation and is what survives "drop in / delete a file".
-- **Generator script** — a small script (run on the HA host, or a dev machine) that scans
-  `config/www/epaper/*.{png,jpg,jpeg}` and rewrites `manifest.json`. Runs on demand.
+- **`www/epaper/manifest.json`** — a JSON array of image filenames. This is the single
+  source of truth for the rotation and is what survives "drop in / delete a file". The
+  folder is tracked in this repo and copied to the HA host's `config/www/epaper/`.
+- **Generator script** — `www/epaper/generate_manifest.py` (run on a dev machine, or the HA
+  host) scans `www/epaper/*.{png,jpg,jpeg}` and rewrites `manifest.json`. Runs on demand.
 - **Image preparation (v1):** ESPHome downloads the image and quantises to 7 colours on-device.
   Acceptable for v1. A future enhancement pre-dithers/`600×448`-scales on the server for better
   colour accuracy.
