@@ -111,7 +111,12 @@ Goal: prove the Phase-1 path end-to-end on the devkit before the NULA arrives.
 - [x] Notes: use the HA host **`server`** (DNS) — **mDNS names do not resolve** from the
       ESP (`getaddrinfo() returns 202` for `homeassistant.local`). `esphome upload` does
       **not** recompile after a config edit — run `esphome compile` first.
-- [ ] Not yet: manifest + round-robin index, battery/ADC sensor, deep sleep (USB for now).
+- [x] Manifest + round-robin cycle works: fetches `manifest.json`, parses the array, shows the
+      next image via a persisted `art_index` global. Verified across two boots —
+      `showing 1/2` (test.png) then `showing 2/2` (art-1.png). User confirms rotation is working.
+- [x] Image pipeline adopted into the repo: `www/epaper/` (manifest + `generate_manifest.py`
+      + README + images), copied to the HA host and served at `/local/epaper/` (P2.1).
+- [ ] Not yet: battery/ADC sensor and deep sleep — deferred until the NULA + battery are in.
 
 ---
 
