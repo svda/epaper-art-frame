@@ -18,7 +18,7 @@ substitutions:
   device_name: epaper-bench
   friendly_name: E-Paper Bench
   # Home Assistant base URL serving config/www/epaper as /local/epaper
-  ha_url: "http://homeassistant.local:8123"
+  ha_url: "http://server:8123"
   image_dir: "local/epaper"
   image_file: "test.png"
 

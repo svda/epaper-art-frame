@@ -36,7 +36,7 @@ a `lambda` drawing 7 colour bars + geometry marks. No custom component — Revis
 - [x] BUSY polarity confirmed (Q3) and recorded — **inversion REQUIRED** (`inverted: true`).
 
 **Verification:**
-- [ ] Photograph the rendered test pattern; compare against expected 7-colour layout.
+- [x] Photograph the rendered test pattern; compare against expected 7-colour layout.
 
 **Dependencies:** none (YAML can be authored before hardware arrives) · **Files:**
 `config/esphome/epaper-art-frame.yaml` (stub), `.gitignore`, `config/esphome/secrets.yaml`
@@ -96,6 +96,22 @@ Ask-first purchase approved by user (amazon.nl B0FZDDH33Y).
 - [x] P0.1 test pattern renders and is correct (bench-verified 2026-09-28).
 - [x] Board, battery, pins decided and recorded.
 - [ ] **Review with user** — proceed to Phase 1.
+
+---
+
+## Bench bring-up (Heemol devkit, USB, no battery) — 2026-09-29
+
+Goal: prove the Phase-1 path end-to-end on the devkit before the NULA arrives.
+
+- [x] WiFi connects (`IoT`, 192.168.2.90) and the device fetches over HTTP.
+- [x] Fetch → decode → render works end-to-end:
+      `http://server:8123/local/epaper/test.png` (PNG, 14.6 KB) → RGB565 buffer
+      600×448 (537,600 B, allocated in PSRAM) → drawn on the 5.65in-F panel.
+      User confirms the image rendered correctly.
+- [x] Notes: use the HA host **`server`** (DNS) — **mDNS names do not resolve** from the
+      ESP (`getaddrinfo() returns 202` for `homeassistant.local`). `esphome upload` does
+      **not** recompile after a config edit — run `esphome compile` first.
+- [ ] Not yet: manifest + round-robin index, battery/ADC sensor, deep sleep (USB for now).
 
 ---
 
