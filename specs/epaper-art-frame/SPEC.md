@@ -116,15 +116,16 @@ from ESPHome, against the bare panel.
 
 ## Module 3 — Image pipeline
 
-- **`www/epaper/manifest.json`** — a JSON array of image filenames. This is the single
-  source of truth for the rotation and is what survives "drop in / delete a file". The
-  folder is tracked in this repo and copied to the HA host's `config/www/epaper/`.
-- **Generator script** — `www/epaper/generate_manifest.py` (run on a dev machine, or the HA
-  host) scans `www/epaper/*.{png,jpg,jpeg}` and rewrites `manifest.json`. Runs on demand.
-- **Image preparation:** pre-dither on the host with `www/epaper/prepare_image.sh` — it converts
+- **`<artwork>/manifest.json`** — a JSON array of image filenames, the single source of truth for
+  the rotation. The artwork folder is `www/epaper/` locally (images are git-ignored; the manifest
+  is generated) and is copied to the HA host's `config/www/epaper/`.
+- **Tooling** — `tools/epaper/`: `generate_manifest.py` scans the artwork folder
+  (`www/epaper/*.{png,jpg,jpeg}`) and rewrites `manifest.json`; `push_to_ha.sh` deploys the
+  manifest + images over scp.
+- **Image preparation:** pre-dither with `tools/epaper/prepare_image.sh` — it converts
   (including iPhone HEIC), scales/crops to 600×448 and dithers to the 7-colour palette
-  (`palette-acep7.png`, whose colours map exactly to the driver's codes). This supersedes
-  on-device quantisation (Q4), which bands badly on photos.
+  (`tools/epaper/palette-acep7.png`, whose colours map exactly to the driver's codes). This
+  supersedes on-device quantisation (Q4), which bands badly on photos.
 
 **HA note:** `www/` is served by HA at `/local/...`; the device cannot rely on directory
 listing, so the manifest is required (a bare static server has no listing either).

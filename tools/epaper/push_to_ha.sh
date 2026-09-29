@@ -1,28 +1,35 @@
 #!/usr/bin/env sh
 # Push manifest.json and the artwork to the Home Assistant host via scp.
 #
-# This folder is the source of truth: the script regenerates manifest.json,
-# then copies it and every image (except the palette) to the HA host's
-# config/www/epaper/ folder, where it is served at /local/epaper/.
-#
-# Usage:
-#   ./push_to_ha.sh [OPTIONS] [user@]host:/path/to/config/www/epaper/
-#
-# The destination may also be set via the EPAPER_DEST environment variable.
-#
-# Options:
-#   -n, --dry-run   show what would be copied, then stop
-#   -h, --help      show this help
+# The artwork folder is the source of truth: this regenerates manifest.json,
+# then copies it and every image to the HA host's config/www/epaper/ folder,
+# where it is served at /local/epaper/.
 set -eu
 
 DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PALETTE=palette-acep7.png
+DEFAULT_IMAGES="$DIR/../../www/epaper"
 dry_run=0
 
-usage() { sed -n '2,14p' "$0"; }
+usage() {
+  cat <<'EOF'
+usage: push_to_ha.sh [options] [user@]host:/path/to/config/www/epaper/
+
+options:
+  --dir DIR       artwork folder (default: <repo>/www/epaper, or $EPAPER_IMAGES)
+  -n, --dry-run   show what would be copied, then stop
+  -h, --help      show this help
+
+The destination may also be set via the EPAPER_DEST environment variable.
+EOF
+}
+
+images=${EPAPER_IMAGES:-$DEFAULT_IMAGES}
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --dir)
+      [ $# -ge 2 ] || { echo "error: --dir needs a path" >&2; exit 2; }
+      images=$2; shift 2 ;;
     -n|--dry-run) dry_run=1; shift ;;
     -h|--help) usage; exit 0 ;;
     --) shift; break ;;
@@ -43,23 +50,23 @@ remote_dir=${dest#*:}
 
 command -v scp >/dev/null 2>&1 || { echo "error: scp not found" >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found" >&2; exit 1; }
+[ -d "$images" ] || { echo "error: artwork folder not found: $images" >&2; exit 1; }
 
 # Keep the manifest in sync with the folder — never push a stale one.
 echo "regenerating manifest.json"
-python3 "$DIR/generate_manifest.py" >/dev/null
+python3 "$DIR/generate_manifest.py" --dir "$images" >/dev/null
 
-# Collect the artwork: every image except the palette.
+# Collect the artwork.
 set --
-for f in "$DIR"/*.png "$DIR"/*.jpg "$DIR"/*.jpeg; do
+for f in "$images"/*.png "$images"/*.jpg "$images"/*.jpeg; do
   [ -f "$f" ] || continue
-  [ "${f##*/}" = "$PALETTE" ] && continue
   set -- "$@" "$f"
 done
-[ $# -ge 1 ] || { echo "error: no images to push in $DIR" >&2; exit 1; }
+[ $# -ge 1 ] || { echo "error: no images to push in $images" >&2; exit 1; }
 
 echo "destination: $host:$remote_dir"
 echo "files:"
-printf '  %s\n' "$DIR/manifest.json"
+printf '  %s\n' "$images/manifest.json"
 for f in "$@"; do printf '  %s\n' "$f"; done
 
 if [ "$dry_run" -eq 1 ]; then
@@ -68,5 +75,5 @@ if [ "$dry_run" -eq 1 ]; then
 fi
 
 ssh "$host" "mkdir -p '$remote_dir'"
-scp "$DIR/manifest.json" "$@" "$dest"
+scp "$images/manifest.json" "$@" "$dest"
 echo "pushed $(($# + 1)) file(s) to $host:$remote_dir"

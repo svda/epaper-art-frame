@@ -114,8 +114,9 @@ Goal: prove the Phase-1 path end-to-end on the devkit before the NULA arrives.
 - [x] Manifest + round-robin cycle works: fetches `manifest.json`, parses the array, shows the
       next image via a persisted `art_index` global. Verified across two boots —
       `showing 1/2` (test.png) then `showing 2/2` (art-1.png). User confirms rotation is working.
-- [x] Image pipeline adopted into the repo: `www/epaper/` (manifest + `generate_manifest.py`
-      + README + images), copied to the HA host and served at `/local/epaper/` (P2.1).
+- [x] Image pipeline adopted into the repo: artwork in `www/epaper/` (images + generated
+      manifest), tooling in `tools/epaper/`; deployed to the HA host and served at
+      `/local/epaper/` (P2.1, P2.3).
 - [ ] Not yet: battery/ADC sensor and deep sleep — deferred until the NULA + battery are in.
 
 ---
@@ -196,14 +197,14 @@ battery voltage + last-image + WiFi sensors publish.
 ## Phase 2 — Image pipeline
 
 ### P2.1: `manifest.json` + generator script
-**Description:** Create `www/epaper/manifest.json` and a generator script (Python) that
-scans `www/epaper/*.{png,jpg,jpeg}` and rewrites the manifest, sorting deterministically.
-The script is the only writer of the manifest. The folder is the tracked source of truth;
-copy it to the HA host's `config/www/epaper/`.
+**Description:** Create the artwork folder (`www/epaper/`) with `manifest.json` and a generator
+script (`tools/epaper/generate_manifest.py`) that scans the folder for `*.{png,jpg,jpeg}` and
+rewrites the manifest, sorting deterministically. The script is the only writer of the manifest.
+Images are git-ignored; `push_to_ha.sh` deploys to the HA host's `config/www/epaper/`.
 
 **Acceptance criteria:**
 - [x] Script rewrites the manifest to exactly match folder contents; documented in a README line.
-      — `www/epaper/generate_manifest.py` (+ `--check`); documented in `www/epaper/README.md`.
+      — `tools/epaper/generate_manifest.py` (+ `--check`); documented in `tools/epaper/README.md`.
 - [x] HA serves `/local/epaper/*` correctly. — verified: `manifest.json`, `test.png`, `art-1.png`
       all return HTTP 200 from `http://server:8123/local/epaper/`.
 
@@ -211,8 +212,8 @@ copy it to the HA host's `config/www/epaper/`.
 - [x] Add + remove a file, regenerate, confirm manifest tracks it; fetch `manifest.json` over
       HTTP from HA. — regenerated to `["art-1.png", "test.png"]`; device fetched and cycled it.
 
-**Dependencies:** none · **Scope:** S · **Files:** `www/epaper/manifest.json`,
-`www/epaper/generate_manifest.py`, `www/epaper/README.md`, `www/epaper/*.{png,jpg,jpeg}`.
+**Dependencies:** none · **Scope:** S · **Files:** `www/epaper/*` (artwork, git-ignored),
+`tools/epaper/generate_manifest.py`, `tools/epaper/README.md`.
 
 ---
 
@@ -235,21 +236,22 @@ device cycles through them over consecutive days.
 7-colour palette before serving, and folds into the manifest generator.
 
 **Acceptance criteria:**
-- [  ] Pre-dithered files render with visibly better fidelity than on-device quantisation.
-       — tooling built and verified to emit palette-only output; on-panel visual confirmation
-       still pending (needs a real photo printed).
+- [ ] Pre-dithered files render with visibly better fidelity than on-device quantisation.
+      — tooling built and verified to emit palette-only output; on-panel visual confirmation
+      still pending (needs a real photo printed).
 
 **Done:**
-- `www/epaper/prepare_image.sh` — ImageMagick wrapper: `-auto-orient`, sRGB, cover-crop to
+- `tools/epaper/prepare_image.sh` — ImageMagick wrapper: `-auto-orient`, sRGB, cover-crop to
   600×448 (or `--fit`), Floyd–Steinberg dither to `palette-acep7.png`, `--rotate`, `--dither`.
   Decodes HEIC directly (no extra installs). Verified: PNG and HEIC inputs → 600×448 with only
-  palette colours.
-- `www/epaper/palette-acep7.png` — the 7 colours, each verified to map to the right driver code.
-- `generate_manifest.py --prepare` — converts any `.heic`/`.HEIC` to dithered PNG before scanning;
-  the palette is excluded from the manifest.
+  palette colours; output lands in the artwork folder.
+- `tools/epaper/palette-acep7.png` — the 7 colours, each verified to map to the right driver code.
+- `tools/epaper/generate_manifest.py --prepare` — converts any `.heic`/`.HEIC` in the artwork
+  folder to dithered PNG before scanning.
 
-**Dependencies:** P1.3 (Q4) · **Scope:** M · **Files:** `www/epaper/prepare_image.sh`,
-`www/epaper/palette-acep7.png`, `www/epaper/generate_manifest.py`, `www/epaper/README.md`.
+**Dependencies:** P1.3 (Q4) · **Scope:** M · **Files:** `tools/epaper/prepare_image.sh`,
+`tools/epaper/palette-acep7.png`, `tools/epaper/generate_manifest.py`, `tools/epaper/README.md`,
+`tools/epaper/push_to_ha.sh`.
 
 ---
 
