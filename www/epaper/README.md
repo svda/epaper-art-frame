@@ -11,7 +11,7 @@ host this folder is served at `http://<ha>:8123/local/epaper/`.
    ```
    python3 generate_manifest.py
    ```
-3. Copy this folder to the HA host's `config/www/epaper/` (rsync / scp).
+3. Deploy to the HA host (see below).
 
 The device fetches `manifest.json` and shows the next image each wake, cycling
 round-robin via a persisted index.
@@ -34,6 +34,16 @@ Options:
 Without prep, ESPHome quantises on-device by RGB thresholds, which bands badly on
 photos. `palette-acep7.png` holds the exact colours that map to the panel's 7
 colour codes, so the prepared PNG renders exactly as intended.
+
+## Deploy to Home Assistant
+
+```
+./push_to_ha.sh user@host:/path/to/config/www/epaper/
+```
+
+Regenerates `manifest.json`, then scp's it plus every image (except the palette)
+to the host. The destination can also be set with the `EPAPER_DEST` environment
+variable. `-n` / `--dry-run` shows what would be copied without copying.
 
 ## Notes
 
