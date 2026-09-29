@@ -1,0 +1,10 @@
+# Artwork is personal / not version controlled: ignore the prepared images
+# and the original photos.
+*.png
+*.jpg
+*.jpeg
+*.heic
+*.HEIC
+
+# The palette is a golden file — keep it tracked.
+!palette-acep7.png
