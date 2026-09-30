@@ -20,7 +20,7 @@ Status: collecting · 2026-09-29
 
 | Item | Notes |
 |---|---|
-| **Battery connector adapter** | NULA is **JST-PH 2.0**; the battery is a **smaller JST** (likely JST-SH 1.25 / possibly JST-ZH 1.5). Get an adapter pigtail or re-crimp to JST-PH 2.0. **Verify polarity before connecting.** |
+| **Battery connector adapter** | NULA is **JST-PH 2.0**; the battery is **Micro JST 1.25 mm** (Molex PicoBlade / JST-GH class — **not** JST-SH, which is 1.0 mm). Options: a ready-made **1.25 ↔ PH 2.0, 2-pin** adapter cable, or crimp/solder a JST-PH pigtail onto the battery leads. Match genders and **verify polarity before connecting**. |
 | 2 × 100 kΩ 1% resistors (+ 100 nF) | Battery ADC divider — the NULA has **none** |
 | 30 AWG silicone wire + heat-shrink | Harness (8 runs: 3V3/GND/DIN/CLK/CS/DC/RST/BUSY) |
 | Right-angle USB-C cable / pigtail | Charging access through the bottom slot |
@@ -48,6 +48,7 @@ Status: collecting · 2026-09-29
 
 ## Open
 
-- [ ] Confirm the battery's exact JST pitch (1.25 mm = JST-SH?) **and polarity**
+- [x] Battery connector: **Micro JST 1.25 mm** (NULA side: JST-PH 2.0)
+- [ ] Confirm the exact 1.25 mm series (PicoBlade vs JST-GH) and polarity
+- [ ] Decide adapter cable vs crimp/solder a PH pigtail onto the battery
 - [ ] Confirm the NULA pin map (`3V3`, `GND`, GPIO 7–12) against the silkscreen
-- [ ] Decide adapter cable vs re-crimp
