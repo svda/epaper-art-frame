@@ -30,6 +30,9 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 | `BW` | LiPo width | **65.0** | manual |
 | `BH` | LiPo height | **35.0** | manual |
 | `BT` | LiPo thickness | **10.0** | manual |
+| `NW` | NULA width | **70.0** | manual |
+| `NH` | NULA height | **26.0** | manual |
+| `NT` | NULA thickness | **7.0** | manual |
 
 Notes / anything unexpected:
 
@@ -57,6 +60,10 @@ removably (velcro/strap/pocket on the back plate), never bonded.
 PT = 8.0 mm with the 4 corner risers removed (9.0 mm fitted). The header is
 included in PT. The module's corner holes are not used (the back plate carries
 the electronics), so removing the risers is a free 1 mm.
+
+NULA measured 70.0 x 26.0 x 7.0 mm. NULA (70x26) and LiPo (65x35) fit side by
+side on the back plate (~140x100 available). RD is battery-bound: LiPo 10 +
+>=5 swell = ~15 mm (vs NULA 7 + standoff ~5 = ~12 mm) -- confirm with the mock-up.
 ```
 
 ---
