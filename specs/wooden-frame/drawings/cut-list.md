@@ -25,7 +25,7 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 | `PO_H` | Panel outline height | **100.0** | manual |
 | `AW` | Active / visible area width | **115.0** | manual |
 | `AH` | Active / visible area height | **85.0** | manual |
-| `PT` | Module thickness (panel + PCB + FPC connector/header) | | |
+| `PT` | Module thickness incl. header (panel + PCB + connector/header), **risers removed** | **8.0** | manual |
 | `RD` | Cavity depth — **mock up** the back plate with the NULA + LiPo + wiring + a service loop; measure module-back → plate-inner-face | | |
 | `BW` | LiPo width | **65.0** | manual |
 | `BH` | LiPo height | **35.0** | manual |
@@ -53,6 +53,10 @@ REVEAL BUDGET (measured): border = (PO - AW)/2
 LiPo measured 65.0 x 35.0 x 10.0 mm. Pouch cells swell: allow >=5 mm clearance
 around it, so budget ~15 mm for the battery layer in RD, not 10. Hold it
 removably (velcro/strap/pocket on the back plate), never bonded.
+
+PT = 8.0 mm with the 4 corner risers removed (9.0 mm fitted). The header is
+included in PT. The module's corner holes are not used (the back plate carries
+the electronics), so removing the risers is a free 1 mm.
 ```
 
 ---
