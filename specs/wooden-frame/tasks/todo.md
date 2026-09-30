@@ -16,8 +16,8 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 > Tick the criteria once §1–§3 are complete.
 
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
-(`PT`), the panel's active area, and the sandwich depth (`RD`: module + carrier + NULA + LiPo +
-wiring + service loop), mocked up as it will sit. Photograph the panel's **flying-lead bundle** and build the
+(`PT`), the panel's active area, and the cavity depth (`RD`: module back → back-plate inner face, i.e.
+NULA + LiPo + wiring + service loop), mocked up as it will sit. Photograph the panel's **flying-lead bundle** and build the
 **lead colour → signal map** (CLK / MOSI / CS / DC / RST / BUSY / power / GND), cross-checking
 against the `epaper-art-frame` ESPHome `display` pin map. Flag any lead that is a voltage rail
 rather than logic.
@@ -117,14 +117,14 @@ sets; clean squeeze-out.
 ---
 
 ### F3.2: Build the rear box and cut the USB-C access
-**Description:** Assemble the spacer frame + screwed back panel to enclose the cavity. Cut a
-bottom-edge slot for the USB-C cable overmould (confirm orientation from F1.1/Q6) and provide the
-French cleat recess/reinforcement.
+**Description:** Assemble the spacer frame and cut the **3.6 mm ply back plate** (which also carries
+the electronics — see F5.1). Cut a bottom-edge slot for the USB-C cable overmould (confirm orientation
+from F1.1/Q6) and provide the French cleat recess/reinforcement.
 
 **Acceptance criteria:**
-- [ ] Back panel removable with screws only (no glue) for service.
+- [ ] Back plate removable with screws only (no glue) for service.
 - [ ] USB-C plug/cable connects with the slot aligned; slot concealed from the front.
-- [ ] Cavity depth clears the measured stack.
+- [ ] Cavity depth clears the measured `RD`.
 
 **Dependencies:** F3.1 · **Scope:** M · **Files:** `drawings/cut-list.md`
 
@@ -157,17 +157,18 @@ electronics go inside.
 
 ## Phase 5 — Install & accept
 
-### F5.1: Build the display sandwich and fit it
-**Description:** Build the **display sandwich**: attach the NULA (M3 standoff + foam anti-rotation pad)
-and the LiPo (removable — velcro / strap / pocket, never bonded) to the **back of the module** via a
-thin carrier plate on the module's corner riser holes. Route the flying leads through an **anchored
-service loop**, strain-relieved off all sharp edges, with the NULA's USB-C facing the bottom slot.
-Fit the removable retaining stops and drop the whole sandwich into the rebate.
+### F5.1: Mount the electronics on the back plate and fit it
+**Description:** Mount the NULA (M3 standoff + a foam anti-rotation pad at the far end) and the LiPo
+(**removably** — velcro / strap / pocket, never bonded) on the **inner face of the 3.6 mm ply back
+plate**. Route the flying leads through an **anchored service loop**, strain-relieved off all sharp
+edges, with the NULA's USB-C reaching the bottom slot. Screw the plate to the spacer frame and fit the
+removable retaining stops.
 
 **Acceptance criteria:**
-- [ ] Electronics are one removable unit; the frame mounts nothing.
+- [ ] The back plate is both the panel and the electronics carrier; it unscrews freely with the
+      electronics attached.
 - [ ] Leads strain-relieved (service loop, anchored, never taut); panel ≥3 mm edge clearance.
-- [ ] USB-C reaches the bottom slot; LiPo replaceable without dismantling the sandwich.
+- [ ] USB-C reaches the bottom slot; LiPo replaceable without dismantling the frame.
 
 **Dependencies:** F4.1 · **Scope:** M
 
