@@ -16,8 +16,8 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 > Tick the criteria once §1–§3 are complete.
 
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
-(`PT`), the panel's active area, and the rear stack (`RD`: NULA + LiPo + lead breakout + connector +
-service loop), mocked up as it will sit. Photograph the panel's **flying-lead bundle** and build the
+(`PT`), the panel's active area, and the sandwich depth (`RD`: module + carrier + NULA + LiPo +
+wiring + service loop), mocked up as it will sit. Photograph the panel's **flying-lead bundle** and build the
 **lead colour → signal map** (CLK / MOSI / CS / DC / RST / BUSY / power / GND), cross-checking
 against the `epaper-art-frame` ESPHome `display` pin map. Flag any lead that is a voltage rail
 rather than logic.
@@ -27,7 +27,7 @@ rather than logic.
       recorded in `drawings/cut-list.md`. **Done: module 139.5 × 101.0, panel 125.0 × 100.0,
       active 115.0 × 85.0.**
 - [ ] Lead colour → signal map recorded; any non-logic (power-rail) lead identified.
-- [ ] Rear-stack mock-up photographed and its measured depth documented.
+- [ ] Sandwich depth mock-up photographed and its measured depth (`RD`) documented.
 - [ ] USB-C port orientation (which edge it faces) recorded (Q6).
 
 **Verification:**
@@ -157,15 +157,17 @@ electronics go inside.
 
 ## Phase 5 — Install & accept
 
-### F5.1: Fit retaining stops and install the electronics
-**Description:** Fit the removable retaining stops and mount the NULA, LiPo and lead breakout in the
-cavity. Route the flying leads through an **anchored service loop**, strain-relieved off all sharp
-edges. Confirm the panel is removable and the LiPo can be unplugged/replaced.
+### F5.1: Build the display sandwich and fit it
+**Description:** Build the **display sandwich**: attach the NULA (M3 standoff + foam anti-rotation pad)
+and the LiPo (removable — velcro / strap / pocket, never bonded) to the **back of the module** via a
+thin carrier plate on the module's corner riser holes. Route the flying leads through an **anchored
+service loop**, strain-relieved off all sharp edges, with the NULA's USB-C facing the bottom slot.
+Fit the removable retaining stops and drop the whole sandwich into the rebate.
 
 **Acceptance criteria:**
-- [ ] Panel retained with stops bearing on the frame, not the glass; ≥3 mm edge clearance.
-- [ ] Leads strain-relieved (service loop, anchored, never taut).
-- [ ] Panel removes with a screwdriver in <5 min; LiPo replaceable without dismantling.
+- [ ] Electronics are one removable unit; the frame mounts nothing.
+- [ ] Leads strain-relieved (service loop, anchored, never taut); panel ≥3 mm edge clearance.
+- [ ] USB-C reaches the bottom slot; LiPo replaceable without dismantling the sandwich.
 
 **Dependencies:** F4.1 · **Scope:** M
 

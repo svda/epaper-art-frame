@@ -19,8 +19,11 @@ catalogue numbers.
 
 - **Measure-first.** No dimension is hard-coded. `PO_W/PO_H`, `PT`, `RD` are measured with calipers
   before any timber is cut; every frame dimension is derived from them (SPEC "Dimensional model").
-- **Mitred frame + hidden rear box.** Slim visible bezel; depth and electronics live behind, in a
-  spacer frame closed by a screwed back panel.
+- **Mitred frame + hidden rear box.** Slim visible bezel; depth and the display sandwich live
+  behind, in a spacer frame closed by a screwed back panel.
+- **Display sandwich.** The NULA and LiPo mount to the **back of the panel module** (thin carrier
+  plate on the module's corner holes), so the electronics are one drop-in unit and the frame itself
+  mounts nothing. USB-C oriented to the bottom slot.
 - **Splines or dowels reinforce the mitres** (mitre saw + drill only; no table saw/router table).
 - **Rebate retention, nothing bonded.** Panel held by removable stops; LiPo held so it can be
   unplugged and replaced.
@@ -80,7 +83,7 @@ In addition to each task's acceptance criteria:
 |---|---|---|
 | Cut to catalogue dimensions, not the real panel | **High** | Measure first; dry-fit the panel before glue-up |
 | Mitres open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
-| Rear cavity too shallow | Medium | Mock the full stack (NULA + LiPo + leads + loop) and measure `RD` |
+| Rear cavity too shallow | Medium | Build the display sandwich (module + carrier + NULA + LiPo + leads + loop) and measure `RD` |
 | Panel stressed by retaining stops | **High** | Stops bear on the frame, not the glass; ≥3 mm clearance |
 | Flying leads stressed/broken | **High** | Anchored service loop; never taut; no sharp edges |
 | Finish off-gassing in a closed box | Medium | Cure ≥72 h; oil/wax only |

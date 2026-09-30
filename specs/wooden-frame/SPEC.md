@@ -37,7 +37,7 @@ frame.
 
 - **Objective priority:** furniture-grade appearance / intentional décor.
 - **Form factor:** mitred hardwood picture frame with a clean visible reveal, plus a **hidden rear
-  box** (spacer frame + removable back panel) carrying the NULA and the battery.
+  box** (spacer frame + removable back panel) that houses the display sandwich.
 - **Workshop:** mitre saw (or mitre box + handsaw), drill, random-orbit sander. Mitred corners
   glued and **reinforced with splines or dowels**; rebates cut with a router or stacked saw cuts.
 - **Material / finish:** hardwood (oak / ash / walnut / maple) with an **oil or wax finish**.
@@ -49,6 +49,12 @@ frame.
   (138.5 × 100.5 mm)** is ~13 mm wider than the panel itself (125.4 × 99.5 mm), so the rear cavity
   must clear the PCB tab, not just the panel. The leads still need **strain relief, a service loop,
   and a defined route** to the NULA.
+- **Electronics mount to the panel: a display sandwich.** The NULA, LiPo and wiring attach to the
+  **back of the display module** — a thin carrier plate screwed to the module's corner riser holes,
+  with the NULA on its M3 standoff (plus a foam anti-rotation pad at the far end) and the LiPo held
+  **removably** (velcro / strap / pocket — never bonded). The whole sandwich drops into the rebate as
+  one unit, so the frame never mounts the electronics itself. Orient the carrier so the NULA's
+  **USB-C reaches the bottom slot**.
 - **Glazing:** **none** (assumed) — the panel is matte and already reads as paper; glass/acrylic adds
   glare, weight and depth.
 
@@ -65,7 +71,7 @@ catalogues.** All frame dimensions are *derived* from measured values:
 | `PO_W × PO_H` | Panel outline (glass edge), **smaller** than the module | measured: **125.0 × 100.0 mm** (ref 125.4 × 99.5) |
 | `AW × AH` | Active / visible area | measured: **115.0 × 85.0 mm** (ref 114.9 × 85.8) |
 | `PT` | Module thickness (panel ~0.91 mm + PCB + FPC connector/header) | measured |
-| `RD` | Rear stack depth: NULA + LiPo + module PCB & header + wiring + service loop | measured / mock-up |
+| `RD` | **Sandwich depth**: module back + carrier + NULA + LiPo + wiring + service loop | measured / mock-up |
 | `R` | **Reveal** — how far the frame overlaps the panel edge, per side | design: **3–5 mm** |
 | `F` | Frame face width | design: **35–45 mm** |
 
@@ -226,7 +232,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 | Cut to catalogue dimensions, not the real panel | **High** — wasted hardwood, re-cut | Measure first; dry-fit the panel before glue-up |
 | Mitchell corners open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
 | Frame sized to the **panel**, not the module → PCB tab clashes | **High** — frame won't close | Size the rebate/cavity to `MO + 2 mm`; record the asymmetric tab orientation before cutting |
-| Rear cavity too shallow (stack-up underestimated) | Medium | Mock up the full stack (NULA + LiPo + module PCB/header + wiring + service loop) and measure `RD` before cutting the spacer |
+| Rear cavity too shallow (sandwich underestimated) | Medium | Build the display sandwich (module + carrier + NULA + LiPo + wiring + service loop) and measure `RD` before cutting the spacer |
 | Flying leads stressed or broken at the panel | **High** — panel unusable | Strain-relieve the lead bundle (service loop, anchored to the frame, never taut); never route over a sharp edge |
 | Panel stressed by the retaining stops | **High** — cracked panel | Stops bear on the frame/sub-panel, not the glass; ≥3 mm clearance; no clamping pressure on the panel |
 | Finish off-gassing inside the closed box | Medium | Cure ≥72 h before closing; oil/wax only, no solvent lacquer |
