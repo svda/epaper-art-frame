@@ -26,10 +26,10 @@ Task: **F1.1 / F1.2** · Status: **awaiting measurements**
 | `AW` | Active / visible area width | **115.0** | manual |
 | `AH` | Active / visible area height | **85.0** | manual |
 | `PT` | Module thickness (panel + PCB + FPC connector/header) | | |
-| `RD` | Rear stack depth — **mock up** NULA + LiPo + module PCB/header + wiring + a service loop, measure the total | | |
-| `BW` | LiPo width | | |
-| `BH` | LiPo height | | |
-| `BT` | LiPo thickness | | |
+| `RD` | Cavity depth — **mock up** the back plate with the NULA + LiPo + wiring + a service loop; measure module-back → plate-inner-face | | |
+| `BW` | LiPo width | **65.0** | manual |
+| `BH` | LiPo height | **35.0** | manual |
+| `BT` | LiPo thickness | **10.0** | manual |
 
 Notes / anything unexpected:
 
@@ -49,6 +49,10 @@ REVEAL BUDGET (measured): border = (PO - AW)/2
    horizontal = (125.0 - 115.0)/2 = 5.0 mm;  vertical = (100.0 - 85.0)/2 = 7.5 mm
   -> R must be <= 5.0 mm on the width, or the front face clips the image.
   -> RECOMMEND R = 4 mm (1 mm margin) -> front opening 117 x 92 mm.
+
+LiPo measured 65.0 x 35.0 x 10.0 mm. Pouch cells swell: allow >=5 mm clearance
+around it, so budget ~15 mm for the battery layer in RD, not 10. Hold it
+removably (velcro/strap/pocket on the back plate), never bonded.
 ```
 
 ---
