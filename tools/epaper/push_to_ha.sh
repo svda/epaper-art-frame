@@ -77,3 +77,24 @@ fi
 ssh "$host" "mkdir -p '$remote_dir'"
 scp "$images/manifest.json" "$@" "$dest"
 echo "pushed $(($# + 1)) file(s) to $host:$remote_dir"
+
+# Mirror the remote folder: delete remote *.png that are no longer in the
+# manifest, so the host matches the artwork folder. The device only reads
+# manifest.json, but without this stale files accumulate across runs.
+stale=$(ssh "$host" "cd '$remote_dir' && for f in *.png; do [ -f \"\$f\" ] && printf '%s\n' \"\$f\"; done" 2>/dev/null \
+  | python3 -c '
+import json, sys
+keep = set(json.load(open(sys.argv[1])))
+for line in sys.stdin:
+    name = line.strip()
+    if name and name not in keep:
+        print(name)
+' "$images/manifest.json")
+
+if [ -n "$stale" ]; then
+  printf '%s\n' "$stale" | while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    ssh -n "$host" "rm -f -- '$remote_dir/$f'"
+    echo "removed stale $f"
+  done
+fi

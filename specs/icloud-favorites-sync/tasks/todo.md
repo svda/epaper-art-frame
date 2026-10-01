@@ -273,6 +273,26 @@ run, schedule, config keys, spike findings, troubleshooting, and non-goals.
 
 ---
 
+### T-11: Mirror the remote artwork folder (user-approved change to `push_to_ha.sh`)
+**Description:** The spec said reuse `push_to_ha.sh` unchanged, but its scp-only deploy leaves
+stale files on the HA host when the sync removes a favorite. User approved changing it to mirror:
+after copying, delete remote `*.png` not listed in the deployed `manifest.json`.
+
+**Acceptance criteria:**
+- [x] After a deploy, the remote folder contains exactly the manifest's images (plus `manifest.json`).
+- [x] Stale remote files are removed and reported.
+- [x] The device is unaffected (it reads `manifest.json`).
+
+**Verification:**
+- [x] Run `push_to_ha.sh` against the real host; remote goes 56 → 50 PNGs; all stale files removed.
+
+**Bug fixed:** the removal loop used `ssh` without `-n`, which consumed the loop's stdin and stopped
+after one file. `ssh -n` fixed it.
+
+**Dependencies:** T-07 · **Scope:** S · **Files:** `tools/epaper/push_to_ha.sh`
+
+---
+
 ### Checkpoint C — Shipped
 - [ ] Two consecutive intervals of hands-off add/remove observed.
 - [ ] **Review with user** — walk the spec's success criteria.
