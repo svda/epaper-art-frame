@@ -46,14 +46,17 @@ overrides. No selection logic yet — just argument parsing, config resolution, 
 (`osxphotos`, `magick`, `scp`, `python3` present), and logging.
 
 **Acceptance criteria:**
-- [ ] `python3 tools/icloud/sync_favorites.py --help` works; `--dry-run` is accepted.
-- [ ] Config precedence: CLI flag > env var > `.env` > default.
-- [ ] Missing prerequisites produce a clear non-zero exit, not a traceback.
-- [ ] `tools/icloud/.env` is git-ignored.
+- [x] `python3 tools/icloud/sync_favorites.py --help` works; `--dry-run` is accepted.
+- [x] Config precedence: CLI flag > env var > `.env` > default.
+- [x] Missing prerequisites produce a clear non-zero exit, not a traceback.
+- [x] `tools/icloud/.env` is git-ignored.
 
 **Verification:**
-- [ ] Run `--help` and a preflight failure case; confirm messages and exit codes.
-- [ ] `git status` shows `.env` untracked.
+- [x] Run `--help` and a preflight failure case; confirm messages and exit codes.
+- [x] `git status` shows `.env` untracked.
+
+**Done (2026-10-01):** `sync_favorites.py` CLI + `Config` + `resolve_config` + `parse_env_file` +
+`preflight`; `.env.example`; `.gitignore` (`.venv/`, `__pycache__/`, `.env`). 11 unit tests pass.
 
 **Dependencies:** T-01 · **Scope:** S · **Files:** `tools/icloud/sync_favorites.py`,
 `tools/icloud/.env.example`, `tools/icloud/.gitignore`, `tools/icloud/tests/__init__.py`
