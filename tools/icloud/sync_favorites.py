@@ -31,6 +31,7 @@ DEFAULT_INTERVAL_H = 6
 MANAGED_NAME = ".managed.json"
 PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
 MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
+PUSH_SCRIPT = REPO / "tools" / "epaper" / "push_to_ha.sh"
 
 
 @dataclass(frozen=True)
@@ -139,6 +140,7 @@ class SyncResult:
     deleted: list[str]
     dry_run: bool
     failures: list[tuple[str, str]] = field(default_factory=list)
+    copied: int = 0
 
 
 def read_managed(artwork_dir: Path) -> set[str]:
@@ -215,9 +217,13 @@ def apply_artwork(
         current = {f"{uuid}.png" for uuid in prepared_uuids}
         deletions = plan_deletions(existing, managed, current, first_run)
 
+        copied = 0
         for uuid in prepared_uuids:
             staged = stage / f"{uuid}.png"
-            shutil.copy2(staged, artwork_dir / staged.name)
+            dest = artwork_dir / staged.name
+            if not (dest.is_file() and dest.read_bytes() == staged.read_bytes()):
+                shutil.copy2(staged, dest)
+                copied += 1
         for name in deletions:
             (artwork_dir / name).unlink(missing_ok=True)
         write_managed(artwork_dir, current)
@@ -231,6 +237,7 @@ def apply_artwork(
         deleted=sorted(deletions),
         dry_run=False,
         failures=failures,
+        copied=copied,
     )
 
 
@@ -314,6 +321,15 @@ def exit_code(result: SyncResult) -> int:
     return 1 if result.failures else 0
 
 
+def deploy(dest: str | None, changed: bool, run_fn=_run) -> None:
+    """Push to the HA host when something changed; skip otherwise."""
+    if not changed:
+        return
+    if not dest:
+        raise RuntimeError("no deploy destination configured (set EPAPER_DEST or --dest)")
+    run_fn([str(PUSH_SCRIPT), dest])
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sync_favorites.py",
@@ -349,6 +365,15 @@ def main(argv: list[str] | None = None) -> int:
     print(summarize(result))
     for uuid, error in result.failures:
         print(f"  failed {uuid}: {error}", file=sys.stderr)
+
+    if not cfg.dry_run:
+        changed = bool(result.deleted) or result.copied > 0
+        try:
+            deploy(cfg.dest, changed)
+        except Exception as exc:  # noqa: BLE001 - report and exit non-zero
+            print(f"error: deploy failed: {exc}", file=sys.stderr)
+            return 1
+
     return exit_code(result)
 
 

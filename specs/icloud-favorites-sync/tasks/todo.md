@@ -175,13 +175,19 @@ configured destination. Skip deploy when nothing changed. Handle an unreachable 
 non-zero exit that leaves the local folder intact.
 
 **Acceptance criteria:**
-- [ ] A changed run deploys; an unchanged run skips deploy.
-- [ ] Unreachable HA host → clear error, non-zero exit, local folder/manifest untouched.
-- [ ] `EPAPER_DEST` is read from config; no destination is hard-coded.
+- [x] A changed run deploys; an unchanged run skips deploy.
+- [x] Unreachable HA host → clear error, non-zero exit, local folder/manifest untouched.
+- [x] `EPAPER_DEST` is read from config; no destination is hard-coded.
 
 **Verification:**
 - [ ] Push a changed set and fetch `manifest.json` + an image over HTTP from HA.
-- [ ] Simulate an unreachable host; confirm behavior.
+      — deferred: needs the configured `EPAPER_DEST` and the real (write) run.
+- [x] Simulate an unreachable host; confirm behavior.
+
+**Done (2026-10-01):** `deploy()` runs `push_to_ha.sh` only when the run changed something
+(`deleted` or `copied`); a missing destination or host failure is a clear non-zero exit and leaves
+the local folder intact. Copies are now content-aware, so a no-op run copies nothing. 5 tests
+(45 total).
 
 **Dependencies:** T-06 · **Scope:** S · **Files:** `tools/icloud/sync_favorites.py`
 

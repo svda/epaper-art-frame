@@ -164,3 +164,14 @@ def test_empty_selection_mirrors_to_empty(tmp_path):
     assert pngs(tmp_path) == set()
     assert result.deleted == ["uuid-a.png"]
     assert read_managed(tmp_path) == set()
+
+
+def test_apply_artwork_copies_only_when_content_changes(tmp_path):
+    def prepare_one(photo, dest):
+        Path(dest).write_bytes(b"same-bytes")
+
+    first = apply_artwork([FakePhoto("uuid-a")], tmp_path, prepare_one, lambda folder: None)
+    second = apply_artwork([FakePhoto("uuid-a")], tmp_path, prepare_one, lambda folder: None)
+
+    assert first.copied == 1
+    assert second.copied == 0
