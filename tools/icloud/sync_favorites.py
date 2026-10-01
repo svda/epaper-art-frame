@@ -32,6 +32,7 @@ MANAGED_NAME = ".managed.json"
 PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
 MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
 PUSH_SCRIPT = REPO / "tools" / "epaper" / "push_to_ha.sh"
+PLIST_TEMPLATE = HERE / "com.sander.epaper-favorites.plist.template"
 
 
 @dataclass(frozen=True)
@@ -342,6 +343,27 @@ def deploy(dest: str | None, changed: bool, run_fn=_run) -> None:
     run_fn([str(PUSH_SCRIPT), dest])
 
 
+def render_plist(
+    template: str,
+    *,
+    python: str,
+    script: str,
+    workdir: str,
+    stdout: str,
+    stderr: str,
+    interval_h: int,
+) -> str:
+    """Fill the launchd template for this machine (absolute paths required)."""
+    return (
+        template.replace("__PYTHON__", python)
+        .replace("__SCRIPT__", script)
+        .replace("__WORKDIR__", workdir)
+        .replace("__STDOUT__", stdout)
+        .replace("__STDERR__", stderr)
+        .replace("__INTERVAL__", str(interval_h * 3600))
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sync_favorites.py",
@@ -354,6 +376,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--top-n", type=int, help=f"favorites to keep (default: {DEFAULT_TOP_N})")
     parser.add_argument("--interval-h", type=int, help=f"launchd interval hours (default: {DEFAULT_INTERVAL_H})")
     parser.add_argument("--config", help=f"env file (default: {DEFAULT_ENV_FILE})")
+    parser.add_argument(
+        "--print-plist",
+        action="store_true",
+        help="print a launchd plist for this machine and exit (do not run the sync)",
+    )
     parser.add_argument("-n", "--dry-run", action="store_true", help="show what would happen; write nothing")
     return parser
 
@@ -366,6 +393,21 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+
+    if args.print_plist:
+        print(
+            render_plist(
+                PLIST_TEMPLATE.read_text(encoding="utf-8"),
+                python=sys.executable,
+                script=str(HERE / "sync_favorites.py"),
+                workdir=str(HERE),
+                stdout=str(HERE / "sync.log"),
+                stderr=str(HERE / "sync.err.log"),
+                interval_h=cfg.interval_h,
+            ),
+            end="",
+        )
+        return 0
 
     missing = preflight()
     if missing:

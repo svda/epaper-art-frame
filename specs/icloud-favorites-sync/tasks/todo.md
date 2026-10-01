@@ -223,6 +223,11 @@ stdout/stderr redirected to a rotating log. Document load/reload/unload and how 
 **Verification:**
 - [ ] Load the agent, force a run, confirm log output and a subsequent scheduled run.
 
+**Done (2026-10-01, code):** `com.sander.epaper-favorites.plist.template` + `--print-plist`
+(renders absolute paths + `StartInterval` from `SYNC_INTERVAL_H`), logs to `sync.log` /
+`sync.err.log`, README install steps. 3 tests (51 total). **Activation pending user:** the launchd
+job runs the venv Python directly, so that binary needs Full Disk Access, then load the agent.
+
 **Dependencies:** T-07 · **Scope:** S · **Files:** `tools/icloud/com.sander.epaper-favorites.plist`,
 `tools/icloud/README.md`
 
