@@ -1,0 +1,13 @@
+[project]
+name = "epaper-icloud-sync"
+version = "0.1.0"
+description = "Mirror the 50 most recent iCloud Favorites into the e-paper frame artwork folder."
+requires-python = ">=3.10,<3.15"
+dependencies = [
+    "osxphotos>=0.77.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]

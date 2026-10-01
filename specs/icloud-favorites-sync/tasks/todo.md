@@ -15,15 +15,23 @@ are available on disk (or downloadable). This is the highest-risk unknown; if it
 approach is wrong and we stop.
 
 **Acceptance criteria:**
-- [ ] `osxphotos` installed and importable; version recorded.
-- [ ] `PhotoInfo.favorite` and `.date` are readable for the system library.
-- [ ] The count and capture-date ordering of favorites is confirmed (sanity-checked against Photos.app).
-- [ ] Q5 answered: whether favorite originals are local or off-disk ("Optimize Mac Storage").
-- [ ] Full Disk Access requirement and the exact grant steps are recorded in the tool README.
+- [x] `osxphotos` installed and importable; version recorded. — **0.77.2**, macOS 26.6.2.
+- [x] `PhotoInfo.favorite` and `.date` are readable for the system library.
+- [x] The count and capture-date ordering of favorites is confirmed (sanity-checked against Photos.app).
+      — 292 favorites (non-movie), sorted capture-date descending.
+- [x] Q5 answered: whether favorite originals are local or off-disk ("Optimize Mac Storage").
+      — **Off-disk: only 8/50 originals local.** Retrievable via
+      `PhotoInfo.export(..., use_photos_export=True)` (proven download).
+- [x] Full Disk Access requirement and the exact grant steps are recorded in the tool README.
 
 **Verification:**
-- [ ] A one-off script prints the 50 most recent favorites (uuid, date, filename) and it matches
-      what Photos.app shows; export one favorite successfully.
+- [x] A one-off script prints the 50 most recent favorites (uuid, date, filename) and it matches
+      what Photos.app shows; export one favorite successfully. — full chain proven:
+      off-disk favorite → download → `prepare_image.sh` → `600×448, colors=7`.
+
+**Resolution (2026-10-01):** spike passed. Findings in `tools/icloud/README.md`. Environment is a
+`uv` project (`pyproject.toml` + `uv.lock`, Python 3.13). Gotcha recorded: `prepare_image.sh`
+needs options *before* positional args.
 
 **Dependencies:** none · **Scope:** S · **Files:** `tools/icloud/README.md` (spike notes)
 
