@@ -69,14 +69,17 @@ videos/Live-Photo movies, sort by capture date descending, cap at `top_n`. Teste
 a fake PhotosDB; no real library or macOS.
 
 **Acceptance criteria:**
-- [ ] Non-favorites and movies are excluded.
-- [ ] Results are ordered capture-date descending.
-- [ ] Exactly `top_n` returned when more exist; all returned when fewer.
-- [ ] Deterministic tie-breaking (stable secondary key, e.g. uuid) so order doesn't flap.
+- [x] Non-favorites and movies are excluded.
+- [x] Results are ordered capture-date descending.
+- [x] Exactly `top_n` returned when more exist; all returned when fewer.
+- [x] Deterministic tie-breaking (stable secondary key, e.g. uuid) so order doesn't flap.
 
 **Verification:**
-- [ ] `python3 -m pytest tools/icloud/tests` passes, including edge cases (0, <N, >N, ties,
+- [x] `python3 -m pytest tools/icloud/tests` passes, including edge cases (0, <N, >N, ties,
       missing dates).
+
+**Done (2026-10-01):** `select_favorites(db, top_n)` — excludes non-favorites/movies, capture-date
+descending, undated last, uuid-ascending tie-break. 8 tests (19 total).
 
 **Dependencies:** T-02 · **Scope:** S · **Files:** `tools/icloud/sync_favorites.py`,
 `tools/icloud/tests/test_selection.py`

@@ -111,6 +111,21 @@ def preflight() -> list[str]:
     return missing
 
 
+def select_favorites(db, top_n: int) -> list:
+    """The most recent favorites by capture date, newest first.
+
+    Videos/Live-Photo movies are excluded; undated photos sort last. Ties on
+    capture date are broken deterministically by uuid (ascending).
+    """
+    favorites = [p for p in db.photos() if p.favorite and not p.ismovie]
+    dated = [p for p in favorites if p.date is not None]
+    undated = [p for p in favorites if p.date is None]
+    dated.sort(key=lambda p: p.uuid)
+    dated.sort(key=lambda p: p.date, reverse=True)
+    undated.sort(key=lambda p: p.uuid)
+    return (dated + undated)[:top_n]
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sync_favorites.py",
