@@ -32,6 +32,22 @@ def test_render_plist_is_valid_and_schedules_the_sync():
     assert data["StandardErrorPath"] == "/repo/tools/icloud/sync.err.log"
 
 
+def test_render_plist_sets_a_path_that_finds_magick_and_ssh():
+    rendered = render_plist(
+        PLIST_TEMPLATE.read_text(),
+        python="/p",
+        script="/s",
+        workdir="/w",
+        stdout="/o",
+        stderr="/e",
+        interval_h=1,
+    )
+    path = plistlib.loads(rendered.encode())["EnvironmentVariables"]["PATH"]
+    assert "/opt/homebrew/bin" in path
+    assert "/usr/bin" in path
+    assert "/bin" in path
+
+
 def test_render_plist_leaves_no_placeholders():
     rendered = render_plist(
         PLIST_TEMPLATE.read_text(),
