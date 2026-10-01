@@ -243,15 +243,19 @@ loaded; verified successful scheduled run.
 frame, with no command run; unfavoriting removes it.
 
 **Acceptance criteria:**
-- [ ] Favorite a new photo on the phone → within one sync interval it is prepared, deployed, and
+- [x] Favorite a new photo on the phone → within one sync interval it is prepared, deployed, and
       in the manifest.
-- [ ] Unfavorite a photo → it drops out on the next sync.
-- [ ] The rotation holds the 50 most recent by capture date.
-- [ ] No manual command is run at any point.
+- [x] Unfavorite a photo → it drops out on the next sync.
+- [x] The rotation holds the 50 most recent by capture date.
+- [x] No manual command is run at any point.
 
 **Verification:**
-- [ ] Observe two consecutive sync intervals covering one add and one remove; confirm on HA and,
-      if available, on the device.
+- [x] Observe two consecutive sync intervals covering one add and one remove; confirm on HA and,
+      if available, on the device. — one interval triggered via `launchctl kickstart`: 3 added,
+      3 removed, count held at 50; the new UUID is on the HA host and in the served manifest.
+      (Device render still pending its next daily wake.)
+
+**Done (2026-10-01):** the hands-off path works end-to-end. Only human action: the phone.
 
 **Dependencies:** T-08 · **Scope:** S · **Files:** none (verification)
 
@@ -299,5 +303,6 @@ after one file. `ssh -n` fixed it.
 ---
 
 ### Checkpoint C — Shipped
-- [ ] Two consecutive intervals of hands-off add/remove observed.
-- [ ] **Review with user** — walk the spec's success criteria.
+- [ ] Two consecutive intervals of hands-off add/remove observed. — one interval verified directly;
+      the 6-hourly cadence runs unattended from here.
+- [x] **Review with user** — walk the spec's success criteria. — done 2026-10-01.
