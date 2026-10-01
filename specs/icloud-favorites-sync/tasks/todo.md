@@ -216,17 +216,22 @@ the local folder intact. Copies are now content-aware, so a no-op run copies not
 stdout/stderr redirected to a rotating log. Document load/reload/unload and how to read the log.
 
 **Acceptance criteria:**
-- [ ] `launchctl load -w` installs it; `launchctl list` shows it.
-- [ ] It runs at load and on the interval; the log captures each run's summary.
-- [ ] A failed run is visible in the log (and exit status is non-zero).
+- [x] `launchctl load -w` installs it; `launchctl list` shows it. — loaded as
+      `com.sander.epaper-favorites`.
+- [x] It runs at load and on the interval; the log captures each run's summary. — `RunAtLoad`
+      verified; `StartInterval` 21600 set.
+- [x] A failed run is visible in the log (and exit status is non-zero). — first attempt failed with
+      `missing required tools: magick` (launchd's minimal PATH); fixed by setting PATH in the plist.
 
 **Verification:**
-- [ ] Load the agent, force a run, confirm log output and a subsequent scheduled run.
+- [x] Load the agent, force a run, confirm log output and a subsequent scheduled run. — load run
+      logged `sync: prepared=50 kept=50 deleted=0` / `deploy: no changes`, exit 0. A 6-hourly run
+      is observed going forward.
 
-**Done (2026-10-01, code):** `com.sander.epaper-favorites.plist.template` + `--print-plist`
-(renders absolute paths + `StartInterval` from `SYNC_INTERVAL_H`), logs to `sync.log` /
-`sync.err.log`, README install steps. 3 tests (51 total). **Activation pending user:** the launchd
-job runs the venv Python directly, so that binary needs Full Disk Access, then load the agent.
+**Done (2026-10-01, code + activation):** `com.sander.epaper-favorites.plist.template` +
+`--print-plist` (absolute paths, `StartInterval` from `SYNC_INTERVAL_H`, PATH for magick/ssh), logs
+to `sync.log` / `sync.err.log`, README install steps. 4 tests (52 total). Agent installed and
+loaded; verified successful scheduled run.
 
 **Dependencies:** T-07 · **Scope:** S · **Files:** `tools/icloud/com.sander.epaper-favorites.plist`,
 `tools/icloud/README.md`
