@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import os
 import shutil
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
@@ -25,6 +27,7 @@ DEFAULT_ARTWORK = REPO / "www" / "epaper"
 DEFAULT_ENV_FILE = HERE / ".env"
 DEFAULT_TOP_N = 50
 DEFAULT_INTERVAL_H = 6
+MANAGED_NAME = ".managed.json"
 
 
 @dataclass(frozen=True)
@@ -124,6 +127,93 @@ def select_favorites(db, top_n: int) -> list:
     dated.sort(key=lambda p: p.date, reverse=True)
     undated.sort(key=lambda p: p.uuid)
     return (dated + undated)[:top_n]
+
+
+@dataclass(frozen=True)
+class SyncResult:
+    prepared: int
+    kept: list[str]
+    deleted: list[str]
+    dry_run: bool
+
+
+def read_managed(artwork_dir: Path) -> set[str]:
+    state = Path(artwork_dir) / MANAGED_NAME
+    if not state.is_file():
+        return set()
+    return set(json.loads(state.read_text(encoding="utf-8")))
+
+
+def write_managed(artwork_dir: Path, names: set[str]) -> None:
+    state = Path(artwork_dir) / MANAGED_NAME
+    state.parent.mkdir(parents=True, exist_ok=True)
+    state.write_text(json.dumps(sorted(names)) + "\n", encoding="utf-8")
+
+
+def plan_deletions(
+    existing: set[str], managed: set[str], current: set[str], first_run: bool
+) -> set[str]:
+    """Files to delete: everything we own that is no longer selected.
+
+    On the first run (no managed state) the sync adopts the folder and owns every
+    PNG in it; afterwards it only ever deletes files it previously managed.
+    """
+    owned = set(existing) if first_run else (set(managed) & set(existing))
+    return owned - set(current)
+
+
+def apply_artwork(
+    photos,
+    artwork_dir: Path,
+    prepare_one,
+    regenerate_manifest,
+    dry_run: bool = False,
+) -> SyncResult:
+    """Prepare the selected favorites into the artwork folder and mirror it.
+
+    Preparation happens in a staging dir first, so a failure leaves the artwork
+    folder untouched. The manifest is regenerated last, by its own writer.
+    """
+    artwork_dir = Path(artwork_dir)
+    managed = read_managed(artwork_dir)
+    first_run = not (artwork_dir / MANAGED_NAME).exists()
+    current = {f"{p.uuid}.png" for p in photos}
+    existing = (
+        {p.name for p in artwork_dir.iterdir() if p.is_file() and p.suffix == ".png"}
+        if artwork_dir.is_dir()
+        else set()
+    )
+    deletions = plan_deletions(existing, managed, current, first_run)
+
+    if dry_run:
+        return SyncResult(
+            prepared=0,
+            kept=sorted(current & existing),
+            deleted=sorted(deletions),
+            dry_run=True,
+        )
+
+    artwork_dir.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix="epaper_stage_"))
+    try:
+        for photo in photos:
+            prepare_one(photo, stage / f"{photo.uuid}.png")
+        for photo in photos:
+            staged = stage / f"{photo.uuid}.png"
+            shutil.copy2(staged, artwork_dir / staged.name)
+        for name in deletions:
+            (artwork_dir / name).unlink(missing_ok=True)
+        write_managed(artwork_dir, current)
+        regenerate_manifest(artwork_dir)
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
+
+    return SyncResult(
+        prepared=len(current),
+        kept=sorted(current),
+        deleted=sorted(deletions),
+        dry_run=False,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

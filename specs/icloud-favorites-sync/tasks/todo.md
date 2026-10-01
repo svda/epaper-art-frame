@@ -94,15 +94,19 @@ PNGs into `www/epaper/` and delete managed files no longer selected. Maintain
 temp directories with a stubbed `magick`.
 
 **Acceptance criteria:**
-- [ ] Output filenames are `<uuid>.png` and device-safe (no commas/quotes/`]`).
-- [ ] The mirror delete set is exactly (previously managed) minus (currently selected).
-- [ ] First run removes unmanaged `*.png`; subsequent runs do not touch unmanaged files.
-- [ ] `--dry-run` prints the delete set and writes nothing (folder, state file, or manifest).
-- [ ] `generate_manifest.py` is invoked last; it remains the manifest's only writer.
+- [x] Output filenames are `<uuid>.png` and device-safe (no commas/quotes/`]`).
+- [x] The mirror delete set is exactly (previously managed) minus (currently selected).
+- [x] First run removes unmanaged `*.png`; subsequent runs do not touch unmanaged files.
+- [x] `--dry-run` prints the delete set and writes nothing (folder, state file, or manifest).
+- [x] `generate_manifest.py` is invoked last; it remains the manifest's only writer.
 
 **Verification:**
-- [ ] `python3 -m pytest tools/icloud/tests` passes (add/remove/no-op/empty/first-run cases).
-- [ ] Manual: run against a temp artwork dir, inspect folder + `.managed.json`.
+- [x] `python3 -m pytest tools/icloud/tests` passes (add/remove/no-op/empty/first-run cases).
+- [x] Manual: run against a temp artwork dir, inspect folder + `.managed.json`.
+
+**Done (2026-10-01):** `apply_artwork` prepares to a staging dir, swaps into the artwork folder,
+mirrors via `.managed.json` (first run adopts), then calls the manifest writer last. 11 mirror
+tests (30 total). The real `generate_manifest.py` callback is wired in T-06.
 
 **Dependencies:** T-03 · **Scope:** M · **Files:** `tools/icloud/sync_favorites.py`,
 `tools/icloud/tests/test_mirror.py`, `tools/icloud/tests/conftest.py`
