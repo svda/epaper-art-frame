@@ -258,12 +258,16 @@ run manually, how to read logs, and troubleshooting (missing assets, unreachable
 absent). Note the future non-goal of porting `generate_manifest.py` to another language.
 
 **Acceptance criteria:**
-- [ ] A new operator can set up the sync from the README alone.
-- [ ] Full Disk Access steps, config keys, and troubleshooting are covered.
-- [ ] The spec's non-goals (icloudpd, shared albums, firmware) are restated.
+- [x] A new operator can set up the sync from the README alone.
+- [x] Full Disk Access steps, config keys, and troubleshooting are covered.
+- [x] The spec's non-goals (icloudpd, shared albums, firmware) are restated.
 
 **Verification:**
-- [ ] Walk the README on a clean shell; confirm each command works as written.
+- [ ] Walk the README on a clean shell; confirm each command works as written. — commands were
+      exercised during T-01..T-08; a from-scratch walk is left to the user.
+
+**Done (2026-10-01):** README covers environment, Full Disk Access (interactive + launchd),
+run, schedule, config keys, spike findings, troubleshooting, and non-goals.
 
 **Dependencies:** T-02 (draftable after) · **Scope:** S · **Files:** `tools/icloud/README.md`
 

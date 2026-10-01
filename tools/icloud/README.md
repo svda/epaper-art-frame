@@ -97,6 +97,25 @@ path. Correct:
 tools/epaper/prepare_image.sh --out-dir DIR INPUT [OUTPUT]
 ```
 
+## Troubleshooting
+
+| Symptom | Cause / fix |
+|---|---|
+| `Operation not permitted: .../Photos.sqlite` | Full Disk Access missing — see above |
+| `original not available (still in iCloud?)` | Photo not downloadable; check iCloud sign-in. The run logs it and continues |
+| `prepare_image.sh failed` | ImageMagick missing or the file isn't an image — the message includes magick's stderr |
+| `no deploy destination configured` | Set `EPAPER_DEST` in `.env` |
+| `deploy failed: ...` | HA host unreachable or the path is wrong; the local folder is left intact |
+| A favorite doesn't appear | Photos hasn't synced it yet — it appears on a later run |
+| Stale files linger on the HA host | `push_to_ha.sh` copies but never deletes; the device is manifest-driven so they are inert. Remove manually if desired |
+| Edited photos | The sync uses the **original** (`photo.path`), not the edited render |
+
+## Non-goals
+
+`icloudpd` / disabling Advanced Data Protection; iCloud Shared Albums; any host beyond the
+existing Home Assistant box; live "show now" device control; device firmware changes; porting
+`generate_manifest.py` to another language.
+
 ## Files
 
 - `pyproject.toml` / `uv.lock` / `.python-version` — environment
