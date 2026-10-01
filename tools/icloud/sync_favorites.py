@@ -242,12 +242,24 @@ def apply_artwork(
 
 
 def export_photo(photo, export_dir: Path):
-    """Export a photo's original bytes via Photos.app (downloads if off-disk)."""
-    return photo.export(str(export_dir), use_photos_export=True, overwrite=True)
+    """Path to the photo's original in the library, downloading it if off-disk.
+
+    Using the library original avoids Photos' AppleScript export, which returns
+    an adjustment-data plist (not the image) for photos that have edits.
+    """
+    if photo.path and Path(photo.path).is_file():
+        return [str(photo.path)]
+    photo.export(str(export_dir), use_photos_export=True, overwrite=True)
+    if photo.path and Path(photo.path).is_file():
+        return [str(photo.path)]
+    raise RuntimeError("original not available (still in iCloud?)")
 
 
 def _run(argv: list[str]) -> None:
-    subprocess.run(argv, check=True, capture_output=True, text=True)
+    result = subprocess.run(argv, capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"{Path(argv[0]).name} failed ({result.returncode}): {detail}")
 
 
 def prepare_one(
@@ -373,6 +385,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:  # noqa: BLE001 - report and exit non-zero
             print(f"error: deploy failed: {exc}", file=sys.stderr)
             return 1
+        print(f"deploy: {'pushed to ' + cfg.dest if changed else 'no changes'}")
 
     return exit_code(result)
 

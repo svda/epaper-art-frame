@@ -5,12 +5,50 @@ from types import SimpleNamespace
 
 import pytest
 
-from sync_favorites import apply_artwork, prepare_one
+from sync_favorites import apply_artwork, export_photo, prepare_one
 
 
 @dataclass
 class FakePhoto:
     uuid: str
+
+
+class FakePhotoInfo:
+    def __init__(self, path=None, after_export_path=None):
+        self.path = path
+        self._after = after_export_path
+        self.export_calls = 0
+
+    def export(self, dest, **kwargs):
+        self.export_calls += 1
+        if self._after is not None:
+            self.path = self._after
+        return []
+
+
+def test_export_photo_uses_the_local_original_without_exporting(tmp_path):
+    original = tmp_path / "orig.heic"
+    original.write_bytes(b"x")
+    photo = FakePhotoInfo(path=str(original))
+
+    assert export_photo(photo, tmp_path / "staging") == [str(original)]
+    assert photo.export_calls == 0
+
+
+def test_export_photo_downloads_then_uses_the_local_original(tmp_path):
+    original = tmp_path / "orig.heic"
+    original.write_bytes(b"x")
+    photo = FakePhotoInfo(path=None, after_export_path=str(original))
+
+    assert export_photo(photo, tmp_path / "staging") == [str(original)]
+    assert photo.export_calls == 1
+
+
+def test_export_photo_raises_when_the_original_is_unavailable(tmp_path):
+    photo = FakePhotoInfo(path=None)
+
+    with pytest.raises(RuntimeError, match="original not available"):
+        export_photo(photo, tmp_path / "staging")
 
 
 def test_prepare_one_exports_then_prepares_with_options_before_input(tmp_path):

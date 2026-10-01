@@ -133,12 +133,17 @@ while exiting non-zero.
 - [x] A run with ≥1 unexportable favorite still produces a consistent folder and a clear warning.
 
 **Verification:**
-- [ ] Run against the real library with `--dry-run` off; confirm 50 staged PNGs and a clean log.
-      — deferred to T-06 (the CLI run), since it writes into the artwork folder.
+- [x] Run against the real library with `--dry-run` off; confirm 50 staged PNGs and a clean log.
+      — done 2026-10-01: 50/50 prepared, exit 0.
 
 **Done (2026-10-01):** `export_photo` (via `use_photos_export=True`, proven in T-01) and
 `prepare_one` (options-before-input); `apply_artwork` now tolerates per-photo failures, recording
 `(uuid, error)` and continuing. 5 tests (35 total).
+
+**Bug fixed (2026-10-01):** `use_photos_export=True` returns an **adjustment-data plist** (not the
+image) for photos that have edits — 9 of the first real run failed this way. `export_photo` now
+returns the library original (`photo.path`), triggering a download only when off-disk. Re-run:
+50/50.
 
 **Dependencies:** T-04, T-01 (Q5) · **Scope:** M · **Files:** `tools/icloud/sync_favorites.py`
 
@@ -151,13 +156,15 @@ byte-identical, nothing copied).
 
 **Acceptance criteria:**
 - [x] One command produces a consistent `www/epaper/` (≤50 PNGs + `manifest.json`).
-- [ ] Re-running with no favorite changes is a no-op (verified by hashes).
-- [ ] `generate_manifest.py --check` passes after a run.
+- [x] Re-running with no favorite changes is a no-op (verified by hashes).
+- [x] `generate_manifest.py --check` passes after a run.
 - [x] Any step's failure exits non-zero without a half-written folder.
 
 **Verification:**
-- [ ] Run twice; diff folder hashes; confirm no-op.
-- [ ] Inject a failure (e.g. break `magick` path) and confirm no partial state.
+- [x] Run twice; diff folder hashes; confirm no-op. — second run: `deleted=0`, `copied=0`,
+      `deploy: no changes`.
+- [ ] Inject a failure (e.g. break `magick` path) and confirm no partial state. — covered by the
+      T-05 tolerance test; not re-run against the real library.
 
 **Done (2026-10-01):** `sync()` + `main` wired end-to-end: open library → select → prepare/mirror →
 `generate_manifest.py` last; summary + per-photo failure log; exit code 1 on any failure. Real
@@ -180,8 +187,9 @@ non-zero exit that leaves the local folder intact.
 - [x] `EPAPER_DEST` is read from config; no destination is hard-coded.
 
 **Verification:**
-- [ ] Push a changed set and fetch `manifest.json` + an image over HTTP from HA.
-      — deferred: needs the configured `EPAPER_DEST` and the real (write) run.
+- [x] Push a changed set and fetch `manifest.json` + an image over HTTP from HA.
+      — done 2026-10-01: `deploy: pushed to server:/srv/home-assistant/config/www/epaper/`;
+      `http://server:8123/local/epaper/manifest.json` returns the 50 UUID names.
 - [x] Simulate an unreachable host; confirm behavior.
 
 **Done (2026-10-01):** `deploy()` runs `push_to_ha.sh` only when the run changed something
@@ -194,9 +202,10 @@ the local folder intact. Copies are now content-aware, so a no-op run copies not
 ---
 
 ### Checkpoint B — A real run reaches the device
-- [ ] A single real run puts the 50 favorites on HA.
-- [ ] The device renders one of them on its next wake.
-- [ ] **Review with user** before scheduling.
+- [x] A single real run puts the 50 favorites on HA. — done 2026-10-01 (`prepared=50`, deployed).
+- [ ] The device renders one of them on its next wake. — pending: the device deep-sleeps and wakes
+      ~daily; not verifiable in this session.
+- [x] **Review with user** before scheduling. — user approved autonomous run 2026-10-01.
 
 ---
 
