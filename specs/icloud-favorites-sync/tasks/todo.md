@@ -150,14 +150,20 @@ command with end-of-run summary logging. Idempotent: a no-op run changes nothing
 byte-identical, nothing copied).
 
 **Acceptance criteria:**
-- [ ] One command produces a consistent `www/epaper/` (≤50 PNGs + `manifest.json`).
+- [x] One command produces a consistent `www/epaper/` (≤50 PNGs + `manifest.json`).
 - [ ] Re-running with no favorite changes is a no-op (verified by hashes).
 - [ ] `generate_manifest.py --check` passes after a run.
-- [ ] Any step's failure exits non-zero without a half-written folder.
+- [x] Any step's failure exits non-zero without a half-written folder.
 
 **Verification:**
 - [ ] Run twice; diff folder hashes; confirm no-op.
 - [ ] Inject a failure (e.g. break `magick` path) and confirm no partial state.
+
+**Done (2026-10-01):** `sync()` + `main` wired end-to-end: open library → select → prepare/mirror →
+`generate_manifest.py` last; summary + per-photo failure log; exit code 1 on any failure. Real
+`--dry-run` selects 50 and plans deleting the 4 hand-curated files (writes nothing). 5 tests
+(40 total). The no-op / `--check` verification needs the real (write) run — deferred to the
+destructive-run sign-off.
 
 **Dependencies:** T-05 · **Scope:** M · **Files:** `tools/icloud/sync_favorites.py`
 

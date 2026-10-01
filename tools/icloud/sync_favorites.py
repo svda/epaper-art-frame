@@ -30,6 +30,7 @@ DEFAULT_TOP_N = 50
 DEFAULT_INTERVAL_H = 6
 MANAGED_NAME = ".managed.json"
 PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
+MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
 
 
 @dataclass(frozen=True)
@@ -267,6 +268,52 @@ def prepare_one(
         shutil.rmtree(export_dir, ignore_errors=True)
 
 
+def manifest_writer(script: Path = MANIFEST_SCRIPT, run_fn=_run):
+    """A manifest regenerator that calls generate_manifest.py (its only writer)."""
+
+    def regenerate(artwork_dir: Path) -> None:
+        run_fn([sys.executable, str(script), "--dir", str(artwork_dir)])
+
+    return regenerate
+
+
+def open_library(cfg: Config):
+    import osxphotos
+
+    if cfg.library:
+        return osxphotos.PhotosDB(library_path=str(cfg.library))
+    return osxphotos.PhotosDB()
+
+
+def sync(cfg: Config, db, prepare_one, regenerate_manifest) -> SyncResult:
+    """Select the favorites and mirror them into the artwork folder."""
+    photos = select_favorites(db, cfg.top_n)
+    return apply_artwork(
+        photos,
+        cfg.artwork_dir,
+        prepare_one,
+        regenerate_manifest,
+        dry_run=cfg.dry_run,
+    )
+
+
+def summarize(result: SyncResult) -> str:
+    parts = [
+        f"prepared={result.prepared}",
+        f"kept={len(result.kept)}",
+        f"deleted={len(result.deleted)}",
+    ]
+    if result.dry_run:
+        parts.append("dry-run")
+    if result.failures:
+        parts.append(f"failures={len(result.failures)}")
+    return "sync: " + " ".join(parts)
+
+
+def exit_code(result: SyncResult) -> int:
+    return 1 if result.failures else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sync_favorites.py",
@@ -297,11 +344,12 @@ def main(argv: list[str] | None = None) -> int:
         print("error: missing required tools: " + ", ".join(missing), file=sys.stderr)
         return 1
 
-    print(
-        f"config: artwork_dir={cfg.artwork_dir} dest={cfg.dest} library={cfg.library} "
-        f"top_n={cfg.top_n} interval_h={cfg.interval_h} dry_run={cfg.dry_run}"
-    )
-    return 0
+    db = open_library(cfg)
+    result = sync(cfg, db, prepare_one, manifest_writer())
+    print(summarize(result))
+    for uuid, error in result.failures:
+        print(f"  failed {uuid}: {error}", file=sys.stderr)
+    return exit_code(result)
 
 
 if __name__ == "__main__":
