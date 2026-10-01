@@ -128,12 +128,17 @@ failures: if a selected favorite can't be exported, the run reports it and conti
 while exiting non-zero.
 
 **Acceptance criteria:**
-- [ ] Selected favorites export to staging with real bytes.
-- [ ] Missing/optimized assets are logged explicitly and counted.
-- [ ] A run with ≥1 unexportable favorite still produces a consistent folder and a clear warning.
+- [x] Selected favorites export to staging with real bytes.
+- [x] Missing/optimized assets are logged explicitly and counted.
+- [x] A run with ≥1 unexportable favorite still produces a consistent folder and a clear warning.
 
 **Verification:**
 - [ ] Run against the real library with `--dry-run` off; confirm 50 staged PNGs and a clean log.
+      — deferred to T-06 (the CLI run), since it writes into the artwork folder.
+
+**Done (2026-10-01):** `export_photo` (via `use_photos_export=True`, proven in T-01) and
+`prepare_one` (options-before-input); `apply_artwork` now tolerates per-photo failures, recording
+`(uuid, error)` and continuing. 5 tests (35 total).
 
 **Dependencies:** T-04, T-01 (Q5) · **Scope:** M · **Files:** `tools/icloud/sync_favorites.py`
 

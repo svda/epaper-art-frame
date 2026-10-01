@@ -15,9 +15,10 @@ import importlib.util
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping
 
@@ -28,6 +29,7 @@ DEFAULT_ENV_FILE = HERE / ".env"
 DEFAULT_TOP_N = 50
 DEFAULT_INTERVAL_H = 6
 MANAGED_NAME = ".managed.json"
+PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,7 @@ class SyncResult:
     kept: list[str]
     deleted: list[str]
     dry_run: bool
+    failures: list[tuple[str, str]] = field(default_factory=list)
 
 
 def read_managed(artwork_dir: Path) -> set[str]:
@@ -172,20 +175,23 @@ def apply_artwork(
     """Prepare the selected favorites into the artwork folder and mirror it.
 
     Preparation happens in a staging dir first, so a failure leaves the artwork
-    folder untouched. The manifest is regenerated last, by its own writer.
+    folder untouched. A photo that cannot be prepared is recorded in `failures`
+    and skipped; the rest proceed. The manifest is regenerated last, by its own
+    writer.
     """
     artwork_dir = Path(artwork_dir)
     managed = read_managed(artwork_dir)
     first_run = not (artwork_dir / MANAGED_NAME).exists()
-    current = {f"{p.uuid}.png" for p in photos}
+    photos = list(photos)
     existing = (
         {p.name for p in artwork_dir.iterdir() if p.is_file() and p.suffix == ".png"}
         if artwork_dir.is_dir()
         else set()
     )
-    deletions = plan_deletions(existing, managed, current, first_run)
 
     if dry_run:
+        current = {f"{p.uuid}.png" for p in photos}
+        deletions = plan_deletions(existing, managed, current, first_run)
         return SyncResult(
             prepared=0,
             kept=sorted(current & existing),
@@ -195,11 +201,21 @@ def apply_artwork(
 
     artwork_dir.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix="epaper_stage_"))
+    failures: list[tuple[str, str]] = []
+    prepared_uuids: list[str] = []
     try:
         for photo in photos:
-            prepare_one(photo, stage / f"{photo.uuid}.png")
-        for photo in photos:
-            staged = stage / f"{photo.uuid}.png"
+            try:
+                prepare_one(photo, stage / f"{photo.uuid}.png")
+                prepared_uuids.append(photo.uuid)
+            except Exception as exc:  # noqa: BLE001 - report, skip, keep going
+                failures.append((photo.uuid, str(exc)))
+
+        current = {f"{uuid}.png" for uuid in prepared_uuids}
+        deletions = plan_deletions(existing, managed, current, first_run)
+
+        for uuid in prepared_uuids:
+            staged = stage / f"{uuid}.png"
             shutil.copy2(staged, artwork_dir / staged.name)
         for name in deletions:
             (artwork_dir / name).unlink(missing_ok=True)
@@ -213,7 +229,42 @@ def apply_artwork(
         kept=sorted(current),
         deleted=sorted(deletions),
         dry_run=False,
+        failures=failures,
     )
+
+
+def export_photo(photo, export_dir: Path):
+    """Export a photo's original bytes via Photos.app (downloads if off-disk)."""
+    return photo.export(str(export_dir), use_photos_export=True, overwrite=True)
+
+
+def _run(argv: list[str]) -> None:
+    subprocess.run(argv, check=True, capture_output=True, text=True)
+
+
+def prepare_one(
+    photo,
+    dest: Path,
+    *,
+    export_fn=export_photo,
+    run_fn=_run,
+    prepare_script: Path = PREPARE_SCRIPT,
+) -> None:
+    """Export one favorite and prepare it to *dest* as a panel-ready PNG.
+
+    Options precede the positional input/output for prepare_image.sh (its arg
+    loop breaks at the first non-option).
+    """
+    dest = Path(dest)
+    export_dir = Path(tempfile.mkdtemp(prefix="epaper_export_"))
+    try:
+        paths = export_fn(photo, export_dir)
+        if not paths:
+            raise RuntimeError(f"export produced no file for {photo.uuid}")
+        src = Path(paths[0])
+        run_fn([str(prepare_script), "--out-dir", str(dest.parent), str(src), str(dest)])
+    finally:
+        shutil.rmtree(export_dir, ignore_errors=True)
 
 
 def build_parser() -> argparse.ArgumentParser:
