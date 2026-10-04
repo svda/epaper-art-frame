@@ -1,0 +1,68 @@
+# ============================================================================
+# NULA bring-up — board-only connectivity test (NO panel connected)
+# ============================================================================
+# Purpose: prove the CH340 USB-serial path, flashing, boot, and WiFi before
+# wiring the e-paper panel. Deliberately contains NO `display:` and NO panel
+# pins, so a missing/failed panel cannot stall boot.
+#
+# PSRAM: CONFIRMED 8 MB — esptool reported "Embedded PSRAM 8MB (AP_3v3)" when
+# flashing (2026-10-02). Declared octal below, matching the WROOM-1-N8R8 module.
+# On a boot failure this is the first suspect and needs USB to recover.
+#
+# Flash over USB (CH340 -> /dev/cu.wchusbserial*):
+#   .venv/bin/esphome run config/esphome/nula-bringup.yaml
+# ============================================================================
+
+substitutions:
+  device_name: nula-bringup
+  friendly_name: NULA Bring-up
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 8MB
+  # WROOM-1 N8R8 = Quad flash + Octal PSRAM -> QIO flash (bench-verified: DIO
+  # crashed in esp_psram_extram_test). Safe for a no-PSRAM part too.
+  flash_mode: qio
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fallback AP + captive portal if the credentials/network are wrong.
+  ap: {}
+
+captive_portal:
+
+sensor:
+  - platform: uptime
+    name: Uptime
+  - platform: wifi_signal
+    name: WiFi signal
+    update_interval: 60s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP address
+    ssid:
+      name: Connected SSID

@@ -5,48 +5,55 @@
 # Driver: stock ESPHome `waveshare_epaper`, model `5.65in-f` (>= 2026.9.0).
 #         No custom/external component (SPEC Revision 2).
 #
-# PIN MAP  (single source of truth — P0.2; PROVISIONAL, from NULA pinout v1.0.0)
-#   SPI CLK   -> GPIO12   (FSPICLK)
-#   SPI MOSI  -> GPIO11   (FSPID)
-#   EPD CS    -> GPIO10   (FSPICS0)
-#   EPD DC    -> GPIO9
-#   EPD RST   -> GPIO8
-#   EPD BUSY  -> GPIO7
+# PIN MAP  (single source of truth — P0.2; CONFIRMED vs NULA Arduino board variant)
+#   SPI CLK   -> GPIO12   (FSPICLK / default SCK)
+#   SPI MOSI  -> GPIO11   (FSPID / default MOSI)
+#   EPD CS    -> GPIO10   (FSPICS0 / default SS)
+#   EPD DC    -> GPIO5    (was GPIO9 — collides with Qwiic SCL / onboard RTC)
+#   EPD RST   -> GPIO6    (was GPIO8 — collides with Qwiic SDA / onboard RTC)
+#   EPD BUSY  -> GPIO7    (inverted: true — panel BUSY is active-LOW)
 #   BAT ADC   -> GPIO4    (ADC1_CH3; NULA has NO battery divider -> wire one)
-#   Confirm these against the NULA pinout image / Qwiic I2C pins before wiring.
+#   Qwiic/I2C is SDA=GPIO8, SCL=GPIO9 (shared with the PCF85063A RTC) — keep clear.
 #
 # BOARD (P0.2, Rev 4): Soldered **NULA DeepSleep ESP32-S3** — amazon.nl
-#   B0FZDDH33Y / soldered.com 333352. Marketed as ESP32-S3-WROOM-1-N8R8
-#   (8 MB flash + 8 MB PSRAM), onboard TP4056M LiPo charger + PCF85063A RTC.
+#   B0FZDDH33Y / soldered.com 333352. ESP32-S3-WROOM-1-N8R8 (8 MB flash +
+#   8 MB PSRAM), onboard TP4056M LiPo charger + PCF85063A RTC.
 #   Vendor deep-sleep claim: 7 uA (chip-level; requires all peripherals off and
-#   JP1 OPEN to disconnect the WS2812B LED).
-#   PSRAM: **8 MB (N8R8), confirmed** (user-verified 2026-09-28 against the
-#   product listing). The 7-colour driver's ~1 MB of frame buffers fits.
-#   (Soldered's stale "Overview" doc page lists ESP32-S3FN8 / 512 KB SRAM; that
-#   page is the outlier and is superseded by the N8R8 product spec.)
-#   Sources: docs.soldered.com (hardware-details); amazon.nl B0FZDDH33Y.
+#   JP1 OPEN to disconnect the WS2812B LED). PSRAM CONFIRMED 8 MB (esptool
+#   "Embedded PSRAM 8MB" + ESPHome "Size: 8192 KB", 2026-10-02).
+#   Logger console is USB_SERIAL_JTAG, not the CH340 — use the network API for
+#   logs (`esphome logs --device epaper-art-frame.local`).
 #
 # POWER & BATTERY (P0.3, Rev 4): 3000 mAh single-cell LiPo via the NULA's onboard
 #   JST connector + TP4056M charger (no separate TP4056 module needed).
-#   Lifetime at the vendor 7 uA figure is battery-self-discharge bound (the
-#   daily ~1 min wake is negligible), so the SPEC's 6-12 month target is met
-#   with large margin. P3.1 must MEASURE the real figure — the 7 uA excludes
-#   peripheral/LED leakage — and confirm JP1 is open for the lowest current.
 #
-# P0.1 scope: render a 7-colour test pattern on the bare panel from ESPHome.
+# P1.1 scope: full device config — deep sleep + fetch/render + sensors.
+#   NOTE: sleep_duration is 5min for bench bring-up so rotation can be observed
+#   quickly. Set it to 24h for deployment (the SPEC cadence).
 # ============================================================================
 
 substitutions:
   device_name: epaper-art-frame
   friendly_name: E-Paper Art Frame
 
-  # Pin map — see header. PROVISIONAL (NULA pinout v1.0.0); confirm before wiring.
+  # Image source — HA serves www/ at /local/... . Use the HA host DNS name
+  # (`server`); mDNS names do not resolve from the ESP (see bench notes).
+  ha_url: "http://server:8123"
+  image_dir: "local/epaper"
+  manifest_file: "manifest.json"
+  image_file: "test.png"
+
+  # Pin map — see header. Confirmed vs NULA Arduino board variant (Qwiic 8/9).
   clk_pin: GPIO12
   mosi_pin: GPIO11
   cs_pin: GPIO10
-  dc_pin: GPIO9
-  reset_pin: GPIO8
+  dc_pin: GPIO5
+  reset_pin: GPIO6
   busy_pin: GPIO7
+
+  # Wake cycle. Bench: short sleep to observe the rotation. Deploy: 24h.
+  run_duration: 120s
+  sleep_duration: 5min
 
 esphome:
   name: ${device_name}
@@ -54,18 +61,17 @@ esphome:
   on_boot:
     priority: 600
     then:
-      - delay: 2s
-      - component.update: epaper_display
+      - wait_until:
+          condition:
+            wifi.connected:
+      - script.execute: fetch_manifest
 
 esp32:
-  # Soldered NULA DeepSleep ESP32-S3 (ESP32-S3-WROOM-1-N8R8: 8 MB flash + 8 MB
-  # PSRAM — PSRAM confirmed 8 MB).
   board: esp32-s3-devkitc-1
   variant: esp32s3
   flash_size: 8MB
   # WROOM-1 N8R8 = Quad flash + Octal PSRAM -> QIO flash. The DIO default
-  # crashed in esp_psram_extram_test at boot (verified on the Heemol N16R8 bench
-  # board, same silicon family); QIO fixes it.
+  # crashed in esp_psram_extram_test at boot; QIO fixes it.
   flash_mode: qio
   framework:
     type: esp-idf
@@ -87,6 +93,95 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  ap: {}
+
+captive_portal:
+
+deep_sleep:
+  id: deep_sleep_1
+  run_duration: ${run_duration}
+  sleep_duration: ${sleep_duration}
+
+http_request:
+
+globals:
+  # Round-robin position, persisted across deep-sleep reboots (flash Preferences).
+  - id: art_index
+    type: int
+    restore_value: true
+    initial_value: "0"
+  - id: art_count
+    type: int
+    restore_value: false
+    initial_value: "0"
+  - id: art_list
+    type: std::vector<std::string>
+    restore_value: false
+
+script:
+  - id: fetch_manifest
+    then:
+      - http_request.get:
+          url: "${ha_url}/${image_dir}/${manifest_file}"
+          on_response:
+            then:
+              - lambda: |-
+                  id(art_list).clear();
+                  id(art_count) = 0;
+                  if (response->status_code != 200) {
+                    ESP_LOGW("art", "manifest HTTP status %d", response->status_code);
+                    return;
+                  }
+                  std::string body;
+                  uint8_t buf[128];
+                  int r;
+                  while ((r = response->read(buf, sizeof(buf))) > 0)
+                    body.append(reinterpret_cast<char *>(buf), r);
+                  // Naive parse of a flat JSON array of strings: collect quoted runs.
+                  std::string cur;
+                  bool in_str = false;
+                  for (char c : body) {
+                    if (c == '"') {
+                      if (in_str && !cur.empty())
+                        id(art_list).push_back(cur);
+                      cur.clear();
+                      in_str = !in_str;
+                    } else if (in_str) {
+                      cur += c;
+                    }
+                  }
+                  id(art_count) = (int) id(art_list).size();
+                  ESP_LOGI("art", "manifest: %d image(s)", id(art_count));
+              - script.execute: show_next_image
+
+  - id: show_next_image
+    then:
+      - lambda: |-
+          if (id(art_count) <= 0) {
+            ESP_LOGW("art", "no images in manifest; nothing to show");
+            return;
+          }
+          int i = id(art_index) % id(art_count);
+          std::string url = std::string("${ha_url}/${image_dir}/") + id(art_list)[i];
+          ESP_LOGI("art", "showing %d/%d: %s", i + 1, id(art_count), url.c_str());
+          id(art_image).set_url(url);
+          id(art_image).update();
+          id(last_image).publish_state(id(art_list)[i]);
+          id(art_index) = (i + 1) % id(art_count);
+
+image:
+  - platform: online_image
+    id: art_image
+    format: AUTO
+    type: RGB565
+    url: "${ha_url}/${image_dir}/${image_file}"
+    buffer_size: 65536
+    update_interval: never
+    on_download_finished:
+      - logger.log: "Image downloaded; drawing"
+      - component.update: epaper_display
+    on_error:
+      - logger.log: "Image download failed"
 
 spi:
   clk_pin: ${clk_pin}
@@ -100,42 +195,36 @@ display:
     dc_pin: ${dc_pin}
     reset_pin: ${reset_pin}
     # Q3 RESOLVED (bench 2026-09-28): this panel's BUSY is active-LOW — ESPHome
-    # must invert it. Without inversion the driver times out waiting for IDLE
-    # (35 s) and never renders.
+    # must invert it. Without inversion the driver times out waiting for IDLE.
     busy_pin:
       number: ${busy_pin}
       inverted: true
-    # Rendered once from on_boot for the P0.1 bench test.
+    # Drawn by the on_download_finished handler when a new image arrives.
     update_interval: never
     lambda: |-
-      const int W = 600;
-      const int H = 448;
-
-      // 7 ACeP565 colours, ordered to exercise every colour code in
-      // waveshare_epaper's 7-colour path (0x0..0x6).
-      const Color bars[7] = {
-        Color(0, 0, 0),        // 0x0 black
-        Color(0, 0, 255),      // 0x3 blue
-        Color(0, 255, 0),      // 0x2 green
-        Color(255, 255, 0),    // 0x5 yellow
-        Color(255, 128, 0),    // 0x6 orange
-        Color(255, 0, 0),      // 0x4 red
-        Color(255, 255, 255),  // 0x1 white
-      };
-
       it.fill(Color(255, 255, 255));
+      it.image(0, 0, id(art_image));
 
-      // 7 vertical colour bars.
-      const int bar_w = W / 7;
-      for (int i = 0; i < 7; i++) {
-        it.filled_rectangle(i * bar_w, 60, bar_w, 328, bars[i]);
-      }
+sensor:
+  # Battery voltage — REQUIRES an external divider VBAT -> GPIO4 (P3.1); the NULA
+  # has none. Disabled by default so HA does not record a floating reading until
+  # the divider is fitted; adjust `multiply` to the fitted resistor ratio.
+  - platform: adc
+    pin: GPIO4
+    id: battery_voltage
+    name: "Battery voltage"
+    attenuation: 12db
+    update_interval: 60s
+    disabled_by_default: true
+    filters:
+      - multiply: 2.0
+  - platform: wifi_signal
+    name: "WiFi signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "Uptime"
 
-      // Geometry marks: full border, corner blocks, both diagonals.
-      it.rectangle(0, 0, W, H, Color(0, 0, 0));
-      it.filled_rectangle(0, 0, 24, 24, Color(0, 0, 0));
-      it.filled_rectangle(W - 24, 0, 24, 24, Color(0, 0, 0));
-      it.filled_rectangle(0, H - 24, 24, 24, Color(0, 0, 0));
-      it.filled_rectangle(W - 24, H - 24, 24, 24, Color(0, 0, 0));
-      it.line(0, 0, W - 1, H - 1, Color(0, 0, 0));
-      it.line(W - 1, 0, 0, H - 1, Color(0, 0, 0));
+text_sensor:
+  - platform: template
+    id: last_image
+    name: "Last image"

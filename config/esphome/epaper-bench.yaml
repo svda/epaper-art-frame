@@ -6,9 +6,10 @@
 #
 # Deliberately NOT included yet: deep sleep and battery/ADC (USB-powered).
 #
-# WIRING (module header -> Heemol):
+# WIRING (module header -> NULA):
 #   VCC -> 3V3   GND -> GND   DIN -> GPIO11   CLK -> GPIO12
-#   CS  -> GPIO10  DC -> GPIO9  RST -> GPIO8   BUSY -> GPIO7 (INVERTED)
+#   CS  -> GPIO10  DC -> GPIO5  RST -> GPIO6   BUSY -> GPIO7 (INVERTED)
+#   (DC/RST moved off GPIO9/GPIO8 — those are Qwiic I2C, shared with the RTC.)
 #
 # On Home Assistant, put in config/www/epaper/:
 #   - manifest.json : a JSON array of filenames, e.g. ["a.png","b.png"]
@@ -152,8 +153,8 @@ display:
     id: epaper_display
     model: 5.65in-f
     cs_pin: GPIO10
-    dc_pin: GPIO9
-    reset_pin: GPIO8
+    dc_pin: GPIO5
+    reset_pin: GPIO6
     # Q3: this panel's BUSY is active-LOW (bench-verified).
     busy_pin:
       number: GPIO7

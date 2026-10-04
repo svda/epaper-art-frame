@@ -121,20 +121,52 @@ Goal: prove the Phase-1 path end-to-end on the devkit before the NULA arrives.
 
 ---
 
+## NULA bring-up (Soldered NULA DeepSleep ESP32-S3) — 2026-10-02
+
+Goal: bring the chosen board up on the bench and confirm the panel path on the
+real target hardware.
+
+- [x] **CH340 driver (macOS 26):** the WCH installer registers a *DriverKit
+      system extension* (`cn.wch.CH34xVCPDriver`, team `5JZGQTGU4W`). Approval is
+      NOT in Privacy & Security — it lives in **System Settings → General →
+      Login Items & Extensions → Driver Extensions**; the state must read
+      `[activated enabled]` (`systemextensionsctl list`). Port:
+      `/dev/cu.wchusbserial210`.
+- [x] First flash over USB; subsequent updates OTA over WiFi.
+- [x] **PSRAM confirmed 8 MB** — esptool reports `Embedded PSRAM 8MB (AP_3v3)`
+      and ESPHome logs `PSRAM Available: YES, Size: 8192 KB`. Resolves the
+      N8R8-vs-FN8 doc conflict (Q1).
+- [x] **Logger console is `USB_SERIAL_JTAG`, not the CH340** — serial log output
+      is silent; use the network API for logs (`esphome logs --device
+      epaper-art-frame.local`).
+- [x] **Pin map confirmed** against the NULA Arduino board variant (Qwiic
+      `SDA=8`, `SCL=9`, shared with the onboard PCF85063A RTC):
+      `CS=10 / MOSI=11 / CLK=12 / DC=5 / RST=6 / BUSY=7 (inverted)`.
+- [x] **P0.1 panel test renders on the NULA** (7 colour bars + geometry marks,
+      `busy_pin: inverted: true`) — user-verified 2026-10-02. P0.1 re-confirmed
+      on target hardware (previously Heemol-only).
+- [ ] Battery/ADC divider + deep-sleep current measurement: P3.1.
+
+---
+
 ## Phase 1 — Device config
 
 ### P1.1: Full device YAML — deep sleep, WiFi, sensors
 **Description:** Complete `epaper-art-frame.yaml`: `esp32` (variant from P0.2, PSRAM), `spi`,
-the `epaper_acep565` display, `deep_sleep` (`sleep_duration: 24h`, `run_duration: 60s`), `wifi`
-(via `secrets.yaml`), `logger`, `api`, `adc` battery sensor, `text_sensor` last-image,
-`wifi_signal`. Assign pins from P0.2.
+the stock `waveshare_epaper` `5.65in-f` display, `deep_sleep` (`sleep_duration: 24h`,
+`run_duration: 60s`), `wifi` (via `secrets.yaml`), `logger`, `api`, `adc` battery sensor,
+`text_sensor` last-image, `wifi_signal`. Assign pins from P0.2.
 
 **Acceptance criteria:**
-- [ ] `esphome config` clean; `esphome compile` succeeds.
-- [ ] Device boots, connects, renders a static image, then enters sleep on schedule.
+- [x] `esphome config` clean; `esphome compile` succeeds. — done 2026-10-02 (NULA).
+- [x] Device boots, connects, renders a static image, then enters sleep on schedule.
+      — **verified on the NULA 2026-10-02**: fetch → render → publish → `Beginning sleep`.
+      Bench `sleep_duration` is set to **5 min** (not 24h) so rotation is observable; set
+      to 24h for deployment (the SPEC cadence) — see the `sleep_duration` substitution.
 
 **Verification:**
-- [ ] Confirm sleep entry in logs; confirm a subsequent scheduled wake.
+- [x] Confirm sleep entry in logs (`[I][deep_sleep:056]: Beginning sleep`).
+- [ ] Confirm a subsequent scheduled wake (device wakes every 5 min on the bench).
 
 **Dependencies:** P0.2 · **Scope:** M · **Files:** `config/esphome/epaper-art-frame.yaml`,
 `config/esphome/secrets.yaml` (git-ignored).
@@ -147,7 +179,10 @@ the `epaper_acep565` display, `deep_sleep` (`sleep_duration: 24h`, `run_duration
 
 **Acceptance criteria:**
 - [ ] Index advances round-robin across reboots (survives deep sleep via restore).
+      — implemented (`art_index` global, `restore_value: true`); proven on the Heemol bench
+      (`showing 1/2` → `2/2`). Re-confirm across two NULA wakes.
 - [ ] Missing/unreachable manifest handled without crashing (logs + sleeps).
+      — `deep_sleep.run_duration` sleeps regardless; unverified failure path.
 
 **Verification:**
 - [ ] Two consecutive wakes pick different indices; index persists across a flash reset
@@ -163,8 +198,10 @@ Use `online_image` (or `http_request` + `image`) and the display `lambda`. Confi
 quantisation renders acceptably on-device (Q4).
 
 **Acceptance criteria:**
-- [ ] A real image from the folder renders fully (no clipping/corruption).
-- [ ] Q4 answer recorded: on-device quantisation quality acceptable, or pre-dither required.
+- [x] A real image from the folder renders fully (no clipping/corruption).
+      — user-verified on the NULA 2026-10-02.
+- [x] Q4 answer recorded: on-device quantisation quality acceptable, or pre-dither required.
+      — **pre-dither** (`tools/epaper/prepare_image.sh`); the on-panel image is pre-dithered.
 
 **Verification:**
 - [ ] Photograph a rendered real image; note colour fidelity.
@@ -189,7 +226,8 @@ battery voltage + last-image + WiFi sensors publish.
 
 ### Checkpoint B — Device works
 
-- [ ] One full wake cycle: fetch → render → publish → sleep, observed end-to-end.
+- [x] One full wake cycle: fetch → render → publish → sleep, observed end-to-end.
+      — NULA 2026-10-02 (bench `sleep_duration` shortened to 5 min).
 - [ ] **Review with user** before Phase 2.
 
 ---
@@ -222,10 +260,15 @@ Images are git-ignored; `push_to_ha.sh` deploys to the HA host's `config/www/epa
 device cycles through them over consecutive days.
 
 **Acceptance criteria:**
-- [ ] Device renders each seeded image correctly over successive wakes.
+- [x] Device renders each seeded image correctly over successive wakes.
+      — set is seeded by the `icloud-favorites-sync` pipeline (`TOP_N=50`), manifest in sync
+      (`generate_manifest.py --check`: 50 images), remote HA serves all 50 (`HTTP 200`).
+      **Rotation verified 2026-10-03** across consecutive NULA wakes:
+      `FC4E087B….png` → `0051B900….png` (advanced and wrapped end→start), index persists.
 
 **Verification:**
-- [ ] Photograph the rotation; confirm no two consecutive days repeat.
+- [ ] Photograph the rotation; confirm no two consecutive days repeat. — multi-day soak belongs
+      to P3.3; single-cycle advancement demonstrated now.
 
 **Dependencies:** P2.1, Checkpoint B · **Scope:** S · **Files:** `www/epaper/*`.
 
@@ -257,7 +300,8 @@ device cycles through them over consecutive days.
 
 ### Checkpoint C — Rotation is real
 
-- [ ] Folder contents drive the rotation with no device-side edits.
+- [x] Folder contents drive the rotation with no device-side edits.
+      — `manifest.json` is generated from the folder; the device cycles it. Verified 2026-10-03.
 - [ ] **Review with user** before Phase 3.
 
 ---
