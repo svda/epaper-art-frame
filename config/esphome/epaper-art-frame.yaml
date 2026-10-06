@@ -51,9 +51,10 @@ substitutions:
   reset_pin: GPIO6
   busy_pin: GPIO7
 
-  # Wake cycle. Bench: short sleep to observe the rotation. Deploy: 24h.
+  # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
+  # Deploy: 24h (the SPEC cadence).
   run_duration: 120s
-  sleep_duration: 5min
+  sleep_duration: 1h
 
 esphome:
   name: ${device_name}
