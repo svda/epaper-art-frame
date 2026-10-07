@@ -54,7 +54,9 @@ frame.
   and the LiPo (held **removably** — velcro / strap / pocket, never bonded) mount on its **inner
   face**. Unscrewing the back plate pulls the whole electronics out in one piece. The panel stays
   separate, held in the front rebate by the stops, with a **service loop** in the harness so the
-  plate can be freed. Orient the NULA so its **USB-C reaches the bottom slot**.
+  plate can be freed. Orient the NULA so its **USB-C reaches the bottom slot** (rotated 90° from its
+  flat orientation — the receptacle faces right on the bare board — with a right-angle pigtail to a
+  fixed receptacle; Q6 resolved 2026-10-07).
 - **Glazing:** **none** (assumed) — the panel is matte and already reads as paper; glass/acrylic adds
   glare, weight and depth.
 
@@ -246,9 +248,9 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | ~~Panel-to-MCU interface: 30-pin FPC breakout vs Waveshare HAT?~~ **Resolved:** the F variant has **no driver HAT** — the panel connects via a ribbon/FPC and flying leads. Record the **lead colour → signal map** against the `epaper-art-frame` ESPHome pin map before wiring. | Recorded at measurement |
-| Q2 | Wall-mount method: **French cleat** (default assumption) vs two D-rings vs keyholes? | Confirmation before mounting hardware is fitted |
-| Q3 | Hardwood species + tone to suit the room? | Before buying timber |
-| Q4 | Orientation confirmed as **landscape** (600 wide × 448 tall)? | Before cutting |
-| Q5 | Confirm **no glazing** (assumed) — or acrylic if you want protection? | Before assembling the front |
-| Q6 | USB-C is assumed to exit the **bottom** edge — confirm the port's orientation on the NULA once in hand? | At measurement |
+| Q1 | ~~Panel-to-MCU interface: 30-pin FPC breakout vs Waveshare HAT?~~ **Resolved:** the F variant has **no driver HAT** — the panel connects via a ribbon/FPC and flying leads. **Lead colour → signal map waived** — the harness is already terminated and functional on the NULA (bench 2026-10-02); the firmware pin map is the reference. | Resolved 2026-10-07 |
+| Q2 | Wall-mount method: **French cleat** (default assumption) vs two D-rings vs keyholes? | **Resolved 2026-10-07** — French cleat |
+| Q3 | Hardwood species + tone to suit the room? | Open — decides at F2.1 (ask-first timber purchase) |
+| Q4 | Orientation confirmed as **landscape** (600 wide × 448 tall)? | **Resolved 2026-10-07** — landscape |
+| Q5 | Confirm **no glazing** (assumed) — or acrylic if you want protection? | **Resolved 2026-10-07** — no glazing |
+| Q6 | USB-C exits the **bottom** edge. **Resolved 2026-10-07:** the NULA's receptacle faces *right* when mounted flat, so the board is rotated 90° and a right-angle pigtail presents a fixed receptacle at the bottom slot. | Resolved — measurement 2026-10-07 |

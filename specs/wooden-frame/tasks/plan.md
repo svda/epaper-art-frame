@@ -95,8 +95,10 @@ In addition to each task's acceptance criteria:
 ## Ask-first / gated items
 
 - **F2.1 (buy hardwood):** species/tone is an ask-first purchase decision (open question Q3).
-- **F3.2 (USB-C slot):** confirm the port's orientation on the NULA in hand (Q6).
-- Re-confirm at Checkpoint A that **French cleat**, **landscape**, and **no glazing** still stand.
+- **F3.2 (USB-C slot):** **Q6 resolved 2026-10-07** — bottom edge (NULA rotated 90°, pigtail to a
+  fixed receptacle). Size the slot to the receptacle/overmould at F3.2.
+- **Checkpoint A (2026-10-07):** **French cleat**, **landscape**, **no glazing** confirmed. Remaining
+  gate before cutting = the ask-first hardwood species/stock at F2.1.
 
 ---
 
@@ -104,10 +106,10 @@ In addition to each task's acceptance criteria:
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q2 | Wall mount: French cleat (default) vs D-rings vs keyholes | Confirmed at Checkpoint A |
-| Q3 | Hardwood species + tone | Before F2.1 (buying timber) |
-| Q5 | No glazing (assumed) | Confirmed at Checkpoint A |
-| Q6 | USB-C exits the bottom edge? | At F1.1 measurement |
+| Q2 | Wall mount: French cleat (default) vs D-rings vs keyholes | **Resolved 2026-10-07** — French cleat |
+| Q3 | Hardwood species + tone | Open — before F2.1 (buying timber) |
+| Q5 | No glazing (assumed) | **Resolved 2026-10-07** — no glazing |
+| Q6 | USB-C exits the bottom edge? | **Resolved 2026-10-07** — NULA rotated 90°, right-angle pigtail to a fixed bottom-edge receptacle |
 
 ---
 

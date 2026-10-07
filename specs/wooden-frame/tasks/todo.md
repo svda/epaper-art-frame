@@ -9,11 +9,13 @@ Every task additionally clears the **Definition of Done** in `plan.md`.
 ## Phase 1 — Measure & design
 
 ### F1.1: Measure the panel, electronics and leads; map the flying leads
-> **Status:** worksheet at [`../drawings/cut-list.md`](../drawings/cut-list.md). Measured so far:
-> module **139.5 × 101.0**, panel **125.0 × 100.0**, active **115.0 × 85.0** mm (all close to the
-> datasheet except the module, ~1 mm tight). Still needed: `PT`, the `RD` stack mock-up, battery
-> dims, the header protrusion edge/`HD_proj`, the **lead map** (§2) and USB-C orientation (§3).
-> Tick the criteria once §1–§3 are complete.
+> **Status (2026-10-07):** worksheet at [`../drawings/cut-list.md`](../drawings/cut-list.md).
+> Recorded: module **139.5 × 101.0**, panel **125.0 × 100.0**, active **115.0 × 85.0**, `PT` **8.0**,
+> header **off the back / left edge, `HD_proj` 10.0** (→ `EW`/`EH` unchanged, `ED` 18.0),
+> `RD` **12.5** (excl. swell; +5 chosen → cavity **20.5**), battery **65 × 35 × 10**, NULA
+> **70 × 26 × 7**. USB-C **Q6 resolved — bottom** (NULA rotated 90°, pigtail to a bottom receptacle).
+> **Lead map waived** — the harness is already terminated and functional on the NULA.
+> Remaining: stage photos under `photos/01-measure/`; then F1.2 (derive the cut list).
 
 **Description:** With calipers, measure and record the panel **outline** (`PO_W × PO_H`), thickness
 (`PT`), the panel's active area, and the cavity depth (`RD`: module back → back-plate inner face, i.e.
@@ -23,16 +25,21 @@ against the `epaper-art-frame` ESPHome `display` pin map. Flag any lead that is 
 rather than logic.
 
 **Acceptance criteria:**
-- [ ] All symbols (`MO_W`, `MO_H`, `PO_W`, `PO_H`, `AW`, `AH`, `PT`, `RD`, battery) measured and
-      recorded in `drawings/cut-list.md`. **Done: module 139.5 × 101.0, panel 125.0 × 100.0,
-      active 115.0 × 85.0.**
-- [ ] Lead colour → signal map recorded; any non-logic (power-rail) lead identified.
-- [ ] Sandwich depth mock-up photographed and its measured depth (`RD`) documented.
-- [ ] USB-C port orientation (which edge it faces) recorded (Q6).
+- [x] All symbols (`MO_W`, `MO_H`, `PO_W`, `PO_H`, `AW`, `AH`, `PT`, `RD`, battery) measured and
+      recorded in `drawings/cut-list.md`. — **done 2026-10-07**, incl. `HD_edge`/`HD_proj` (10.0),
+      `ED` (18.0), `RD` (12.5).
+- [x] Lead colour → signal map recorded; any non-logic (power-rail) lead identified. — **waived**
+      2026-10-07: the harness is already terminated and functional on the NULA (bench 2026-10-02);
+      the firmware pin map is the reference (cut-list §2).
+- [ ] Sandwich depth mock-up photographed and its measured depth (`RD`) documented. — `RD` measured
+      (12.5; +5 swell → cavity 20.5); **photo still pending** under `photos/01-measure/`.
+- [x] USB-C port orientation (which edge it faces) recorded (Q6). — **bottom edge** (NULA rotated
+      90°, right-angle pigtail to a fixed bottom receptacle).
 
 **Verification:**
-- [ ] Caliper readings logged; photos committed under `photos/01-measure/`.
-- [ ] No dimension taken from a datasheet.
+- [x] Caliper readings logged in `drawings/cut-list.md` §1. — photos under `photos/01-measure/`
+      still **pending**.
+- [x] No dimension taken from a datasheet. — confirmed 2026-10-07.
 
 **Dependencies:** none · **Files:** `specs/wooden-frame/drawings/cut-list.md`, `photos/01-measure/` ·
 **Scope:** S
@@ -40,27 +47,39 @@ rather than logic.
 ---
 
 ### F1.2: Derive dimensions and write the cut list
+> **Status (2026-10-07):** derived in [`../drawings/cut-list.md`](../drawings/cut-list.md) §4–§5.
+> Design values **`R` = 4**, **`F` = 40** → front opening **117 × 92**, frame outer **197 × 172**,
+> rebate **8.5 mm deep**, cavity **20.5 mm**, member lengths **197 / 172**. Module overhang measured
+> **L/R 7 / 7, T/B 0 / 0** → module **centred**, both stile rebates **12.25 mm**, no opening offset
+> (the SPEC's asymmetric-tab concern does not apply). Spacer/back-panel depths remain provisional on
+> the F2.1 board thickness.
+
 **Description:** Apply the SPEC dimensional model to the recorded measurements —
-`opening = PO − 2R`, `rebate depth = PT + 0.5 mm`, `cavity = RD + 3 mm`, `outer = opening + 2F` —
+`opening = PO − 2R`, `rebate depth = PT + 0.5 mm`, `cavity = RD + swell + clearance`, `outer = opening + 2F` —
 and produce a timber cut list (member lengths, mitre angles, rebate/spline positions, spacer frame
 members, back panel size). Keep it to one board so grain runs continuously.
 
 **Acceptance criteria:**
-- [ ] Cut list complete, with every dimension traced to a measured value and an allowance.
-- [ ] Cut plan shows all members nested on one board for continuous grain.
-- [ ] Reveal `R` fixed in 3–5 mm and frame face width `F` in 35–45 mm.
+- [x] Cut list complete, with every dimension traced to a measured value and an allowance. — **done
+      2026-10-07** (module centred; no offset required).
+- [x] Cut plan shows all members nested on one board for continuous grain. — board sizing and
+      sequential-mitre technique recorded (cut-list §5).
+- [x] Reveal `R` fixed in 3–5 mm and frame face width `F` in 35–45 mm. — `R` = 4, `F` = 40.
 
 **Verification:**
-- [ ] Review the cut list against the SPEC; confirm no catalogue-derived numbers.
+- [ ] Review the cut list against the SPEC; confirm no catalogue-derived numbers. — self-checked
+      2026-10-07; **disclose the open item and get user sign-off** (Checkpoint A).
 
 **Dependencies:** F1.1 · **Files:** `specs/wooden-frame/drawings/cut-list.md` · **Scope:** S
 
 ---
 
 ### Checkpoint A — Measurements & cut list correct
-- [ ] Measurements + lead map committed and reviewed before any hardwood is cut.
-- [ ] Confirm French cleat mount, landscape orientation, and no glazing still stand.
-- [ ] **Review with user** — proceed to cutting (this is the expensive mistake to avoid).
+- [x] Measurements + cut list recorded and reviewed (cut-list §1–§5). Lead map **waived** (harness
+      already wired).
+- [x] Confirmed 2026-10-07: **French cleat** mount, **landscape** orientation, **no glazing**.
+- [x] **Reviewed with user** 2026-10-07 — cleared to proceed to timber (F2.1, ask-first).
+- [ ] Commit the `specs/wooden-frame/` measurements + cut list before any hardwood is cut.
 
 ---
 
