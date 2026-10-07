@@ -13,6 +13,7 @@ Status: collecting · 2026-09-29
 | Display | Waveshare 5.65" **Module (F)**, 600×448 ACeP (panel + driver PCB) | yes |
 | MCU | Soldered **NULA DeepSleep ESP32-S3** (N8R8) | yes |
 | Battery | **3000 mAh LiPo**, 65 × 35 × 10 mm | ordered |
+| Frame timber | **Oak**, 1 board ≥ 45 × ≥ 12 × ~1100 mm, continuous grain (Q3) | to buy |
 | Back plate / carrier | **3.6 mm plywood** | to cut |
 | NULA standoffs | **M3** (nylon preferred) | ordered |
 

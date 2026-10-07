@@ -107,7 +107,7 @@ In addition to each task's acceptance criteria:
 | # | Question | Resolved by |
 |---|---|---|
 | Q2 | Wall mount: French cleat (default) vs D-rings vs keyholes | **Resolved 2026-10-07** — French cleat |
-| Q3 | Hardwood species + tone | Open — before F2.1 (buying timber) |
+| Q3 | Hardwood species + tone | **Resolved 2026-10-07** — oak, satin oil/wax |
 | Q5 | No glazing (assumed) | **Resolved 2026-10-07** — no glazing |
 | Q6 | USB-C exits the bottom edge? | **Resolved 2026-10-07** — NULA rotated 90°, right-angle pigtail to a fixed bottom-edge receptacle |
 

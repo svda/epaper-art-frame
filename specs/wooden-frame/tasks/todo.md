@@ -79,18 +79,23 @@ members, back panel size). Keep it to one board so grain runs continuously.
       already wired).
 - [x] Confirmed 2026-10-07: **French cleat** mount, **landscape** orientation, **no glazing**.
 - [x] **Reviewed with user** 2026-10-07 — cleared to proceed to timber (F2.1, ask-first).
-- [ ] Commit the `specs/wooden-frame/` measurements + cut list before any hardwood is cut.
+- [x] Commit the `specs/wooden-frame/` measurements + cut list before any hardwood is cut. —
+      `3adc201`.
 
 ---
 
 ## Phase 2 — Mill & joinery
 
 ### F2.1: Buy timber, mill and cut the frame members — ask first
+> **Status (2026-10-07):** species approved — **oak**, satin oil/wax (Q3 resolved). Owner action:
+> acquire the board and cut (physical bench step).
+
 **Description:** Confirm the hardwood species/tone (Q3, ask-first purchase), then square and cut the
 four frame members to length with 45° mitres. Test the mitre setup on offcuts first.
 
 **Acceptance criteria:**
-- [ ] Species/tone chosen and approved; timber acquired.
+- [x] Species/tone chosen and approved; timber acquired. — **oak**, satin oil/wax approved
+      2026-10-07; **board not yet acquired**.
 - [ ] Four members cut to the cut-list lengths; mitres test-fitted on offcuts.
 - [ ] Members marked to preserve continuous grain around the frame.
 

@@ -40,7 +40,7 @@ frame.
   box** (spacer frame + a **3.6 mm ply back plate** that also carries the electronics).
 - **Workshop:** mitre saw (or mitre box + handsaw), drill, random-orbit sander. Mitred corners
   glued and **reinforced with splines or dowels**; rebates cut with a router or stacked saw cuts.
-- **Material / finish:** hardwood (oak / ash / walnut / maple) with an **oil or wax finish**.
+- **Material / finish:** **oak** (chosen 2026-10-07) with a satin **oil or wax finish**.
 - **Panel retention:** panel rests in a machined **rebate**, held by thin **removable retaining
   stops** (wood stops or z-clips). Nothing is bonded to the panel.
 - **Panel interface:** the panel is the **Module (F)** — no Raspberry-Pi-style HAT, but the module
@@ -250,7 +250,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 |---|---|---|
 | Q1 | ~~Panel-to-MCU interface: 30-pin FPC breakout vs Waveshare HAT?~~ **Resolved:** the F variant has **no driver HAT** — the panel connects via a ribbon/FPC and flying leads. **Lead colour → signal map waived** — the harness is already terminated and functional on the NULA (bench 2026-10-02); the firmware pin map is the reference. | Resolved 2026-10-07 |
 | Q2 | Wall-mount method: **French cleat** (default assumption) vs two D-rings vs keyholes? | **Resolved 2026-10-07** — French cleat |
-| Q3 | Hardwood species + tone to suit the room? | Open — decides at F2.1 (ask-first timber purchase) |
+| Q3 | Hardwood species + tone to suit the room? | **Resolved 2026-10-07** — **oak**, satin oil/wax |
 | Q4 | Orientation confirmed as **landscape** (600 wide × 448 tall)? | **Resolved 2026-10-07** — landscape |
 | Q5 | Confirm **no glazing** (assumed) — or acrylic if you want protection? | **Resolved 2026-10-07** — no glazing |
 | Q6 | USB-C exits the **bottom** edge. **Resolved 2026-10-07:** the NULA's receptacle faces *right* when mounted flat, so the board is rotated 90° and a right-angle pigtail presents a fixed receptacle at the bottom slot. | Resolved — measurement 2026-10-07 |

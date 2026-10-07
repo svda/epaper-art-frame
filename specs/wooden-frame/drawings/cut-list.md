@@ -177,7 +177,7 @@ are cut from **one board** so the grain runs continuously around the finished fr
 | 5 | Spacer frame | 2 + 2 | **197 / 172** | 45° × 2 (or butt) | — | — | height **≈ 17** (cavity 20.5 − 3.5); hidden rear box |
 | 6 | Back panel | 1 | **197 × 172** | — | — | — | **3.6 mm ply**; screwed to the spacer frame, serviceable |
 
-**Stock (F2.1):** one board, **≥ 45 mm wide × ≥ 12 mm thick × ≥ ~1100 mm usable length**
+**Stock (F2.1):** one **oak** board, **≥ 45 mm wide × ≥ 12 mm thick × ≥ ~1100 mm usable length**
 (4 members = 197+172+197+172 = 738 mm, plus a 45° mitre wedge at each of the 8 ends ≈ 40 mm each).
 Chosen frame-member **depth = 12 mm** → lip in front of the panel = 12 − 8.5 = **3.5 mm**; a thinner
 board leaves a fragile lip (do not go below ~10.5 mm). The **reference face must be flat and the
