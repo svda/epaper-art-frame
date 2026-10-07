@@ -360,3 +360,41 @@ refreshes, and battery voltage trend.
 
 - [ ] A week of unattended daily rotation on battery.
 - [ ] **Review with user** — initiative-level success criteria in `SPEC.md` walked through.
+
+---
+
+## Known issues / potential bugs
+
+### KI-1: Intermittent random-noise frame on the panel (deferred 2026-10-07)
+
+**Symptom:** the 5.65" panel occasionally shows a random-noise image instead of the rendered
+artwork. Intermittent — some cycles render correctly.
+
+**Evidence (captured on the replacement NULA, 2026-10-07):**
+- `[E][waveshare_epaper]: Timeout while displaying image!` — the driver intermittently waits
+  the full 35 s for BUSY during display init/refresh. In the same session setup was clean
+  (`Setup display took 237ms`), so it is not a fixed polarity/pin error.
+- Random noise means **corrupted pixel data**; the suspected path is the SPI lines
+  **CLK (GPIO12) / DIN (GPIO11) / CS (GPIO10) / DC (GPIO5)** or **GND** — not BUSY (BUSY only
+  gates timing and cannot corrupt a frame).
+- Separate failure mode seen earlier: after an **interrupted refresh** (power cut / brownout
+  mid-refresh, triggered while current-measuring with a DMM in series on the µA range) the
+  panel was left mid-cycle and the app's main loop blocked (API/OTA unresponsive; auto-reset
+  couldn't sync until a cold power-cycle). It **self-heals** on the next clean boot because the
+  driver toggles the panel RST at init.
+
+**Suspected cause:** marginal/cold solder joints on the panel header (or the panel FPC
+seating) causing intermittent signal-integrity errors.
+
+**Next steps when picked up:**
+1. Power off; reflow all panel header joints (especially CLK/DIN/CS/DC/GND); continuity-test
+   each wire while wiggling; reseat the panel FPC.
+2. If noise persists, flash the P0.1 **7-bar test pattern** (fixed pattern) to separate
+   transfer corruption from image-pipeline issues.
+3. If still unresolved, add a temporary diagnostic (log a SPI line or the BUSY level) to
+   localise the flaky line.
+
+**Related, uncommitted hardening (on hold):** `config/esphome/epaper-art-frame.yaml` now calls
+`deep_sleep.enter` only after `component.update` returns (i.e. after the synchronous display
+refresh completes), with `run_duration: 180s` as a failure backstop — this prevents cutting
+power mid-refresh. Left uncommitted while KI-1 is open.

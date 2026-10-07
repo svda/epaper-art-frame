@@ -53,7 +53,10 @@ substitutions:
 
   # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
   # Deploy: 24h (the SPEC cadence).
-  run_duration: 120s
+  # run_duration is a BACKSTOP only: the pipeline calls deep_sleep.enter as soon
+  # as the render completes, so power is never cut mid-refresh. This timer just
+  # guarantees sleep if a fetch fails before reaching that call.
+  run_duration: 180s
   sleep_duration: 1h
 
 esphome:
@@ -180,9 +183,15 @@ image:
     update_interval: never
     on_download_finished:
       - logger.log: "Image downloaded; drawing"
+      # component.update runs the draw + full panel refresh synchronously
+      # (WaveshareEPaperBase::update -> do_update_ + display), so the panel is
+      # fully written when this returns. Only then is it safe to power down —
+      # never cut power mid-refresh (that leaves a partial frame / stuck panel).
       - component.update: epaper_display
+      - deep_sleep.enter: deep_sleep_1
     on_error:
-      - logger.log: "Image download failed"
+      - logger.log: "Image download failed; sleeping"
+      - deep_sleep.enter: deep_sleep_1
 
 spi:
   clk_pin: ${clk_pin}
