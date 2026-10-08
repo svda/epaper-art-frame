@@ -188,6 +188,15 @@ image:
       # fully written when this returns. Only then is it safe to power down —
       # never cut power mid-refresh (that leaves a partial frame / stuck panel).
       - component.update: epaper_display
+      # The refresh above blocks the main loop ~30 s, so the API (Home Assistant)
+      # cannot connect while it runs — and we sleep immediately after. Hold the
+      # device awake briefly (bounded) so HA can reconnect and read the sensors
+      # before the long sleep; the timeout guarantees we never stay awake forever.
+      - wait_until:
+          condition:
+            api.connected:
+          timeout: 30s
+      - delay: 5s
       - deep_sleep.enter: deep_sleep_1
     on_error:
       - logger.log: "Image download failed; sleeping"
