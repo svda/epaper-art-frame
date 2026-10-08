@@ -21,7 +21,7 @@ human action — the Mac syncs and deploys it automatically.
  ──────                    ───                                    ────────
  tap ♥  →  iCloud  →  Photos library
                        │
-                       ├─ tools/icloud/sync_favorites.py
+                       ├─ tools/icloud/sync_album.py
                        │     select 50 newest favorites
                        │     → prepare_image.sh (600×448, 7-colour dither)
                        │     → mirror into www/epaper/ + regenerate manifest.json
@@ -45,7 +45,7 @@ voltage, last image, WiFi). It never directs the device.
 | `tools/epaper/` | Image pipeline: `prepare_image.sh` (HEIC/JPEG → 600×448 7-colour dithered PNG), `generate_manifest.py` (manifest writer), `push_to_ha.sh` (deploy to HA). See [`tools/epaper/README.md`](tools/epaper/README.md). |
 | `tools/icloud/` | Automatic sync of the 50 most recent iCloud Favorites from the Mac's Photos library. See [`tools/icloud/README.md`](tools/icloud/README.md). |
 | `www/epaper/` | Artwork folder: prepared images + generated `manifest.json`. Images and the manifest are git-ignored. |
-| `specs/` | Specs and task lists: [`epaper-art-frame`](specs/epaper-art-frame/SPEC.md) (device), [`icloud-favorites-sync`](specs/icloud-favorites-sync/SPEC.md) (source), [`wooden-frame`](specs/wooden-frame/SPEC.md) (enclosure). |
+| `specs/` | Specs and task lists: [`epaper-art-frame`](specs/epaper-art-frame/SPEC.md) (device), [`icloud-album-sync`](specs/icloud-album-sync/SPEC.md) (source), [`wooden-frame`](specs/wooden-frame/SPEC.md) (enclosure). |
 
 ## Firmware
 
@@ -112,8 +112,8 @@ troubleshooting.
 
 ```
 uv sync
-.venv/bin/python tools/icloud/sync_favorites.py --dry-run   # preview, no writes
-.venv/bin/python tools/icloud/sync_favorites.py             # sync + deploy
+.venv/bin/python tools/icloud/sync_album.py --dry-run   # preview, no writes
+.venv/bin/python tools/icloud/sync_album.py             # sync + deploy
 .venv/bin/python -m pytest tools/icloud/tests
 ```
 

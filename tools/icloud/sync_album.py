@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Mirror the 50 most recent iCloud Favorites into the frame's artwork folder.
+"""Mirror a Photos album into the frame's artwork folder.
 
-Selection is by capture date (newest first) from the Mac's local Photos library,
-via osxphotos. The sync prepares each favorite to a 600x448 7-colour dithered
+Selects every photo in the configured album (e.g. the shared album
+"epaper art frame"), newest-first by capture date, from the Mac's local Photos
+library via osxphotos. The sync prepares each to a 600x448 7-colour dithered
 PNG, mirrors the artwork folder, and deploys to the Home Assistant host.
 
-See specs/icloud-favorites-sync/SPEC.md.
+See specs/icloud-album-sync/SPEC.md.
 """
 
 from __future__ import annotations
@@ -26,13 +27,12 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 DEFAULT_ARTWORK = REPO / "www" / "epaper"
 DEFAULT_ENV_FILE = HERE / ".env"
-DEFAULT_TOP_N = 50
 DEFAULT_INTERVAL_H = 6
 MANAGED_NAME = ".managed.json"
 PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
 MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
 PUSH_SCRIPT = REPO / "tools" / "epaper" / "push_to_ha.sh"
-PLIST_TEMPLATE = HERE / "com.sander.epaper-favorites.plist.template"
+PLIST_TEMPLATE = HERE / "com.sander.epaper-album.plist.template"
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class Config:
     artwork_dir: Path
     dest: str | None
     library: Path | None
-    top_n: int
+    album: str | None
     interval_h: int
     dry_run: bool
 
@@ -87,7 +87,6 @@ def resolve_config(
     default_artwork: Path = DEFAULT_ARTWORK,
 ) -> Config:
     """Resolve config with precedence: CLI > environment > .env file > default."""
-    top_n = _as_int(_pick(args.top_n, env, env_file, "TOP_N", DEFAULT_TOP_N), "TOP_N")
     interval_h = _as_int(
         _pick(args.interval_h, env, env_file, "SYNC_INTERVAL_H", DEFAULT_INTERVAL_H),
         "SYNC_INTERVAL_H",
@@ -97,11 +96,12 @@ def resolve_config(
     ).expanduser()
     library = _pick(args.library, env, env_file, "PHOTOS_LIBRARY", None)
     dest = _pick(args.dest, env, env_file, "EPAPER_DEST", None)
+    album = _pick(args.album, env, env_file, "ALBUM", None)
     return Config(
         artwork_dir=artwork_dir,
         dest=dest,
         library=Path(library).expanduser() if library else None,
-        top_n=top_n,
+        album=album,
         interval_h=interval_h,
         dry_run=bool(args.dry_run),
     )
@@ -119,19 +119,19 @@ def preflight() -> list[str]:
     return missing
 
 
-def select_favorites(db, top_n: int) -> list:
-    """The most recent favorites by capture date, newest first.
+def select_album(db, album: str) -> list:
+    """Every photo in *album*, newest-first by capture date.
 
     Videos/Live-Photo movies are excluded; undated photos sort last. Ties on
     capture date are broken deterministically by uuid (ascending).
     """
-    favorites = [p for p in db.photos() if p.favorite and not p.ismovie]
-    dated = [p for p in favorites if p.date is not None]
-    undated = [p for p in favorites if p.date is None]
+    photos = [p for p in db.photos(albums=[album]) if not p.ismovie]
+    dated = [p for p in photos if p.date is not None]
+    undated = [p for p in photos if p.date is None]
     dated.sort(key=lambda p: p.uuid)
     dated.sort(key=lambda p: p.date, reverse=True)
     undated.sort(key=lambda p: p.uuid)
-    return (dated + undated)[:top_n]
+    return dated + undated
 
 
 @dataclass(frozen=True)
@@ -176,7 +176,7 @@ def apply_artwork(
     regenerate_manifest,
     dry_run: bool = False,
 ) -> SyncResult:
-    """Prepare the selected favorites into the artwork folder and mirror it.
+    """Prepare the selected photos into the artwork folder and mirror it.
 
     Preparation happens in a staging dir first, so a failure leaves the artwork
     folder untouched. A photo that cannot be prepared is recorded in `failures`
@@ -216,6 +216,21 @@ def apply_artwork(
                 failures.append((photo.uuid, str(exc)))
 
         current = {f"{uuid}.png" for uuid in prepared_uuids}
+
+        if photos and not prepared_uuids:
+            # Every selected photo failed to prepare. Do NOT mirror: deleting the
+            # whole folder on a transient export failure would wipe the rotation.
+            # Leave the folder intact and regenerate the manifest to match it.
+            regenerate_manifest(artwork_dir)
+            return SyncResult(
+                prepared=0,
+                kept=sorted(existing),
+                deleted=[],
+                dry_run=False,
+                failures=failures,
+                copied=0,
+            )
+
         deletions = plan_deletions(existing, managed, current, first_run)
 
         copied = 0
@@ -243,14 +258,27 @@ def apply_artwork(
 
 
 def export_photo(photo, export_dir: Path):
-    """Path to the photo's original in the library, downloading it if off-disk.
+    """Path to the photo's image, downloading it from iCloud if off-disk.
 
-    Using the library original avoids Photos' AppleScript export, which returns
-    an adjustment-data plist (not the image) for photos that have edits.
+    Prefer the library original when it is already on disk. Otherwise export via
+    Photos (``use_photos_export=True``), which downloads iCloud and Shared-Album
+    assets. ``edited=True`` exports the rendered image — without it, a photo that
+    has adjustments exports only an adjustment-data plist (not an image), which
+    ImageMagick cannot read. The exported file paths are returned directly,
+    because ``photo.path`` stays ``None`` for shared-album assets even after a
+    successful export.
     """
     if photo.path and Path(photo.path).is_file():
         return [str(photo.path)]
-    photo.export(str(export_dir), use_photos_export=True, overwrite=True)
+    # Rendered export: `edited=True` is required for photos with adjustments
+    # (otherwise the original exports only an adjustment-data plist, which
+    # ImageMagick cannot read), but Photos refuses it for un-adjusted photos.
+    kwargs = {"use_photos_export": True, "overwrite": True}
+    if getattr(photo, "hasadjustments", False):
+        kwargs["edited"] = True
+    exported = photo.export(str(export_dir), **kwargs)
+    if exported:
+        return list(exported)
     if photo.path and Path(photo.path).is_file():
         return [str(photo.path)]
     raise RuntimeError("original not available (still in iCloud?)")
@@ -271,7 +299,7 @@ def prepare_one(
     run_fn=_run,
     prepare_script: Path = PREPARE_SCRIPT,
 ) -> None:
-    """Export one favorite and prepare it to *dest* as a panel-ready PNG.
+    """Export one photo and prepare it to *dest* as a panel-ready PNG.
 
     Options precede the positional input/output for prepare_image.sh (its arg
     loop breaks at the first non-option).
@@ -306,8 +334,10 @@ def open_library(cfg: Config):
 
 
 def sync(cfg: Config, db, prepare_one, regenerate_manifest) -> SyncResult:
-    """Select the favorites and mirror them into the artwork folder."""
-    photos = select_favorites(db, cfg.top_n)
+    """Select the album's photos and mirror them into the artwork folder."""
+    if not cfg.album:
+        raise RuntimeError("no album configured (set ALBUM or --album)")
+    photos = select_album(db, cfg.album)
     return apply_artwork(
         photos,
         cfg.artwork_dir,
@@ -366,14 +396,14 @@ def render_plist(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="sync_favorites.py",
+        prog="sync_album.py",
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--artwork-dir", help="artwork folder (default: <repo>/www/epaper)")
     parser.add_argument("--dest", help="deploy destination [user@]host:/path (default: $EPAPER_DEST)")
     parser.add_argument("--library", help="Photos library path (default: system library)")
-    parser.add_argument("--top-n", type=int, help=f"favorites to keep (default: {DEFAULT_TOP_N})")
+    parser.add_argument("--album", help="Photos album name to mirror (default: $ALBUM)")
     parser.add_argument("--interval-h", type=int, help=f"launchd interval hours (default: {DEFAULT_INTERVAL_H})")
     parser.add_argument("--config", help=f"env file (default: {DEFAULT_ENV_FILE})")
     parser.add_argument(
@@ -399,7 +429,7 @@ def main(argv: list[str] | None = None) -> int:
             render_plist(
                 PLIST_TEMPLATE.read_text(encoding="utf-8"),
                 python=sys.executable,
-                script=str(HERE / "sync_favorites.py"),
+                script=str(HERE / "sync_album.py"),
                 workdir=str(HERE),
                 stdout=str(HERE / "sync.log"),
                 stderr=str(HERE / "sync.err.log"),

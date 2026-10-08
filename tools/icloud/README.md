@@ -1,11 +1,11 @@
-# iCloud Favorites sync tooling
+# iCloud album sync tooling
 
-Mirrors the 50 most recent **iCloud Favorites** (by capture date) from the Mac's local Photos
-library into the frame's artwork folder, prepares them to 600×448 dithered PNGs, and deploys them
-to the Home Assistant host. The device is unchanged. See
-[`../../specs/icloud-favorites-sync/SPEC.md`](../../specs/icloud-favorites-sync/SPEC.md).
+Mirrors a **Photos album** (configured via `ALBUM`; currently the shared album "epaper art
+frame") from the Mac's local Photos library into the frame's artwork folder, prepares each photo
+to a 600×448 dithered PNG, and deploys them to the Home Assistant host. The device is unchanged.
+See [`../../specs/icloud-album-sync/SPEC.md`](../../specs/icloud-album-sync/SPEC.md).
 
-The only human action is tapping the heart in Photos.
+The only human action is adding/removing photos in the album.
 
 ## Environment
 
@@ -22,12 +22,12 @@ uv sync                 # creates .venv with osxphotos + pytest
 ## Run
 
 ```
-.venv/bin/python sync_favorites.py            # sync + deploy
-.venv/bin/python sync_favorites.py --dry-run  # show what would happen; write nothing
+.venv/bin/python sync_album.py            # sync + deploy
+.venv/bin/python sync_album.py --dry-run  # show what would happen; write nothing
 ```
 
 Config comes from `tools/icloud/.env` (see `.env.example`), overridden by real environment
-variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `TOP_N`,
+variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `ALBUM`,
 `SYNC_INTERVAL_H`, `EPAPER_IMAGES`.
 
 ## Schedule (launchd)
@@ -35,17 +35,17 @@ variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `TOP_
 Every `SYNC_INTERVAL_H` hours, and at login:
 
 ```
-.venv/bin/python sync_favorites.py --print-plist \
-  > ~/Library/LaunchAgents/com.sander.epaper-favorites.plist
-launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-favorites.plist
-launchctl list | grep epaper-favorites
+.venv/bin/python sync_album.py --print-plist \
+  > ~/Library/LaunchAgents/com.sander.epaper-album.plist
+launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-album.plist
+launchctl list | grep epaper-album
 ```
 
 The job logs to `tools/icloud/sync.log` and `sync.err.log`. Reload after a config change:
 
 ```
-launchctl unload ~/Library/LaunchAgents/com.sander.epaper-favorites.plist
-launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-favorites.plist
+launchctl unload ~/Library/LaunchAgents/com.sander.epaper-album.plist
+launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-album.plist
 ```
 
 **Full Disk Access for the job.** launchd runs the venv Python directly, so *that binary* — not
@@ -106,7 +106,7 @@ tools/epaper/prepare_image.sh --out-dir DIR INPUT [OUTPUT]
 | `prepare_image.sh failed` | ImageMagick missing or the file isn't an image — the message includes magick's stderr |
 | `no deploy destination configured` | Set `EPAPER_DEST` in `.env` |
 | `deploy failed: ...` | HA host unreachable or the path is wrong; the local folder is left intact |
-| A favorite doesn't appear | Photos hasn't synced it yet — it appears on a later run |
+| A photo doesn't appear | Photos hasn't synced it yet — it appears on a later run |
 | Stale files linger on the HA host | `push_to_ha.sh` copies but never deletes; the device is manifest-driven so they are inert. Remove manually if desired |
 | Edited photos | The sync uses the **original** (`photo.path`), not the edited render |
 
@@ -119,7 +119,7 @@ existing Home Assistant box; live "show now" device control; device firmware cha
 ## Files
 
 - `pyproject.toml` / `uv.lock` / `.python-version` — environment
-- `sync_favorites.py` — selection + prepare + mirror + deploy
-- `com.sander.epaper-favorites.plist.template` — launchd template (rendered by `--print-plist`)
+- `sync_album.py` — selection + prepare + mirror + deploy
+- `com.sander.epaper-album.plist.template` — launchd template (rendered by `--print-plist`)
 - `tests/` — pytest suite (`.venv/bin/python -m pytest tests`)
 - `README.md` — this file

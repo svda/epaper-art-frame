@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sync_favorites import apply_artwork, export_photo, prepare_one
+from sync_album import apply_artwork, export_photo, prepare_one
 
 
 @dataclass
@@ -41,6 +41,28 @@ def test_export_photo_downloads_then_uses_the_local_original(tmp_path):
     photo = FakePhotoInfo(path=None, after_export_path=str(original))
 
     assert export_photo(photo, tmp_path / "staging") == [str(original)]
+    assert photo.export_calls == 1
+
+
+def test_export_photo_uses_export_result_when_path_stays_none(tmp_path):
+    # Shared-album assets: export downloads the file but photo.path stays None.
+    class SharedAlbumPhoto:
+        uuid = "uuid-s"
+        path = None
+
+        def __init__(self):
+            self.export_calls = 0
+
+        def export(self, dest, **kwargs):
+            self.export_calls += 1
+            out = Path(dest) / "IMG_shared.HEIC"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_bytes(b"x")
+            return [str(out)]
+
+    photo = SharedAlbumPhoto()
+    out = export_photo(photo, tmp_path / "staging")
+    assert [Path(p).name for p in out] == ["IMG_shared.HEIC"]
     assert photo.export_calls == 1
 
 

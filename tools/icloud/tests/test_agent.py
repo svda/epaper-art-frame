@@ -1,7 +1,7 @@
 import plistlib
 from pathlib import Path
 
-from sync_favorites import PLIST_TEMPLATE, render_plist
+from sync_album import PLIST_TEMPLATE, render_plist
 
 
 def test_plist_template_exists():
@@ -12,7 +12,7 @@ def test_render_plist_is_valid_and_schedules_the_sync():
     rendered = render_plist(
         PLIST_TEMPLATE.read_text(),
         python="/venv/bin/python",
-        script="/repo/tools/icloud/sync_favorites.py",
+        script="/repo/tools/icloud/sync_album.py",
         workdir="/repo/tools/icloud",
         stdout="/repo/tools/icloud/sync.log",
         stderr="/repo/tools/icloud/sync.err.log",
@@ -20,10 +20,10 @@ def test_render_plist_is_valid_and_schedules_the_sync():
     )
     data = plistlib.loads(rendered.encode())
 
-    assert data["Label"] == "com.sander.epaper-favorites"
+    assert data["Label"] == "com.sander.epaper-album"
     assert data["ProgramArguments"] == [
         "/venv/bin/python",
-        "/repo/tools/icloud/sync_favorites.py",
+        "/repo/tools/icloud/sync_album.py",
     ]
     assert data["WorkingDirectory"] == "/repo/tools/icloud"
     assert data["StartInterval"] == 6 * 3600

@@ -1,16 +1,18 @@
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sync_favorites import Config, SyncResult, exit_code, manifest_writer, summarize, sync
+from sync_album import Config, SyncResult, exit_code, manifest_writer, summarize, sync
+
+ALBUM = "epaper art frame"
 
 
 @dataclass
 class FakePhoto:
     uuid: str
     date: datetime
-    favorite: bool = True
+    albums: list[str] = field(default_factory=lambda: [ALBUM])
     ismovie: bool = False
 
 
@@ -18,35 +20,50 @@ class FakeDB:
     def __init__(self, photos):
         self._photos = list(photos)
 
-    def photos(self):
-        return list(self._photos)
+    def photos(self, albums=None):
+        if albums is None:
+            return list(self._photos)
+        wanted = set(albums)
+        return [p for p in self._photos if wanted & set(p.albums)]
 
 
 def dt(day: int) -> datetime:
     return datetime(2026, 1, day, tzinfo=timezone.utc)
 
 
-def cfg(tmp_path, top_n=50, dry_run=False) -> Config:
+def cfg(tmp_path, album=ALBUM, dry_run=False) -> Config:
     return Config(
         artwork_dir=tmp_path,
         dest=None,
         library=None,
-        top_n=top_n,
+        album=album,
         interval_h=6,
         dry_run=dry_run,
     )
 
 
-def test_sync_selects_top_n_and_prepares_them(tmp_path):
+def test_sync_prepares_all_album_photos(tmp_path):
     db = FakeDB([FakePhoto(f"u{i}", dt(i)) for i in range(1, 6)])
 
     def prepare_one(photo, dest):
         Path(dest).write_bytes(b"png")
 
-    result = sync(cfg(tmp_path, top_n=2), db, prepare_one, regenerate_manifest=lambda folder: None)
+    result = sync(cfg(tmp_path), db, prepare_one, regenerate_manifest=lambda folder: None)
 
-    assert result.prepared == 2
-    assert {p.name for p in tmp_path.iterdir() if p.suffix == ".png"} == {"u5.png", "u4.png"}
+    assert result.prepared == 5
+    assert {p.name for p in tmp_path.iterdir() if p.suffix == ".png"} == {
+        f"u{i}.png" for i in range(1, 6)
+    }
+
+
+def test_sync_requires_an_album(tmp_path):
+    db = FakeDB([FakePhoto("u1", dt(1))])
+    try:
+        sync(cfg(tmp_path, album=None), db, lambda p, d: None, lambda folder: None)
+    except RuntimeError as exc:
+        assert "album" in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("expected RuntimeError for a missing album")
 
 
 def test_exit_code_nonzero_when_any_photo_failed():

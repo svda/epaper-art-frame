@@ -306,3 +306,33 @@ after one file. `ssh -n` fixed it.
 - [ ] Two consecutive intervals of hands-off add/remove observed. — one interval verified directly;
       the 6-hourly cadence runs unattended from here.
 - [x] **Review with user** — walk the spec's success criteria. — done 2026-10-01.
+
+---
+
+### T-12: Switch source from Favorites to a Photos album (Rev 2, 2026-10-07)
+**Description:** At the user's request, replace the Favorites source with a specific album — the
+shared album **"epaper art frame"** — selecting **all** its photos (non-movie, capture-date order).
+Rename the tool/spec/plist accordingly and correct the spec's "shared albums unreadable" note
+(osxphotos 0.77.2 reads them via `PhotosDB.album_info_shared`).
+
+**Acceptance criteria:**
+- [x] Selection returns every photo in the `ALBUM` (verified: 8 photos, newest-first by date).
+- [x] Config key `ALBUM` replaces `TOP_N`; CLI `--album` added; no cap.
+- [x] Renamed: `sync_favorites.py`→`sync_album.py`, plist label
+      `com.sander.epaper-favorites`→`com.sander.epaper-album`, slug
+      `icloud-favorites-sync`→`icloud-album-sync`.
+- [x] Tests pass (53).
+
+**Verification:**
+- [x] `sync_album.py --dry-run` against the real library (`prepared=0 kept=0 deleted=50` — all 50
+      old favorites would be replaced by the album's 8).
+- [x] Real run + deploy: `prepared=8 kept=8 deleted=0`, pushed to the HA host, which now serves
+      the 8-entry manifest (HTTP 200).
+- [x] Bugs found & fixed for shared albums: use the export return value (`photo.path` stays
+      `None` for shared-album assets); export the rendered version for photos with adjustments
+      (`edited=True`) so ImageMagick gets an image, not an adjustment plist; guard a
+      total-prepare-failure run from wiping the artwork folder.
+
+**Dependencies:** T-11 · **Scope:** S · **Files:** `tools/icloud/sync_album.py`,
+`tools/icloud/com.sander.epaper-album.plist.template`, `specs/icloud-album-sync/*`,
+`tools/icloud/README.md`, `tools/icloud/.env.example`, root `README.md`.

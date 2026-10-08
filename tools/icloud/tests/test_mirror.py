@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from sync_favorites import (
+from sync_album import (
     MANAGED_NAME,
     apply_artwork,
     plan_deletions,
@@ -175,3 +175,22 @@ def test_apply_artwork_copies_only_when_content_changes(tmp_path):
 
     assert first.copied == 1
     assert second.copied == 0
+
+
+def test_total_prepare_failure_does_not_wipe_the_folder(tmp_path):
+    write_managed(tmp_path, {"uuid-a.png"})
+    (tmp_path / "uuid-a.png").write_bytes(b"x")
+
+    def prepare_one(photo, dest):
+        raise RuntimeError("no export")
+
+    result = apply_artwork(
+        photos=[FakePhoto("uuid-a"), FakePhoto("uuid-b")],
+        artwork_dir=tmp_path,
+        prepare_one=prepare_one,
+        regenerate_manifest=lambda folder: None,
+    )
+
+    assert pngs(tmp_path) == {"uuid-a.png"}
+    assert result.deleted == []
+    assert len(result.failures) == 2

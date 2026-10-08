@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from sync_favorites import PUSH_SCRIPT, deploy
+from sync_album import PUSH_SCRIPT, deploy
 
 
 def test_deploy_skips_when_nothing_changed():
