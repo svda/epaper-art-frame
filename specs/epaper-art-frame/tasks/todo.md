@@ -261,7 +261,7 @@ device cycles through them over consecutive days.
 
 **Acceptance criteria:**
 - [x] Device renders each seeded image correctly over successive wakes.
-      — set is seeded by the `icloud-favorites-sync` pipeline (`TOP_N=50`), manifest in sync
+      — set is seeded by the `icloud-album-sync` pipeline (`ALBUM="epaper art frame"`), manifest in sync
       (`generate_manifest.py --check`: 50 images), remote HA serves all 50 (`HTTP 200`).
       **Rotation verified 2026-10-03** across consecutive NULA wakes:
       `FC4E087B….png` → `0051B900….png` (advanced and wrapped end→start), index persists.
@@ -365,10 +365,20 @@ refreshes, and battery voltage trend.
 
 ## Known issues / potential bugs
 
-### KI-1: Intermittent random-noise frame on the panel (deferred 2026-10-07)
+### KI-1: Intermittent noise/shear frame then hangs — RESOLVED 2026-10-07
 
-**Symptom:** the 5.65" panel occasionally shows a random-noise image instead of the rendered
-artwork. Intermittent — some cycles render correctly.
+**Root cause & fix:** conductive **flux residue** on the replacement NULA shorted the 5 V **VCC**
+rail to **GND** (measured **88 Ω** VCC–GND vs **>8 kΩ** 3V3–GND), browning out the rails during
+the panel refresh and eventually heating/smoking at the VCC pad. The residue was **cleaned off
+with isopropanol**; VCC–GND returned to high impedance. The device now boots normally and the
+**RESET button works again**. The earlier "marginal solder joints"/SPI-signal theories were
+wrong — the volatile VCC–GND leakage from flux explained the whole cluster (random noise,
+diagonal shear, 35 s BUSY timeouts, boot loops, blocked main loop). **Lesson:** unclean flux can
+be conductive; clean boards after soldering.
+
+**Symptom (historical):** the 5.65" panel occasionally shows a corrupted frame instead of the
+rendered artwork. Two forms observed: **random noise**, and **diagonal shear** (diagonal strips
+stacked with different horizontal offsets). Intermittent — some cycles render correctly.
 
 **Evidence (captured on the replacement NULA, 2026-10-07):**
 - `[E][waveshare_epaper]: Timeout while displaying image!` — the driver intermittently waits
@@ -377,16 +387,21 @@ artwork. Intermittent — some cycles render correctly.
 - Random noise means **corrupted pixel data**; the suspected path is the SPI lines
   **CLK (GPIO12) / DIN (GPIO11) / CS (GPIO10) / DC (GPIO5)** or **GND** — not BUSY (BUSY only
   gates timing and cannot corrupt a frame).
+- **Diagonal shear** observed too: the frame splits into diagonal strips, each shifted by a
+  different horizontal amount — the signature of **bit-slips on the SPI data/clock lines**
+  during transfer. The buffer is good (`Decoding complete: 600x448`), so the corruption is on
+  the wire: again **CLK (GPIO12) / DIN (GPIO11) / GND**, i.e. the same signal-integrity path.
 - Separate failure mode seen earlier: after an **interrupted refresh** (power cut / brownout
   mid-refresh, triggered while current-measuring with a DMM in series on the µA range) the
   panel was left mid-cycle and the app's main loop blocked (API/OTA unresponsive; auto-reset
   couldn't sync until a cold power-cycle). It **self-heals** on the next clean boot because the
   driver toggles the panel RST at init.
 
-**Suspected cause:** marginal/cold solder joints on the panel header (or the panel FPC
-seating) causing intermittent signal-integrity errors.
+**Superseded (was suspected):** marginal/cold solder joints on the panel header (or the panel FPC
+seating) causing intermittent signal-integrity errors. **Not the cause** — see the flux root
+cause above. The steps below are retained for reference only.
 
-**Next steps when picked up:**
+**Diagnostic steps (retained for reference):**
 1. Power off; reflow all panel header joints (especially CLK/DIN/CS/DC/GND); continuity-test
    each wire while wiggling; reseat the panel FPC.
 2. If noise persists, flash the P0.1 **7-bar test pattern** (fixed pattern) to separate
@@ -394,7 +409,7 @@ seating) causing intermittent signal-integrity errors.
 3. If still unresolved, add a temporary diagnostic (log a SPI line or the BUSY level) to
    localise the flaky line.
 
-**Related, uncommitted hardening (on hold):** `config/esphome/epaper-art-frame.yaml` now calls
+**Related hardening (committed `8512736`):** `config/esphome/epaper-art-frame.yaml` calls
 `deep_sleep.enter` only after `component.update` returns (i.e. after the synchronous display
 refresh completes), with `run_duration: 180s` as a failure backstop — this prevents cutting
-power mid-refresh. Left uncommitted while KI-1 is open.
+power mid-refresh.
