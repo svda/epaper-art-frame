@@ -34,6 +34,13 @@ MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
 PUSH_SCRIPT = REPO / "tools" / "epaper" / "push_to_ha.sh"
 PLIST_TEMPLATE = HERE / "com.sander.epaper-album.plist.template"
 
+# ImageMagick cannot decode camera RAW without a delegate (darktable etc.);
+# macOS `sips` can, so RAW exports are pre-converted to JPEG before preparing.
+RAW_SUFFIXES = {
+    ".dng", ".cr2", ".cr3", ".nef", ".arw", ".raf", ".orf", ".rw2",
+    ".pef", ".srw", ".raw", ".x3f", ".rwl", ".sr2", ".mrw", ".kdc", ".dcr",
+}
+
 
 @dataclass(frozen=True)
 class Config:
@@ -291,6 +298,17 @@ def _run(argv: list[str]) -> None:
         raise RuntimeError(f"{Path(argv[0]).name} failed ({result.returncode}): {detail}")
 
 
+def _maybe_convert_raw(src: Path, export_dir: Path, run_fn) -> Path:
+    """Convert a camera-RAW export to JPEG with macOS ``sips`` (ImageMagick can't)."""
+    if src.suffix.lower() not in RAW_SUFFIXES:
+        return src
+    out = Path(export_dir) / (src.stem + ".jpg")
+    run_fn(["sips", "-s", "format", "jpeg", str(src), "--out", str(out)])
+    if not out.is_file():
+        raise RuntimeError(f"RAW conversion produced no file for {src.name}")
+    return out
+
+
 def prepare_one(
     photo,
     dest: Path,
@@ -310,7 +328,7 @@ def prepare_one(
         paths = export_fn(photo, export_dir)
         if not paths:
             raise RuntimeError(f"export produced no file for {photo.uuid}")
-        src = Path(paths[0])
+        src = _maybe_convert_raw(Path(paths[0]), export_dir, run_fn)
         run_fn([str(prepare_script), "--out-dir", str(dest.parent), str(src), str(dest)])
     finally:
         shutil.rmtree(export_dir, ignore_errors=True)

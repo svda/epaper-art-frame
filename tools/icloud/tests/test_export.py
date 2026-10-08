@@ -104,6 +104,34 @@ def test_prepare_one_exports_then_prepares_with_options_before_input(tmp_path):
     assert dest.read_bytes() == b"png"
 
 
+def test_prepare_one_converts_raw_before_preparing(tmp_path):
+    dest = tmp_path / "out" / "uuid-a.png"
+    dest.parent.mkdir()
+    calls = []
+
+    def export_fn(photo, export_dir):
+        src = Path(export_dir) / "IMG.DNG"
+        src.write_bytes(b"raw")
+        return [str(src)]
+
+    def run_fn(argv):
+        calls.append(argv)
+        Path(argv[-1]).write_bytes(b"x")
+
+    prepare_one(
+        SimpleNamespace(uuid="uuid-a"),
+        dest,
+        export_fn=export_fn,
+        run_fn=run_fn,
+        prepare_script=Path("/repo/tools/epaper/prepare_image.sh"),
+    )
+
+    assert calls[0][0] == "sips"
+    assert calls[0][1:3] == ["-s", "format"]
+    assert calls[-1][0] == "/repo/tools/epaper/prepare_image.sh"
+    assert Path(calls[-1][-2]).suffix == ".jpg"
+
+
 def test_prepare_one_raises_when_export_yields_nothing(tmp_path):
     with pytest.raises(RuntimeError, match="uuid-x"):
         prepare_one(
