@@ -1,6 +1,6 @@
 # Spec: Wooden Frame for the E-Paper Panel
 
-Status: **draft — awaiting review** · Revision 1 (2026-09-28)
+Status: **draft — revised for plywood** · Revision 2 (2026-10-11)
 Slug: `wooden-frame`
 Related: [`../epaper-art-frame/SPEC.md`](../epaper-art-frame/SPEC.md) (the device this houses)
 
@@ -9,6 +9,12 @@ Related: [`../epaper-art-frame/SPEC.md`](../epaper-art-frame/SPEC.md) (the devic
 > deliverable* from the device itself: `epaper-art-frame` lists "enclosure design" as a **non-goal**,
 > so the frame is specified here. When this spec is built, `epaper-art-frame`'s **P3.2
 > "Enclosure / mounting"** is satisfied by it (cross-referenced, not duplicated).
+>
+> **Revision 2 (2026-10-11):** the frame is built from a **single 1220 × 610 × 3.6 mm hardwood
+> multiplex (plywood) sheet**, not a solid oak board. This replaces the solid-oak mitre build with a
+> **routed, laminated plywood ring** (no mitres, no splines) and leaves the ply lamination edges
+> exposed. All panel/electronics geometry is unchanged; only the frame member depth and spacer depth
+> change (see "Dimensional model").
 
 ---
 
@@ -25,7 +31,7 @@ frame.
 | User | Need |
 |---|---|
 | Household / guests (viewers) | Reads as framed art; no visible wiring, boards or battery; no glare |
-| The maker (owner) | Recharge the battery easily; swap the panel/battery/board later; a build achievable with a mitre saw, drill and sander |
+| The maker (owner) | Recharge the battery easily; swap the panel/battery/board later; a build achievable with a drill, router (or jigsaw), clamps and sander |
 
 **Success looks like:** mounted on the wall, a visitor assumes it is a professionally framed print.
 
@@ -36,27 +42,32 @@ frame.
 ## Design decisions (from interview)
 
 - **Objective priority:** furniture-grade appearance / intentional décor.
-- **Form factor:** mitred hardwood picture frame with a clean visible reveal, plus a **hidden rear
-  box** (spacer frame + a **3.6 mm ply back plate** that also carries the electronics).
-- **Workshop:** mitre saw (or mitre box + handsaw), drill, random-orbit sander. Mitred corners
-  glued and **reinforced with splines or dowels**; rebates cut with a router or stacked saw cuts.
-- **Material / finish:** **oak** (chosen 2026-10-07) with a satin **oil or wax finish**.
-- **Panel retention:** panel rests in a machined **rebate**, held by thin **removable retaining
-  stops** (wood stops or z-clips). Nothing is bonded to the panel.
+- **Form factor:** a **routed solid plywood ring** with a clean visible reveal, plus a **hidden rear
+  box** (spacer ring + a **3.6 mm ply back plate** that also carries the electronics). The frame is a
+  **single laminated ring**, not four joined members.
+- **Workshop:** drill, router (or jigsaw + flush-trim guide), random-orbit sander, clamps. The ring is
+  laminated from ply layers and the rebate is **routed as a step** — so there are **no mitred corners
+  and no splines/dowels** to cut or align.
+- **Material / finish:** one sheet of **hardwood-faced multiplex (plywood), 1220 × 610 × 3.6 mm**
+  (chosen 2026-10-11; replaces solid oak, Q3) with a satin **oil or wax finish**. The ply lamination
+  edges are **left exposed** as a deliberate detail (Baltic-birch look); the hardwood face carries
+  continuous veneer grain.
+- **Panel retention:** panel rests in a machined **rebate**, held by thin **removable retaining stops**
+  (wood stops or z-clips). Nothing is bonded to the panel.
 - **Panel interface:** the panel is the **Module (F)** — no Raspberry-Pi-style HAT, but the module
   carries its **own onboard driver PCB**, with a 30-pin FPC (`AYF532435`) and an 8-pin header
   exposing **VCC, GND, DIN, CLK, CS, DC, RST, BUSY** via coloured jumper wires. The **module outline
   (138.5 × 100.5 mm)** is ~13 mm wider than the panel itself (125.4 × 99.5 mm), so the rear cavity
   must clear the PCB tab, not just the panel. The leads still need **strain relief, a service loop,
   and a defined route** to the NULA.
-- **Back plate = electronics carrier.** A single **3.6 mm plywood plate** is both the frame's back
-  panel and the electronics carrier: the NULA (M3 standoff + a foam anti-rotation pad at the far end)
-  and the LiPo (held **removably** — velcro / strap / pocket, never bonded) mount on its **inner
-  face**. Unscrewing the back plate pulls the whole electronics out in one piece. The panel stays
-  separate, held in the front rebate by the stops, with a **service loop** in the harness so the
-  plate can be freed. Orient the NULA so its **USB-C reaches the bottom slot** (rotated 90° from its
-  flat orientation — the receptacle faces right on the bare board — with a right-angle pigtail to a
-  fixed receptacle; Q6 resolved 2026-10-07).
+- **Back plate = electronics carrier.** A single **3.6 mm plywood plate** (one layer of the same
+  sheet) is both the frame's back panel and the electronics carrier: the NULA (M3 standoff + a foam
+  anti-rotation pad at the far end) and the LiPo (held **removably** — velcro / strap / pocket, never
+  bonded) mount on its **inner face**. Unscrewing the back plate pulls the whole electronics out in
+  one piece. The panel stays separate, held in the front rebate by the stops, with a **service loop**
+  in the harness so the plate can be freed. Orient the NULA so its **USB-C reaches the bottom slot**
+  (rotated 90° from its flat orientation — the receptacle faces right on the bare board — with a
+  right-angle pigtail to a fixed receptacle; Q6 resolved 2026-10-07).
 - **Glazing:** **none** (assumed) — the panel is matte and already reads as paper; glass/acrylic adds
   glare, weight and depth.
 
@@ -74,18 +85,20 @@ catalogues.** All frame dimensions are *derived* from measured values:
 | `AW × AH` | Active / visible area | measured: **115.0 × 85.0 mm** (ref 114.9 × 85.8) |
 | `PT` | Module thickness incl. header, risers removed (9.0 mm with the 4 corner risers fitted) | measured: **8.0 mm** |
 | `RD` | Cavity depth: module back → back-plate inner face (NULA + LiPo + wiring + service loop) | measured / mock-up |
-| `R` | **Reveal** — how far the frame overlaps the panel edge, per side | design: **3–5 mm** |
-| `F` | Frame face width | design: **35–45 mm** |
-| `BP` | Back plate thickness — 3.6 mm ply; **also the electronics carrier** | design: **3.6 mm** |
+| `R` | **Reveal** — frame overlap past the glass edge, per side | chosen: **4 mm W / 6 mm H** (sized to the active area) |
+| `F` | Frame face width | chosen: **18 mm** (was 35–45; the 139.5 mm board forces a ~16 mm floor) |
+| `BP` | Sheet thickness — 3.6 mm ply; **one layer** = the back plate, **four layers** = the frame | material: **3.6 mm** |
+| `FD` | Frame member depth — **4 × `BP` laminated** | design: **14.4 mm** (was 12 mm solid oak) |
 
 Derived:
 
 ```
-front opening      = PO_W - 2R  ×  PO_H - 2R      (reveal over the panel edge)
+front opening      = PO_W - 2·Rw  ×  PO_H - 2·Rh   (reveal over the glass, per axis)
 rebate / inner     = MO_W + 2 mm  ×  MO_H + 2 mm  (must clear the module PCB and its tab)
-rebate depth       = PT + 0.5 mm
+rebate depth       = FD - LIP  (contains PT + clearance; LIP = 3.5 mm front material)
 cavity depth       = RD + 3 mm minimum
 frame outer        = opening + 2F, and ≥ MO + 2×margin   (F must clear the module tab)
+spacer depth       = LIP + PT + cavity depth - FD   (= PLATE_INNER - FD = 17.6 mm)
 ```
 
 **The module PCB tab is asymmetric** (it extends ~13 mm on one side) — record its orientation
@@ -105,14 +118,15 @@ Physical build procedures, plus the repo commands that gate each increment.
 ```
 Measure & record   → digital calipers; log every value in drawings/cut-list.md
 Layout & cut list  → derive all dimensions from the model above; write drawings/cut-list.md
-Dry fit            → assemble all joints AND the panel + electronics stack with no glue
-Cut rebates        → router or stacked saw cuts; test-fit offcuts first
-Glue up & clamp    → splines/dowels + glue; check corners for square before clamping
-Sanding           → 120 → 180 → 240 grit; break all edges with a 3 mm roundover
-Finish            → oil/wax per product data sheet; fully cure (≥72 h) before electronics go in
-Fit check         → panel in rebate, reveal uniform, panel removable, USB-C reachable
-Wall test         → hang with 2× device weight; confirm no rock and a ≤2 mm wall gap
-Commit            → git add specs/wooden-frame && git commit -F -   (with Spec:/Task: trailers)
+Laminate the ring  → glue 4 ply layers into a 153 × 124 × 14.4 block (flat, even clamp pressure)
+Rout the rebate    → outer to 153 × 124; pocket 141.5 × 103 from the back; opening 117 × 88 through the 3.5 mm lip
+Laminate the spacer→ build the 17.6 mm spacer ring (5 layers, or from the routed-out centre)
+Dry fit            → assemble the ring + spacer + back plate AND the panel + electronics stack, no glue
+Sand               → 120 → 180 → 240 grit; break all edges with a 3 mm roundover
+Finish             → oil/wax per product data sheet; fully cure (≥72 h) before electronics go in
+Fit check          → panel in rebate, active margin even, panel removable, USB-C reachable
+Wall test          → hang with 2× device weight; confirm no rock and a ≤2 mm wall gap
+Commit             → git add specs/wooden-frame && git commit -F -   (with Spec:/Task: trailers)
 Device re-validate → .venv/bin/esphome config config/esphome/epaper-art-frame.yaml
 ```
 
@@ -142,20 +156,24 @@ standard, rather than rules in the abstract:
 
 ```
 Front elevation (not to scale)
-┌───────────────────────────────┐   reveal R uniform on all 4 sides
-│  ┌─────────────────────────┐  │   corners: closed 45° mitre, spline visible as a
-│  │  600 × 448 e-paper      │  │   thin line, grain running continuously around
-│  └─────────────────────────┘  │   edge: 3 mm roundover, sanded to 240, oiled satin
+┌───────────────────────────────┐   even margin around the 600x448 active area
+│  ┌─────────────────────────┐  │   face: one continuous plywood ring (no corner joints),
+│  │  600 × 448 e-paper      │  │   hardwood veneer grain; edge: 3 mm roundover, sanded
+│  └─────────────────────────┘  │   to 240, oiled satin; ply lamination edge left exposed
 └───────────────────────────────┘   hardware: brass or black, countersunk, no proud heads
-        F = 35–45 mm face width
+        F = 18 mm face width
 ```
 
 Conventions:
 
-- **Reveal uniform within 0.5 mm** on all four sides — the single most visible quality signal
-- Grain runs continuously around the frame (mitred corners, sequential cuts from one board)
+- **Visible margin around the active pixels even within 0.5 mm** on all four sides — the single most
+  visible quality signal. (The reveal past the glass edge is unequal **by design** — 4 mm W / 6 mm
+  H — because the glass border is uneven, 5 W / 7.5 H; align to the active area, not the glass.)
+- The ring is **one seamless piece** — no mitre lines, no spline gaps, no corner alignment to get
+  wrong. The visible face grain is whatever the ply's face veneer gives.
 - Edge profile: consistent **3 mm roundover**, no sharp arrises
-- Splines: aligned, equal width, sanded flush — a deliberate detail, not a repair
+- The exposed ply lamination is a **deliberate detail** — keep it clean and consistent: square edges,
+  no chip-out, no glue squeeze-out in the layers, even finish soak
 - Finish: **satin**, even sheen, no drips, runs or sanding marks
 - Hardware: countersunk, seated flush, single style
 - All dimensions recorded to **0.5 mm**; work to ±1 mm on the opening
@@ -169,8 +187,8 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 | Check | Level | Pass condition |
 |---|---|---|
 | Measurement record | small | Every symbol measured and logged **before** any cut |
-| Dry fit (joints) | small | All four corners meet with no gaps before glue |
-| Dry fit (panel) | small | Panel seats in the rebate, reveal uniform ±0.5 mm, no side loading |
+| Lamination flatness | small | Ring stack sits flat (no twist/rock) before routing |
+| Dry fit (panel) | small | Panel seats in the rebate, active-area margin even ±0.5 mm, no side loading |
 | Removability | integration | Panel comes out with a screwdriver in <5 min, no flex, FPC never taut |
 | Charge access | integration | USB-C cable plugs in and charges with the frame wall-mounted |
 | Battery replaceable | integration | LiPo can be unplugged and replaced without cutting/dismantling the frame |
@@ -184,7 +202,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 
 **Always do**
 - Measure the physical panel, NULA and battery with calipers and record the values before cutting
-- Dry-fit every joint *and* the full electronics stack before any glue or finish
+- Dry-fit the ring + spacer + back plate *and* the full electronics stack before any finish
 - Leave **≥3 mm** clearance around the panel edge and **≥5 mm** around the LiPo (pouch cells swell)
 - Keep the panel's FPC/ribbon cable strain-free — never taut, never pinched
 - **Strain-relieve the flying-lead bundle**: anchor it to the frame, include a service loop, and
@@ -195,8 +213,10 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 - Commit with `Spec:` / `Task:` / `Co-Authored-By:` trailers per `AGENTS.md`
 
 **Ask first**
-- Buying furniture-grade hardwood or any new tool
+- Buying additional material or any new tool (the frame is built from the **one 1220 × 610 × 3.6 mm
+  plywood sheet**)
 - Deviating from the measured dimensions or the reveal/frame-width allowances
+- Changing the frame construction (laminated routed ring) or the exposed-edge decision
 - Drilling or screwing into **the panel** itself (mounting holes, brackets)
 - Adding glazing (glass/acrylic) or changing the no-glazing decision
 - Changing the wall-mount method
@@ -218,8 +238,8 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 ## Success Criteria
 
 - [ ] All symbols in the dimensional model measured, recorded and committed **before** cutting
-- [ ] Frame reads as furniture: continuous grain, closed mitres, uniform satin finish, no visible hardware from the front
-- [ ] **Reveal uniform within 0.5 mm** on all four sides; panel square in the opening
+- [ ] Frame reads as furniture: seamless plywood ring, uniform satin finish, no visible hardware from the front; the exposed ply lamination edge is clean and consistent
+- [ ] **Margin around the active area even within 0.5 mm** on all four sides; panel square in the opening. (Reveal over the glass is intentionally non-uniform — 4 mm W / 6 mm H — because the glass border is uneven; the *visible* margin is what must be even.)
 - [ ] Panel removable with a screwdriver in <5 minutes, no flex, FPC never taut
 - [ ] USB-C charging works with the frame wall-mounted; battery replaceable without dismantling
 - [ ] Hangs flat and securely (no rock, ≤2 mm wall gap, 2× device weight, 24 h undisturbed)
@@ -232,8 +252,9 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Cut to catalogue dimensions, not the real panel | **High** — wasted hardwood, re-cut | Measure first; dry-fit the panel before glue-up |
-| Mitchell corners open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
+| Cut to catalogue dimensions, not the real panel | **High** — wasted material, re-cut | Measure first; dry-fit the panel before finishing |
+| Laminated ring warps / twists when glued | **High** — the face will not sit flat | Even clamp pressure, flat cauls, let each layer cure; check flatness before routing |
+| Ply edge chip-out when routing | Medium | Sharp bit, scoring/backer board, light passes; the edge is exposed, so finish it well |
 | Frame sized to the **panel**, not the module → PCB tab clashes | **High** — frame won't close | Size the rebate/cavity to `MO + 2 mm`; record the asymmetric tab orientation before cutting |
 | Rear cavity too shallow (stack-up underestimated) | Medium | Mount the NULA + LiPo + wiring + loop on the back plate, fit it, and measure `RD` before cutting the spacer |
 | Flying leads stressed or broken at the panel | **High** — panel unusable | Strain-relieve the lead bundle (service loop, anchored to the frame, never taut); never route over a sharp edge |
@@ -250,7 +271,7 @@ No unit tests — the "tests" are fit, tolerance and durability checks, each wit
 |---|---|---|
 | Q1 | ~~Panel-to-MCU interface: 30-pin FPC breakout vs Waveshare HAT?~~ **Resolved:** the F variant has **no driver HAT** — the panel connects via a ribbon/FPC and flying leads. **Lead colour → signal map waived** — the harness is already terminated and functional on the NULA (bench 2026-10-02); the firmware pin map is the reference. | Resolved 2026-10-07 |
 | Q2 | Wall-mount method: **French cleat** (default assumption) vs two D-rings vs keyholes? | **Resolved 2026-10-07** — French cleat |
-| Q3 | Hardwood species + tone to suit the room? | **Resolved 2026-10-07** — **oak**, satin oil/wax |
+| Q3 | Hardwood species + tone to suit the room? | **Resolved 2026-10-11** — **hardwood multiplex (plywood)**, one 1220 × 610 × 3.6 mm sheet, satin oil/wax; exposed ply edge |
 | Q4 | Orientation confirmed as **landscape** (600 wide × 448 tall)? | **Resolved 2026-10-07** — landscape |
 | Q5 | Confirm **no glazing** (assumed) — or acrylic if you want protection? | **Resolved 2026-10-07** — no glazing |
 | Q6 | USB-C exits the **bottom** edge. **Resolved 2026-10-07:** the NULA's receptacle faces *right* when mounted flat, so the board is rotated 90° and a right-angle pigtail presents a fixed receptacle at the bottom slot. | Resolved — measurement 2026-10-07 |

@@ -13,8 +13,8 @@ Status: collecting · 2026-09-29
 | Display | Waveshare 5.65" **Module (F)**, 600×448 ACeP (panel + driver PCB) | yes |
 | MCU | Soldered **NULA DeepSleep ESP32-S3** (N8R8) | yes |
 | Battery | **3000 mAh LiPo**, 65 × 35 × 10 mm | ordered |
-| Frame timber | **Oak**, 1 board ≥ 45 × ≥ 12 × ~1100 mm, continuous grain (Q3) | to buy |
-| Back plate / carrier | **3.6 mm plywood** | to cut |
+| Frame material | **Hardwood multiplex (plywood)**, one sheet **1220 × 610 × 3.6 mm** (Q3 re-resolved 2026-10-11) | bought |
+| Frame + spacer + back | cut + laminate from that **same sheet**: 4 layers = frame ring, 5 = spacer, 1 = back plate | to cut |
 | NULA standoffs | **M3** (nylon preferred) | ordered |
 
 ## Electronics sundries
@@ -36,7 +36,8 @@ Status: collecting · 2026-09-29
 
 ## Consumables & tools
 
-- Wood glue + clamps; spline/dowel stock for the mitres
+- Wood glue + clamps + **flat cauls** (lamination); **no spline/dowel stock needed**
+- **Router bit** (straight/pattern) or jigsaw + flush-trim guide, to cut the ring + rebate
 - Sandpaper 120/180/240; oil/wax finish + applicator/rags
 - Drill bits (3.2 mm clearance + pilots), countersink; wire strippers; PH0/PH1 drivers
 - Soldering iron + solder/flux

@@ -1,7 +1,7 @@
 # Cut List & Measurements — Wooden Frame
 
 Spec: [`../SPEC.md`](../SPEC.md) · Plan: [`../tasks/plan.md`](../tasks/plan.md)
-Task: **F1.1 / F1.2** · Status: **measurements + cut list complete 2026-10-07; open: stage photos**
+Task: **F1.1 / F1.2** · Status: **measurements + cut list complete 2026-10-07; material/construction revised for plywood 2026-10-11; open: stage photos**
 
 > **Measure, don't guess.** Fill the "Measured" cells with caliper readings from the *actual*
 > **Module (F)**, NULA, LiPo and wire bundle. Do **not** copy catalogue/datasheet numbers into this
@@ -52,6 +52,8 @@ REVEAL BUDGET (measured): border = (PO - AW)/2
    horizontal = (125.0 - 115.0)/2 = 5.0 mm;  vertical = (100.0 - 85.0)/2 = 7.5 mm
   -> R must be <= 5.0 mm on the width, or the front face clips the image.
   -> RECOMMEND R = 4 mm (1 mm margin) -> front opening 117 x 92 mm.
+     SUPERSEDED 2026-10-07: opening is now 117 x 88 (Rw/Rh = 4/6) to even the
+     margin around the ACTIVE area, not the glass border -- see section 4.
 
 LiPo measured 65.0 x 35.0 x 10.0 mm. Pouch cells swell: allow >=5 mm clearance
 around it, so budget ~15 mm for the battery layer in RD, not 10. Hold it
@@ -86,6 +88,15 @@ by side on the back plate (~140x100 available). RD is battery-bound: LiPo 10 +
     cavity depth = 12.5 + 5 + 3 = 20.5 mm (locks the spacer frame at F2.2).
   LEAD MAP: NOT REQUIRED -- the panel harness is already terminated and functional
     on the NULA (bench bring-up 2026-10-02). See section 2.
+
+  2026-10-11 MATERIAL REVISION:
+    The frame is built from ONE 1220 x 610 x 3.6 mm hardwood multiplex sheet, not
+    a solid oak board (Q3 re-resolved). Construction becomes a LAMINATED, ROUTED
+    RING: 4 layers (4 x 3.6 = 14.4 mm) glued into a block, then routed (outer
+    153x124, rebate pocket 141.5x103, front opening 117x88 through the 3.5 mm lip).
+    No mitres, no splines. Ply lamination edges LEFT EXPOSED.
+    Only FD (frame depth 12 -> 14.4) and the spacer depth (20 -> 17.6) change;
+    every opening/rebate/cavity/outer dimension is unchanged (see section 4).
 ```
 
 ---
@@ -136,64 +147,93 @@ by side on the back plate (~140x100 available). RD is battery-bound: LiPo 10 +
 ## 4. Derived dimensions (F1.2 — compute after §1)
 
 ```
-front opening    = (PO_W - 2R) × (PO_H - 2R)     (reveal over the panel edge)
+front opening    = (PO_W - 2·Rw) × (PO_H - 2·Rh)  (reveal over the glass, per axis)
 rebate / inner   = (EW + 2) × (EH + 2)           (clear the module ENVELOPE incl. header)
-rebate depth     = PT + 0.5 mm
+frame depth      = 4 × sheet(3.6) = 14.4 mm      (laminated ring; was 12 mm solid oak)
+rebate depth     = frame depth − LIP (3.5)       (contains PT + clearance)
 cavity depth     = RD + swell(+5) + 3 mm assembly
+spacer depth     = PLATE_INNER − frame depth     (hidden rear-box wall)
 frame outer      = opening + 2F, and ≥ EW + 2×margin
 ```
 
 | Derived | Formula | Value (mm) |
 |---|---|---|
-| Reveal `R` (design 3–5 mm) | chosen; border is **5.0 mm (W)** / 7.5 mm (H) | **4** (1.0 mm margin on width) |
-| Frame face width `F` (design 35–45 mm) | chosen | **40** |
-| Front opening W × H | `PO − 2R` | **117 × 92** |
+| Reveal (over glass) Rw × Rh | chosen to even the margin around the **active area** | **4 W / 6 H** (glass border is 5 W / 7.5 H) |
+| Frame face width `F` | chosen; floor ≈ 16 mm (must clear the board) | **18** |
+| Front opening W × H | `PO − 2R` per axis | **117 × 88** |
 | Rebate / inner W × H | `EW + 2` | **141.5 × 103** (header off the back → `EW`/`EH` = `MO`) |
-| Rebate depth | `PT + 0.5` | **8.5** |
+| Frame member depth `FD` | `4 × sheet` | **14.4** (4 × 3.6 mm laminated; was 12 mm solid) |
+| Rebate depth | `FD − LIP` (LIP 3.5) | **10.9** (contains module `PT` 8 + 2.9 clearance) |
 | Cavity depth | `RD` + swell(5) + assembly(3) | **20.5** (12.5 + 5 + 3) — locks the spacer frame |
-| Frame outer W × H | `opening + 2F` | **197 × 172** |
+| Back-plate inner face | module back + cavity | **32.0** |
+| Spacer depth | `PLATE_INNER − FD` | **17.6** (32.0 − 14.4) |
+| Frame outer W × H | `opening + 2F` | **153 × 124** |
 
 **Header edge:** **off the back, at the left edge**, protruding `HD_proj` = **10 mm** — only ~2.5 mm
 to the back plate at `RD`=12.5. Depth-only, so it does **not** enlarge the rebate opening
 (`EW`/`EH` = `MO`), but the **harness must bend in-plane** — no room for a depth-direction service
 loop at the header. Do not mount the NULA/battery directly behind the header.
 
-**Reveal:** chosen `R` = **4 mm** (≤ the 5.0 mm panel border on the width, so the front face does not
-clip the image). Front opening **117 × 92**.
+**Reveal:** chosen to leave an **even, minimal margin around the active pixels**, not an even reveal
+over the glass (the glass border is uneven: 5 mm wide, 7.5 mm tall). So `Rw` = **4 mm**, `Rh` =
+**6 mm** → front opening **117 × 88**, leaving **1.0 mm (W) / 1.5 mm (H)** of margin before the
+600 × 448 image. The reveal is deliberately non-uniform (see SPEC success criteria).
 
 ---
 
-## 5. Cut list (F1.2)
+## 5. Cut list (F1.2 — revised for plywood 2026-10-11)
 
-Derived 2026-10-07 from §1 (measured) and §4 (design: **R = 4**, **F = 40**). All four frame members
-are cut from **one board** so the grain runs continuously around the finished frame.
+Derived from §1 (measured) and §4 (design: **Rw/Rh = 4/6**, **F = 18**). The frame is **one
+laminated, routed plywood ring** — not four joined members — so there are **no mitres and no
+splines**, and the face is seamless. The rear box is a laminated spacer ring plus a single-layer back
+plate. All three parts nest on **one 1220 × 610 × 3.6 mm sheet**.
 
-| # | Member | Qty | Length (mm) | Mitre | Rebate | Spline/dowel | Notes |
-|---|---|---|---|---|---|---|---|
-| 1 | Top rail | 1 | **197** | 45° × 2 | **8.5 deep × 5.5 wide** | 2 splines | outer length (long-point → long-point) |
-| 2 | Bottom rail | 1 | **197** | 45° × 2 | 8.5 deep × 5.5 wide | 2 splines | |
-| 3 | Left stile | 1 | **172** | 45° × 2 | **8.5 deep × 12.25 wide** | 2 splines | module centred (overhang 7 mm) |
-| 4 | Right stile | 1 | **172** | 45° × 2 | 8.5 deep × 12.25 wide | 2 splines | module centred (overhang 7 mm) |
-| 5 | Spacer frame | 2 + 2 | **197 / 172** | 45° × 2 (or butt) | — | — | height **≈ 17** (cavity 20.5 − 3.5); hidden rear box |
-| 6 | Back panel | 1 | **197 × 172** | — | — | — | **3.6 mm ply**; screwed to the spacer frame, serviceable |
+| # | Part | Qty | Finished size (mm) | Build | Notes |
+|---|---|---|---|---|---|
+| 1 | Frame ring | 1 | **153 × 124 × 14.4** | **4 layers** of 3.6 mm ply glued flat | Rout: outer 153 × 124; rebate pocket **141.5 × 103**; front opening **117 × 88** through the 3.5 mm lip |
+| 2 | Spacer ring | 1 | **153 × 124 × 17.6** | 5 layers (or 4 + a 3.2 mm shim); hidden | Inner opening **141.5 × 103**; wall ≈ 5.75 W / 10.5 H |
+| 3 | Back plate | 1 | **153 × 124 × 3.6** | **1 layer** | Electronics carrier; screwed to the spacer, serviceable |
 
-**Stock (F2.1):** one **oak** board, **≥ 45 mm wide × ≥ 12 mm thick × ≥ ~1100 mm usable length**
-(4 members = 197+172+197+172 = 738 mm, plus a 45° mitre wedge at each of the 8 ends ≈ 40 mm each).
-Chosen frame-member **depth = 12 mm** → lip in front of the panel = 12 − 8.5 = **3.5 mm**; a thinner
-board leaves a fragile lip (do not go below ~10.5 mm). The **reference face must be flat and the
-thickness consistent** — an inconsistent thickness shows as an uneven reveal.
+**Layer count / depth:** `FD` = 4 × 3.6 = **14.4 mm** → lip in front of the panel = `FD − rebate`
+= 14.4 − 10.9 = **3.5 mm** (unchanged). A 3-layer frame (10.8 mm) leaves only a 2.3 mm lip and lets
+the module back poke past the frame — do not go below 4 layers. Keep the **face veneer continuous**
+across the whole ring and the **lamination edges clean** (they are exposed).
+
+**Rebate routing:** from the back face, pocket **141.5 × 103** to a depth of `FD − 3.5` = **10.9 mm**
+(leaving the 3.5 mm front lip); then cut the front opening **117 × 88** through that lip. The module
+(`PT` 8 mm) then sits with ~2.9 mm clearance behind it inside the rebate.
 
 **Rebate width** = half the gap between the front opening and the module envelope:
-rails `(103 − 92)/2 = 5.5 mm`, stiles `(141.5 − 117)/2 = 12.25 mm` (module measured **centred** on
+rails `(103 − 88)/2 = 7.5 mm`, stiles `(141.5 − 117)/2 = 12.25 mm` (module measured **centred** on
 the panel — both stiles equal).
 
-Nesting plan (grain runs continuously; cut mitres sequentially, rotating the stock 90° between
-members so the grain flows around the perimeter):
+**Stock (F2.1):** one **hardwood multiplex (plywood) sheet, 1220 × 610 × 3.6 mm**. Consumption is
+~20 % even with the routed-out centre wasted (frame 4 × 153×124 + spacer + back ≈ 0.15 m²), so one
+sheet makes the frame with ample spare. Reuse the ring's routed-out centre for the spacer/back where
+sizes allow.
+
+Nesting plan (face veneer runs the same way across the whole ring; cut all layers of each part from
+the same grain direction, then laminate):
 
 ```
-  ├── 197 (top) ──┼── 172 (left) ──┼── 197 (bottom) ──┼── 172 (right) ──┤
-  every end 45°; test the mitre setup on offcuts before cutting the good stock
+  ┌── 4 × [153 × 124] frame layers ──┬── spacer layers ──┬── back plate ──┐
+  └── route the rebate AFTER lamination; flat cauls + even clamp pressure ┘
 ```
+
+**3D model:** `frame_model.py` generates:
+- `frame.stl` — **SketchUp Free (web):** drag-and-drop onto the scene (or *Insert → My Device*).
+  Unitless, single mesh — geometry/proportions only; the outer width reads **153**.
+- `frame.dae` — COLLADA for SketchUp paid/desktop (grouped, real mm units).
+- `frame.obj` + `frame.mtl` — general fallback.
+
+**2D views (dimensioned):** `frame_views.py` generates `front.svg`, `side.svg`, `top.svg` and
+`back.svg` (+ `.png` raster) — front elevation, **section A-A** (rail cross-section), **section B-B**
+(stile cross-section) and the rear elevation, with every dimension from this cut list called out.
+
+The frame carries the **L-profile rebate** (front opening 117 × 88, rebate pocket 141.5 × 103) at the
+laminated **14.4 mm** depth; the display is glass + PCB with the active area marked, and the
+header/electronics are indicative blocks — the wood geometry and all overall dimensions are exact.
+(Corner seams in the mesh are an artefact of the generator; the real frame is a seamless ring.)
 
 > **RESOLVED 2026-10-07 — module overhang (measured).** The module PCB extends past the glass edge
 > **left 7 · right 7 · top 0 · bottom 0 mm**, so it is **centred** on the panel. **Both stile rebates

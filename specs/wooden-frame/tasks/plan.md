@@ -9,9 +9,9 @@ Task list: [`todo.md`](./todo.md)
 
 Build a one-off, furniture-grade hardwood frame that houses the Waveshare 5.65" F-variant e-paper
 panel (flying leads, no driver HAT), the Soldered NULA DeepSleep ESP32-S3 and a 3000 mAh LiPo. The
-frame is a mitred picture frame with a hidden rear box; the panel sits in a rebate behind removable
-retaining stops. Everything derives from **measurements of the physical parts**, never from
-catalogue numbers.
+frame is a **laminated, routed plywood ring** with a hidden rear box; the panel sits in a rebate
+behind removable retaining stops. Everything derives from **measurements of the physical parts**,
+never from catalogue numbers.
 
 ---
 
@@ -19,12 +19,15 @@ catalogue numbers.
 
 - **Measure-first.** No dimension is hard-coded. `PO_W/PO_H`, `PT`, `RD` are measured with calipers
   before any timber is cut; every frame dimension is derived from them (SPEC "Dimensional model").
-- **Mitred frame + hidden rear box.** Slim visible bezel; depth lives behind, in a spacer frame
-  closed by a **3.6 mm ply back plate**.
+- **Laminated routed plywood ring + hidden rear box.** One seamless ring, routed from a **4-layer
+  (14.4 mm) plywood laminate**; depth lives behind, in a spacer ring closed by a **3.6 mm ply back
+  plate** (one layer of the same sheet). Built from **one 1220 × 610 × 3.6 mm hardwood multiplex
+  sheet** (2026-10-11, replaces solid oak — Q3).
 - **Back plate carries the electronics.** The NULA and LiPo mount on the back plate's inner face, so
   it is both the frame's back panel and the electronics carrier — one part, and unscrewing it frees
   all the electronics. USB-C oriented to the bottom slot.
-- **Splines or dowels reinforce the mitres** (mitre saw + drill only; no table saw/router table).
+- **No mitres, no splines.** The ring is routed *after* lamination, so there are no corner joints to
+  cut or align; the ply lamination edges are **left exposed** as a deliberate detail.
 - **Rebate retention, nothing bonded.** Panel held by removable stops; LiPo held so it can be
   unplugged and replaced.
 - **Flying leads are strain-relieved** with an anchored service loop — they are the fragile part.
@@ -37,8 +40,8 @@ catalogue numbers.
 ## Sequencing rationale
 
 ```
-measure parts ──→ derive cut list ──→ mill + mitre ──→ rebate + spacer ──→ glue-up
-                                                              │
+measure parts ──→ derive cut list ──→ laminate the ring ──→ rout rebate + spacer ──→ dry fit
+                                                                    │
                           sand + finish (cure ≥72 h) ◄── rear box + USB-C slot
                                    │
                      electronics install + strain relief ──→ wall test ──→ acceptance
@@ -82,7 +85,8 @@ In addition to each task's acceptance criteria:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Cut to catalogue dimensions, not the real panel | **High** | Measure first; dry-fit the panel before glue-up |
-| Mitres open / out of square | Medium | Splines/dowels + dry fit + check diagonals before clamping |
+| Laminated ring warps / twists when glued | **High** | Flat cauls + even clamp pressure; let each layer cure; check flatness before routing |
+| Ply edge chip-out when routing | Medium | Sharp bit, backer board, light passes; edge is exposed, so finish it well |
 | Rear cavity too shallow | Medium | Mount the NULA + LiPo + leads + loop on the back plate, fit it, and measure `RD` |
 | Panel stressed by retaining stops | **High** | Stops bear on the frame, not the glass; ≥3 mm clearance |
 | Flying leads stressed/broken | **High** | Anchored service loop; never taut; no sharp edges |
@@ -94,11 +98,12 @@ In addition to each task's acceptance criteria:
 
 ## Ask-first / gated items
 
-- **F2.1 (buy hardwood):** species/tone is an ask-first purchase decision (open question Q3).
+- **F2.1 (material):** resolved 2026-10-11 — the frame is built from one **1220 × 610 × 3.6 mm
+  hardwood multiplex sheet** (already bought); no further purchase gated.
 - **F3.2 (USB-C slot):** **Q6 resolved 2026-10-07** — bottom edge (NULA rotated 90°, pigtail to a
   fixed receptacle). Size the slot to the receptacle/overmould at F3.2.
-- **Checkpoint A (2026-10-07):** **French cleat**, **landscape**, **no glazing** confirmed. Remaining
-  gate before cutting = the ask-first hardwood species/stock at F2.1.
+- **Checkpoint A (2026-10-07):** **French cleat**, **landscape**, **no glazing** confirmed. Material
+  gate resolved 2026-10-11 — build from the one **1220 × 610 × 3.6 mm multiplex sheet** (F2.1).
 
 ---
 
@@ -107,7 +112,7 @@ In addition to each task's acceptance criteria:
 | # | Question | Resolved by |
 |---|---|---|
 | Q2 | Wall mount: French cleat (default) vs D-rings vs keyholes | **Resolved 2026-10-07** — French cleat |
-| Q3 | Hardwood species + tone | **Resolved 2026-10-07** — oak, satin oil/wax |
+| Q3 | Hardwood species + tone | **Re-resolved 2026-10-11** — hardwood multiplex (plywood), one 1220 × 610 × 3.6 mm sheet, satin oil/wax, exposed ply edge |
 | Q5 | No glazing (assumed) | **Resolved 2026-10-07** — no glazing |
 | Q6 | USB-C exits the bottom edge? | **Resolved 2026-10-07** — NULA rotated 90°, right-angle pigtail to a fixed bottom-edge receptacle |
 
@@ -118,7 +123,7 @@ In addition to each task's acceptance criteria:
 | Phase | Tasks | Deliverable |
 |---|---|---|
 | 1 — Measure & design | F1.1–F1.2 | Recorded measurements, lead map, cut list |
-| 2 — Mill & joinery | F2.1–F2.2 | Cut members, rebate, spacers |
+| 2 — Laminate & rout | F2.1–F2.2 | Laminated ring, routed rebate, spacer |
 | 3 — Assemble | F3.1–F3.2 | Glued frame, rear box, USB-C slot |
 | 4 — Finish | F4.1 | Sanded, oiled, cured |
 | 5 — Install & accept | F5.1–F5.3 | Working, wall-mounted, device re-validated |

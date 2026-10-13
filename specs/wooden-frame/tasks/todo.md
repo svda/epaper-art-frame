@@ -48,10 +48,13 @@ rather than logic.
 
 ### F1.2: Derive dimensions and write the cut list
 > **Status (2026-10-07):** derived in [`../drawings/cut-list.md`](../drawings/cut-list.md) §4–§5.
-> Design values **`R` = 4**, **`F` = 40** → front opening **117 × 92**, frame outer **197 × 172**,
-> rebate **8.5 mm deep**, cavity **20.5 mm**, member lengths **197 / 172**. Module overhang measured
-> **L/R 7 / 7, T/B 0 / 0** → module **centred**, both stile rebates **12.25 mm**, no opening offset
-> (the SPEC's asymmetric-tab concern does not apply). Spacer/back-panel depths remain provisional on
+> Design values **Rw/Rh = 4/6**, **`F` = 18** → front opening **117 × 88**, frame outer
+> **153 × 124**, rebate **8.5 mm deep**, cavity **20.5 mm**, member lengths **153 / 124**. The
+> reveal is sized to the **active area** (even ~1–1.5 mm margin), so it is intentionally non-uniform
+> over the glass (whose border is 5 W / 7.5 H). `F` was cut from the initial 40 to 18: the board
+> (139.5 wide) forces a floor of ~16 mm; at 18 mm the oak past the board is 6.75 mm and the wall
+> outboard of the rebate is 5.75 mm. Module overhang **L/R 7 / 7, T/B 0 / 0** → module **centred**,
+> both stile rebates **12.25 mm**, no opening offset. Spacer/back-panel depths remain provisional on
 > the F2.1 board thickness.
 
 **Description:** Apply the SPEC dimensional model to the recorded measurements —
@@ -64,7 +67,9 @@ members, back panel size). Keep it to one board so grain runs continuously.
       2026-10-07** (module centred; no offset required).
 - [x] Cut plan shows all members nested on one board for continuous grain. — board sizing and
       sequential-mitre technique recorded (cut-list §5).
-- [x] Reveal `R` fixed in 3–5 mm and frame face width `F` in 35–45 mm. — `R` = 4, `F` = 40.
+- [x] Reveal `R` and frame face width `F` chosen. — `Rw/Rh` = **4/6** (even active margin);
+      `F` = **18** (below the SPEC's 35–45 starting range; deliberately slimmed — the board forces a
+      ~16 mm floor).
 
 **Verification:**
 - [ ] Review the cut list against the SPEC; confirm no catalogue-derived numbers. — self-checked
@@ -84,43 +89,45 @@ members, back panel size). Keep it to one board so grain runs continuously.
 
 ---
 
-## Phase 2 — Mill & joinery
+## Phase 2 — Laminate & rout
 
-### F2.1: Buy timber, mill and cut the frame members — ask first
-> **Status (2026-10-07):** species approved — **oak**, satin oil/wax (Q3 resolved). Owner action:
-> acquire the board and cut (physical bench step).
+### F2.1: Laminate the frame ring from the plywood sheet
+> **Status (2026-10-11):** material bought — **one 1220 × 610 × 3.6 mm hardwood multiplex sheet**
+> (Q3 re-resolved). Owner action: cut layers and laminate (physical bench step).
 
-**Description:** Confirm the hardwood species/tone (Q3, ask-first purchase), then square and cut the
-four frame members to length with 45° mitres. Test the mitre setup on offcuts first.
+**Description:** Cut **4 layers** of 3.6 mm ply to the ring blank (153 × 124, plus a trim allowance)
+and glue them flat into a **14.4 mm** block with even clamp pressure and flat cauls; let it cure.
+**No mitres, no splines** — the ring is routed after lamination. Keep the face veneer grain
+consistent across the layers.
 
 **Acceptance criteria:**
-- [x] Species/tone chosen and approved; timber acquired. — **oak**, satin oil/wax approved
-      2026-10-07; **board not yet acquired**.
-- [ ] Four members cut to the cut-list lengths; mitres test-fitted on offcuts.
-- [ ] Members marked to preserve continuous grain around the frame.
+- [x] Material chosen and acquired. — hardwood multiplex, one 1220 × 610 × 3.6 mm sheet, bought
+      2026-10-11.
+- [ ] Four 3.6 mm layers cut and laminated to a flat 14.4 mm block (no twist/rock).
+- [ ] Face veneer grain kept consistent across all layers.
 
-**Dependencies:** Checkpoint A · **Scope:** S · **Files:** `drawings/cut-list.md` ·
-**Ask first — hardwood purchase / species.**
+**Dependencies:** Checkpoint A · **Scope:** S · **Files:** `drawings/cut-list.md`
 
 ---
 
-### F2.2: Cut the rebate, spline grooves and rear-box spacer members
-**Description:** Machine the internal rebate (depth `PT + 0.5 mm`, width for the panel + stops) and
-the spline grooves/dowel holes in the mitres. Cut the spacer-frame members that create the rear
-cavity depth (`RD + 3 mm`).
+### F2.2: Rout the ring rebate and build the spacer ring
+**Description:** Rout the ring — outer **153 × 124**; the stepped rebate: pocket **141.5 × 103** to
+**10.9 mm** deep from the back face (leaving the 3.5 mm front lip), then the front opening
+**117 × 88** through that lip. Laminate and cut the **spacer ring** to the **17.6 mm** cavity depth
+(inner 141.5 × 103). Take light passes; back the ply to avoid chip-out on the exposed edge.
 
 **Acceptance criteria:**
-- [ ] Rebate matches the measured panel thickness and allows the stops.
-- [ ] Spline grooves/dowel positions matched across all four corners.
-- [ ] Spacer members sized to give the measured cavity depth plus clearance.
+- [ ] Ring outer 153 × 124; front opening 117 × 88; rebate pocket 141.5 × 103, 10.9 mm deep.
+- [ ] Edges clean (no chip-out); the exposed lamination is consistent.
+- [ ] Spacer ring gives the measured cavity depth (17.6 mm) plus clearance.
 
 **Dependencies:** F2.1 · **Scope:** M · **Files:** `drawings/cut-list.md`
 
 ---
 
 ### Checkpoint B — Dry fit (no glue)
-- [ ] Frame joints assemble with no gaps; diagonals equal (square).
-- [ ] Panel seats in the rebate, reveal uniform ±0.5 mm, no side loading.
+- [ ] Ring square and flat (diagonals equal, no rock); spacer sits flush.
+- [ ] Panel seats in the rebate, active-area margin even ±0.5 mm, no side loading.
 - [ ] Full electronics stack fits the cavity with the lead service loop.
 - [ ] **Review with user** before glue/finish.
 
@@ -128,22 +135,22 @@ cavity depth (`RD + 3 mm`).
 
 ## Phase 3 — Assemble
 
-### F3.1: Glue up the frame corners
-**Description:** Glue the mitres with splines or dowels; clamp and verify square before the glue
-sets; clean squeeze-out.
+### F3.1: Attach the spacer ring; true the frame
+**Description:** Glue the laminated spacer ring to the back of the frame ring, verify the frame is
+square and flat (diagonals within 1 mm), and clean up squeeze-out.
 
 **Acceptance criteria:**
-- [ ] Corners closed (no visible gap >0.2 mm); frame square (diagonals within 1 mm).
-- [ ] Splines/dowels seated and flush; no clamp marks.
+- [ ] Spacer ring bonded flush to the frame back; no gaps.
+- [ ] Frame square (diagonals within 1 mm); no rock when laid face-down.
 
 **Dependencies:** Checkpoint B · **Scope:** S
 
 ---
 
 ### F3.2: Build the rear box and cut the USB-C access
-**Description:** Assemble the spacer frame and cut the **3.6 mm ply back plate** (which also carries
-the electronics — see F5.1). Cut a bottom-edge slot for the USB-C cable overmould (confirm orientation
-from F1.1/Q6) and provide the French cleat recess/reinforcement.
+**Description:** Cut the **3.6 mm ply back plate** (one layer of the sheet; it also carries the
+electronics — see F5.1) and a bottom-edge slot for the USB-C cable overmould (confirm orientation
+from F1.1/Q6); provide the French cleat recess/reinforcement.
 
 **Acceptance criteria:**
 - [ ] Back plate removable with screws only (no glue) for service.
