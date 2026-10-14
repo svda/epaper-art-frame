@@ -30,16 +30,16 @@ ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" \
 ```
 
 **Acceptance criteria:**
-- [ ] `art_direction` global defined with `restore_value: false`, `initial_value: "1"`.
-- [ ] `show_next_image` renamed to `show_image`; `fetch_manifest` calls `script.execute: show_image`.
-- [ ] For `art_direction == 1` the shown image and the index update are unchanged from today.
-- [ ] For `art_direction == -1` the script shows `art_index − 2` and leaves `art_index − 1`
+- [x] `art_direction` global defined with `restore_value: false`, `initial_value: "1"`.
+- [x] `show_next_image` renamed to `show_image`; `fetch_manifest` calls `script.execute: show_image`.
+- [x] For `art_direction == 1` the shown image and the index update are unchanged from today.
+- [x] For `art_direction == -1` the script shows `art_index − 2` and leaves `art_index − 1`
       (all modulo count); negative modulo is handled (`((x % c) + c) % c`).
-- [ ] No `#include`, no new dependency, no device-specific value added to `common/`.
+- [x] No `#include`, no new dependency, no device-specific value added to `common/`.
 
 **Verification:**
-- [ ] `esphome config config/esphome/devices/epaper-art-frame.yaml` passes (5.65" still valid).
-- [ ] Manual read of the lambda: trace index arithmetic for `c = 3`, `art_index = 0`, both
+- [x] `esphome config config/esphome/devices/epaper-art-frame.yaml` passes (5.65" still valid).
+- [x] Manual read of the lambda: trace index arithmetic for `c = 3`, `art_index = 0`, both
       directions, and confirm the semantics table in the spec holds.
 
 **Dependencies:** None · **Scope:** S · **Files:** `config/esphome/common/art-frame.yaml`

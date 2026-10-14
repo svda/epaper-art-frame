@@ -52,6 +52,14 @@ globals:
   - id: art_list
     type: std::vector<std::string>
     restore_value: false
+  # Rotation direction for the current wake: +1 = next (the default, set at
+  # construction on every boot), -1 = previous (set by a device's ext1 on_wake
+  # trigger before the fetch runs). Never restored — a fresh boot always starts
+  # at +1, so a timer wake shows the next image exactly as before.
+  - id: art_direction
+    type: int
+    restore_value: false
+    initial_value: "1"
 
 script:
   - id: fetch_manifest
@@ -87,22 +95,28 @@ script:
                   }
                   id(art_count) = (int) id(art_list).size();
                   ESP_LOGI("art", "manifest: %d image(s)", id(art_count));
-              - script.execute: show_next_image
+              - script.execute: show_image
 
-  - id: show_next_image
+  - id: show_image
     then:
       - lambda: |-
           if (id(art_count) <= 0) {
             ESP_LOGW("art", "no images in manifest; nothing to show");
             return;
           }
-          int i = id(art_index) % id(art_count);
+          int c = id(art_count);
+          // art_index always holds the index of the NEXT image to show.
+          int i = ((id(art_index) % c) + c) % c;
+          // Backward: show the image before the last one shown (art_index - 2),
+          // then leave art_index one step back.
+          if (id(art_direction) < 0)
+            i = ((i - 2) % c + c) % c;
           std::string url = std::string("${ha_url}/${image_dir}/") + id(art_list)[i];
-          ESP_LOGI("art", "showing %d/%d: %s", i + 1, id(art_count), url.c_str());
+          ESP_LOGI("art", "showing %d/%d (dir %d): %s", i + 1, c, id(art_direction), url.c_str());
           id(art_image).set_url(url);
           id(art_image).update();
           id(last_image).publish_state(id(art_list)[i]);
-          id(art_index) = (i + 1) % id(art_count);
+          id(art_index) = ((i + 1) % c + c) % c;
 
 image:
   - platform: online_image
