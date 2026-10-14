@@ -678,6 +678,39 @@ figure only; on USB the board's own quiescent dominates what the battery path wo
 > **Trade-off accepted:** a third-party component is a supply-chain and maintenance dependency. It is
 > pinned to a SHA for reproducibility, and the fallback if it rots is to upstream a dual-controller
 > model (esphome #3507) or vendor it ourselves.
+>
+> **VENDORED AND PATCHED (2026-10-14): the component's colour reference table was the bottleneck.**
+> `config/esphome/components/ee02_epaper/` is now a local copy (of `rkaramandi/esphome-seeed-ee02`
+> @ `fce70b8`) with one change: `color_to_e6_`'s reference table switched from the idealised pure
+> primaries to the **measured** Spectra 6 palette, taken from `OpenDisplay/epaper-dithering`'s
+> `SPECTRA_7_3_6COLOR_V2`:
+>
+> ```
+> black (31,24,41)   white (168,180,182)   yellow (180,173,0)
+> red  (113,24,19)   blue   (36,70,139)    green  (50,84,60)
+> ```
+>
+> **Why.** The component quantises every pixel to the nearest reference colour. With the pure table a
+> calibrated dither is re-quantised and muted colours land on the wrong codes — a measured red
+> `(113,24,19)` is nearer black (7 208) than red (21 101), so the panel rendered **black**. Measured
+> through the old table, a real photo gave **0.0% red and 0.0% green** with black at 50–65%; the
+> library's whole value (OKLab perceptual matching, tone + gamut compression, DBS refinement) is lost
+> unless the driver agrees on the palette.
+>
+> **Note the library ships both palettes:** `ColorScheme.BWGBRY` is Spectra 6 with the idealised pure
+> primaries — identical to what the component had — which is why the incompatibility was invisible
+> until calibrated output was fed through it.
+>
+> The existing ImageMagick/pure-primary output still maps correctly through the new table (a pure
+> `(255,0,0)` is still nearest measured red), so the device remains functional throughout.
+> **Still to do:** wire `epaper-dithering` into `prepare_image.sh` for this profile so the dither
+> actually emits the measured palette, then A/B on the panel. `uv add epaper-dithering` for
+> `tools/epaper` is the first step.
+>
+> **Fourth relative-path trap in this repo, worth knowing:** `external_components`'s local `path` is
+> resolved against **the including config file's** directory, not the config root — `path: components`
+> in `devices/*.yaml` looks for `devices/components` and fails. It must be `../components`. Same rule
+> as `!secret` (main config's dir) and `ESPHOME_DATA_DIR` (must be absolute).
 
 ---
 
