@@ -35,8 +35,8 @@
 #   1600x1200 landscape the frame is mounted in (Q5). Artwork must therefore be
 #   1600x1200 — that is what the `spectra6-133` profile produces.
 #
-# NOTE: sleep_duration is 1h for bench bring-up, matching the 5.65" frame's bench
-#   cadence. Set it to 24h for deployment (the SPEC cadence).
+# NOTE: sleep_duration is 24h — the deployed cadence (the SPEC cadence). Shorten it
+#   to 1h on the bench to observe rotation without waiting a day between wakes.
 #
 # Run from the repo root:
 #   ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" \
@@ -68,10 +68,10 @@ substitutions:
   battery_adc_pin: GPIO1
   battery_en_pin: GPIO6
 
-  # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
-  # Deploy: 24h (the SPEC cadence).
+  # Wake cycle. 24h is the deployed cadence; shorten to 1h on the bench to observe
+  # rotation without waiting a day between wakes.
   run_duration: 180s
-  sleep_duration: 1h
+  sleep_duration: 24h
 
 packages:
   base: !include ../common/base.yaml
