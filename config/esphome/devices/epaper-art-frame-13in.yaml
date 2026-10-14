@@ -77,21 +77,21 @@ packages:
   base: !include ../common/base.yaml
   art_frame: !include ../common/art-frame.yaml
 
-# Q8: the only driver observed to work on this board+panel.
-# VENDORED locally (was github://rkaramandi/esphome-seeed-ee02 @ fce70b8) so its
-# colour reference table can be patched from the idealised pure primaries to the
-# MEASURED Spectra 6 palette. Without that patch a calibrated dither is
-# re-quantised by the component and muted colours land on the wrong codes -- a
-# measured red (113,24,19) is nearer black than red, so it rendered black.
-# See the PATCH note in components/ee02_epaper/ee02_epaper.cpp and SPEC.md Q8.
-# Re-diff against upstream on any change to that repo.
+# Q8: the only driver observed to work on this board+panel. Pinned to a commit
+# SHA rather than @main so a third-party repo cannot change under us.
+#
+# NOTE: this was briefly VENDORED with its colour reference table patched to a
+# measured palette. That was reverted -- the measured palette's mid-grey white
+# reference swallowed mid-tones and the panel came out 37% white. The library's
+# OKLab matching, run against the IDEALISED palette, gives the same green gain
+# with a sane white balance, so stock references are correct. See SPEC.md Q8.
 external_components:
   - source:
-      type: local
-      # Relative to THIS file, not the config root -- `components` would look in
-      # devices/components and fail. Same rule as !secret and ESPHOME_DATA_DIR.
-      path: ../components
+      type: git
+      url: https://github.com/rkaramandi/esphome-seeed-ee02
+      ref: fce70b800fa7e7b57114bc8d46a1b665d86ae720
     components: [ee02_epaper]
+    refresh: 1d
 
 esp32:
   board: esp32-s3-devkitc-1

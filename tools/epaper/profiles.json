@@ -24,7 +24,10 @@
       "ha_dir": "local/epaper13",
       "backend": "epaper-dithering",
       "pre_filter": "",
-      "dither": "FloydSteinberg"
+      "dither": "FloydSteinberg",
+      "dither_opts": {
+        "exposure": 0.9
+      }
     }
   }
 }

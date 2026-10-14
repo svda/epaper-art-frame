@@ -21,9 +21,18 @@ from PIL import Image
 
 import epaper_dithering as ed
 
+import device_profile
+
 # Library scheme per profile. MUST match the component's reference table.
+#
+# spectra6-133 uses the IDEALISED Spectra 6 palette (BWGBRY = the pure primaries),
+# which is what stock `ee02_epaper` uses. The calibrated
+# `SPECTRA_7_3_6COLOR_V2` was tried first and REJECTED: its mid-grey white
+# reference (168,180,182) swallows every mid-to-light mid-tone, so 37% of the
+# panel rendered as bright white ink. The gradient of value here is the library's
+# OKLab perceptual matching, not a calibrated palette.
 SCHEMES = {
-    "spectra6-133": ed.SPECTRA_7_3_6COLOR_V2,
+    "spectra6-133": ed.ColorScheme.BWGBRY,
 }
 
 
@@ -53,6 +62,10 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     kwargs: dict = {} if args.no_tone else {"tone": "auto", "gamut": "auto"}
+    # Per-profile library knobs (exposure, saturation, shadows, highlights, ...).
+    # Data in profiles.json rather than arguments here, so tuning is a JSON edit.
+    _, prof = device_profile.resolve(args.profile)
+    kwargs.update(prof.get("dither_opts", {}))
     if args.dbs:
         kwargs["dbs"] = True
 
