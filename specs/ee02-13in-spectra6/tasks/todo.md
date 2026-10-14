@@ -373,11 +373,19 @@ stdlib `profile` module for anything importing it in the same process.
 
 ---
 
-### Checkpoint C — Pipeline serves both panels
-- [ ] `prepare_image.sh` / `generate_manifest.py` / `push_to_ha.sh` work for both profiles.
-- [ ] The iCloud sync is unchanged for the existing frame.
-- [ ] `uv run --directory tools/epaper pytest` passes.
-- [ ] **Review with user** before Phase 3.
+### Checkpoint C — Pipeline serves both panels ✅ (2026-10-14)
+- [x] `prepare_image.sh` / `generate_manifest.py` / `push_to_ha.sh` work for both profiles —
+      verified end-to-end with one photo through both: 600×448 7-colour into `www/epaper/`,
+      1600×1200 6-colour into `www/epaper13/`.
+- [x] The iCloud sync is unchanged **for the existing frame** — `acep565` is the default, so the
+      artwork folder and the resulting images are identical. The generated commands did change:
+      they now pass `--profile acep565`, which is a no-op for that panel (and makes the profile
+      explicit rather than implied).
+- [x] `uv run --directory tools/epaper pytest` passes — 16 passed; `tools/icloud` 59 passed.
+- [x] **Review with user** before Phase 3.
+
+**Phase 2 complete.** Module `multi-device-config` is now done: the repo serves two panels'
+artwork from one source photo set, with the deployed frame and its sync untouched.
 
 ---
 
