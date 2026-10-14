@@ -87,11 +87,11 @@ and the `show_next_image` → `show_image` rename; the pin map, display model, c
 path, and pipeline behaviour must be identical.
 
 **Acceptance criteria:**
-- [ ] Diff contains **only** the `art_direction` global and the script rename/call-site change.
-- [ ] No change to pins, `display:`, `deep_sleep` cadence, or image URLs for the 5.65" device.
+- [x] Diff contains **only** the `art_direction` global and the script rename/call-site change.
+- [x] No change to pins, `display:`, `deep_sleep` cadence, or image URLs for the 5.65" device.
 
 **Verification:**
-- [ ] `diff /tmp/epaper-art-frame.before.yaml <(esphome config … epaper-art-frame.yaml)` reviewed.
+- [x] `diff /tmp/epaper-art-frame.before.yaml <(esphome config … epaper-art-frame.yaml)` reviewed.
 
 **Dependencies:** B1.1 · **Scope:** S · **Files:** none (validation only)
 
