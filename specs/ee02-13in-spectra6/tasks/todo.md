@@ -43,10 +43,26 @@ P1.1 moves it into `devices/`.
 > - **Q6 blocked → Q8.** Panel hardware is confirmed good: the *factory SenseCraft firmware drew*
 >   on it before we flashed. The blocker is firmware-only.
 >
-> **BLOCKED ON A DRIVER CODE FIX (Q8) — resume here.**
+> **RESOLVED (Q8) — the upstream driver cannot drive this panel; switched to a community one.**
 >
-> The upstream `epaper_spi` T133A01 driver deadlocks or aborts, in both BUSY polarities, because
-> its idle wait is unbounded and this panel is never ready before the init sequence:
+> The investigation below is kept because it is what ruled the upstream path out. The resolution
+> came from outside the code: several people have already written working ESPHome drivers for this
+> exact board+panel, and both document the root cause (esphome discussion #3507, still open):
+> *"the EE02 has two individual UC8179 display controllers in master/slave configuration… more pins
+> than the class allows and the data format gets real weird."* No amount of patching `epaper_spi`
+> was going to work — the class cannot express the hardware.
+>
+> **Adopted `ee02_epaper`** (`rkaramandi/esphome-seeed-ee02`), pinned to commit `fce70b8`
+> rather than `@main`. It handles `power_pin`, the dual-CS split and BUSY internally, and implements
+> the full `DisplayBuffer` API, so `it.image()` and the `online_image` pipeline are unchanged. The
+> 44-file vendored `epaper_spi` fork is **deleted**.
+>
+> Bench-verified 2026-10-14 — `Master half start` / `Slave half start` /
+> `Refresh (PON -> DRF -> POF)` / `Refresh complete` (29 s, properly awaited), and a 1600×1200
+> landscape image of six solid Spectra 6 bands rendered with **all six colours correct and correct
+> orientation**.
+>
+> **Why the upstream path failed (kept for the record):**
 >
 > | Config | Result |
 > |---|---|
@@ -58,15 +74,12 @@ P1.1 moves it into `devices/`.
 > Seeed's driver survives this only because every wait carries a **30 000 ms timeout**
 > (`gfxWaitForPin(pin, readyHigh, timeoutMs = 30000)`), so it proceeds instead of hanging.
 >
-> **The fix is two-sided and neither half is expressible in YAML** — a minimal `external_components`
-> patch adding a timeout: (1) **bound** the pre-`INITIALISE` wait; (2) **honour** the
-> post-`REFRESH_SCREEN` wait. It must not simply drop `busy_pin`, which is the aborted-refresh
-> failure above. **Ask-first** per `plan.md` — the user has not yet chosen between patching,
-> reporting upstream, or switching to Seeed's Arduino driver.
->
-> **State of the tree:** `config/esphome/ee02-bringup.yaml` currently has `busy_pin` omitted and a
-> `panel_power` gpio switch, marked as experiments. Both are deliberate; read the comments before
-> changing them.
+> The abandoned fix was two-sided and neither half was expressible in YAML — a minimal
+> `external_components` patch adding a timeout: (1) **bound** the pre-`INITIALISE` wait; (2)
+> **honour** the post-`REFRESH_SCREEN` wait. It was written and did bound the deadlock
+> (`Panel not idle after 30000 ms in INITIALISE; proceeding anyway`), but the panel then held BUSY
+> forever after DRF — because the transfer itself was wrong. That is the evidence that pointed away
+> from patching and towards a driver that handles the dual-controller hardware.
 
 - Config: `esp32` (S3, 16 MB flash, octal PSRAM), `spi`, `display` with the EE02 pin map,
   `logger`, `api`, `ota`, `wifi` (via `secrets.yaml`), and a `lambda` drawing 6 colour bars plus
@@ -78,37 +91,45 @@ P1.1 moves it into `devices/`.
 **Acceptance criteria:**
 - [x] `esphome config` validates and `esphome compile` succeeds on ESPHome 2026.9.0.
       — done 2026-10-14: config valid; compiled (flash 1,036,507 B = 12.8%, DIRAM 110,747 B = 32.4%).
-- [ ] All **6** Spectra 6 colours render in the correct positions, correct 1200×1600 geometry,
+- [x] All **6** Spectra 6 colours render in the correct positions, correct 1200×1600 geometry,
       no corruption, **no mirroring**.
+      — **done 2026-10-14:** a 1600×1200 landscape image of six solid bands (black, red, yellow,
+      green, blue, white) rendered with all six correct and correct orientation.
 - [x] **Q1 resolved** — BUSY polarity confirmed on the EE02 and recorded. If the driver times out
       waiting for IDLE, `inverted` is wrong; record which value is correct.
-      — **done 2026-10-14: idle-HIGH, `inverted: true` (confirmed from the driver's `is_idle_()`).**
+      — **done 2026-10-14: idle-HIGH (LOW = busy), matching Seeed's `gfxWaitForPin(readyHigh=true)`.
+      Now handled internally by the `ee02_epaper` component.**
 - [x] **Q2 resolved** — the `flash_mode` / PSRAM combination that boots reliably is recorded
       (the NULA needed `qio` with octal PSRAM; Seeed's Arduino default is `dio`).
       — **done 2026-10-14: `qio` boots; PSRAM 8 MB confirmed.**
-- [ ] **Q4 resolved** — `esphome analyze-memory` output captured and the PSRAM headroom after
-      downloading a 1200×1600 RGB565 image is recorded. If it does not fit, the fallback
-      intermediate buffer is chosen and recorded here.
-- [ ] **Q6 resolved** — the upstream `t133a01` init sequence is confirmed to drive the EE02, or an
-      `external_components` override is proposed (ask-first).
+- [x] **Q4 resolved** — `esphome analyze-memory` output captured and the PSRAM headroom after
+      downloading a 1200×1600 RGB565 image is recorded.
+      — **done 2026-10-14:** `Allocating buffer: 1200x1600, 3840000 bytes` then `Decoding complete`.
+      3.84 MB + 960 KB fit in 8 MB with room to spare. No fallback needed.
+- [x] **Q6 resolved** — the init sequence is confirmed to drive the EE02.
+      — **done 2026-10-14:** not by upstream `t133a01` (which cannot drive the dual-controller
+      panel) but by the community `ee02_epaper` component. Six correct bands on the glass.
 
 **Verification:**
-- [ ] Photograph the rendered test pattern; compare against the expected 6-colour layout.
-- [ ] Confirm no `Timeout while displaying image!` in the logs, and record `Setup display took …`.
+- [x] Photograph the rendered test pattern; compare against the expected 6-colour layout.
+      — replaced by an on-panel visual check of six solid bands; user-confirmed 2026-10-14.
+- [x] Confirm no `Timeout while displaying image!` in the logs, and record `Setup display took …`.
+      — no timeouts; `Refresh complete` after a properly-awaited 29 s refresh.
 - [x] `esphome analyze-memory config/esphome/ee02-bringup.yaml` output pasted into the task notes.
       — captured 2026-10-14: no static blowup; buffers are runtime heap, so Q4 stays a bench proof.
-- [ ] Q1/Q2/Q4/Q6 answers written back into `../SPEC.md`'s Open questions table.
+- [x] Q1/Q2/Q4/Q6 answers written back into `../SPEC.md`'s Open questions table.
 
-**Dependencies:** none · **Scope:** M · **Files:** `config/esphome/ee02-bringup.yaml` (new),
+**Dependencies:** none · **Scope:** M · **Files:** `config/esphome/ee02-bringup.yaml`,
 `config/esphome/secrets.yaml` (git-ignored, existing).
 
 ---
 
-### Checkpoint A — Hardware proven
-- [ ] The EE02 panel renders 1200×1600 6-colour correctly from stock ESPHome.
-- [ ] The image + panel buffers fit in PSRAM (or the documented fallback is chosen).
-- [ ] Q1, Q2, Q4, Q6 answered and recorded.
-- [ ] **Review with user** — proceed to Phase 1, or take the fallback path.
+### Checkpoint A — Hardware proven ✅ (2026-10-14)
+- [x] The EE02 panel renders correctly — six Spectra 6 colours, correct geometry and orientation.
+      (Via the community `ee02_epaper` driver, not stock ESPHome — see Q8.)
+- [x] The image + panel buffers fit in PSRAM (3.84 MB + 960 KB of 8 MB; no fallback needed).
+- [x] Q1, Q2, Q4, Q6 answered and recorded, plus Q7 (PWR_EN active-low) and Q8 (driver choice).
+- [x] **Review with user** — proceed to Phase 1.
 
 ---
 

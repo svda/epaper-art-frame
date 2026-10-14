@@ -7,12 +7,17 @@ Slug: `ee02-13in-spectra6`
 > E Ink Spectra 6 panel (1200×1600, controller **T133A01**) — and the repo restructure that
 > lets one ESPHome codebase serve more than one device.
 >
-> **Key finding (de-risks the whole thing).** Stock ESPHome already drives this panel. ESPHome
-> 2026.9.0's `epaper_spi` component ships `model: t133a01` (1200×1600, 6-colour, dual-CS), so
-> no custom component is needed — the same shape of win as `epaper-art-frame` Revision 2. The
-> exact EE02 display block in Module 2 was run through `esphome config` on 2026.9.0 and
-> **validated**, so the pins, `cs1_pin`, `enable_pin` and `busy_pin` semantics below are proven
-> against the schema, not assumed.
+> **Revision 2 (2026-10-14) — the driver claim in Revision 1 was wrong.** Revision 1 assumed stock
+> ESPHome could drive this panel via `epaper_spi` / `model: t133a01`, because that model exists and
+> the display block validated against the schema. Schema validity is not capability: the panel is
+> **two UC8179 controllers in master/slave**, needing a dual-CS pin *pair* and a data format the
+> `epaper_spi` class cannot express. The driver ran, pushed the full frame, and rendered nothing.
+> Upstream support was requested in **esphome discussion #3507** and remains **open**.
+>
+> The device now uses the community **`ee02_epaper`** component
+> (`rkaramandi/esphome-seeed-ee02`), pinned to a commit SHA, which is the only driver observed to
+> work on this board+panel. It implements the full `DisplayBuffer` API, so the art-frame pipeline is
+> unaffected. Bench-verified 2026-10-14: six correct Spectra 6 bands on the glass.
 
 ---
 
@@ -32,8 +37,8 @@ a repo where "add a device" means adding one file plus one profile.
 | Property | Value |
 |---|---|
 | Board | Seeed XIAO ePaper Display Board EE02 (XIAO ESP32-S3 Plus, 60-pin FPC) |
-| Display | 13.3" E Ink Spectra 6, 1200×1600, controller T133A01 (dual-CS: `CSB_M`/`CSB_S`) |
-| Firmware | ESPHome ≥ 2026.9.0, stock `epaper_spi`, `model: t133a01` |
+| Display | 13.3" E Ink Spectra 6, 1200×1600, module marking T133A01 — **two UC8179 controllers in master/slave** (dual-CS) |
+| Firmware | ESPHome ≥ 2026.9.0 + the community **`ee02_epaper`** external component, pinned to a commit SHA |
 | Colours | black, white, red, yellow, green, blue (6) |
 | Power | Single-cell LiPo via the EE02's JST 2.0mm connector + onboard charger + slide switch |
 | Wake cycle | ~24 h sleep, ~1 min awake (drift tolerated) |
@@ -108,8 +113,9 @@ These were read out of the installed ESPHome 2026.9.0 source and are load-bearin
   **The value must be absolute** — a relative one is re-relativised against the config dir and
   doubles (`…/.esphome/build/<name>/config/esphome/.esphome/build/<name>/sdkconfig…`), failing
   the build with a `kconfgen FileNotFoundError`. Found while building P0.1.
-- **`dimensions` must be a dict** for `epaper_spi` (`width:`/`height:`). The `1200x1600`
-  string form is rejected by the schema — verified, not assumed.
+- **The panel driver is a community external component**, pinned by commit SHA. `ee02_epaper`
+  handles `power_pin`, the dual-CS split and BUSY polarity internally, so those do not appear in the
+  device config. Upstream `epaper_spi` cannot drive this panel — see the Q8 note.
 
 ### Device registry
 
@@ -148,14 +154,17 @@ effective config is unchanged; `prepare_image.sh` with no arguments still produc
 
 ### Panel and driver
 
-Stock `epaper_spi` with `model: t133a01` — a 6-colour controller IC driving a 1200×1600
-panel over a **dual-CS** SPI architecture, where `CS`/`CS1` each carry half of every row's
-pixel data (600 pixels per controller). Data rate 10 MHz, minimum update interval 30 s, full
-refresh ~30 s.
+The community **`ee02_epaper`** external component (`rkaramandi/esphome-seeed-ee02`), pinned to
+commit `fce70b8`. The panel is **two UC8179 controllers in master/slave** — each carries half of
+every row (300 bytes per controller per row) — and this component handles the dual-CS split, the
+panel power pin and BUSY polarity internally. Full refresh ~29 s (bench-measured). It implements the
+full `DisplayBuffer` API, so the drawing lambda and `online_image` pipeline are unchanged.
 
-No custom component and no `external_components:` override in v1. If the ESPHome model's init
-sequence (tuned for the reTerminal E1004 wiring) turns out to be wrong for the EE02's power
-rails, the fallback is a small `external_components` override — see Risks.
+**Upstream `epaper_spi` cannot drive this panel.** `model: t133a01` validates against the schema and
+will run — pushing the whole frame and reporting no error — but renders nothing, because the
+`epaper_spi` class cannot express the second chip-select or the split data format. Upstream support
+was requested in **esphome discussion #3507** and remains open. Revision 1 of this spec wrongly
+assumed schema validity implied capability; see the Q8 note.
 
 ### Pin map (single source of truth)
 
@@ -179,29 +188,32 @@ confirmed against the EE02 schematic net names and validated with `esphome confi
 ### Device config
 
 ```yaml
+external_components:
+  - source:
+      type: git
+      url: https://github.com/rkaramandi/esphome-seeed-ee02
+      ref: fce70b800fa7e7b57114bc8d46a1b665d86ae720   # pinned, not @main
+    components: [ee02_epaper]
+    refresh: 1d
+
 display:
-  - platform: epaper_spi
+  - platform: ee02_epaper
     id: epaper_display
-    model: t133a01
-    dimensions:
-      width: 1200
-      height: 1600
-    cs_pin: ${cs_pin}       # GPIO44
-    cs1_pin: ${cs1_pin}     # GPIO41
-    dc_pin: ${dc_pin}       # GPIO10
-    reset_pin: ${reset_pin} # GPIO38
-    busy_pin:
-      number: ${busy_pin}   # GPIO4
-      inverted: true
-    enable_pin: ${enable_pin}  # GPIO43
+    cs_master_pin: ${cs_master_pin}  # GPIO44
+    cs_slave_pin: ${cs_slave_pin}    # GPIO41
+    dc_pin: ${dc_pin}                # GPIO10
+    busy_pin: ${busy_pin}            # GPIO4  (polarity handled internally)
+    reset_pin: ${reset_pin}          # GPIO38
+    power_pin: ${power_pin}          # GPIO43 (PWR_EN, active-low, handled internally)
+    rotation: 90                     # native 1200x1600 portrait -> 1600x1200 landscape
     update_interval: never
     lambda: |-
-      it.fill(Color(255, 255, 255));
+      it.fill(Color(255, 255, 255));   # REQUIRED: the buffer is not white by default
       it.image(0, 0, id(art_image));
 ```
 
-Validated output on 2026.9.0: `data_rate: 10MHz`, `spi_mode: MODE0`, `rotation: 0`,
-`full_update_every: 1`.
+Validated output on 2026.9.0: the component logs `Master half start` / `Slave half start` /
+`Refresh (PON -> DRF -> POF)` / `Refresh complete`.
 
 ### Memory budget
 
@@ -321,12 +333,13 @@ One real device file beats three paragraphs of rules:
 # config/esphome/devices/epaper-art-frame-13in.yaml
 # ============================================================================
 # 13.3" Spectra 6 art frame — Seeed XIAO ePaper Display Board EE02
-# Panel: E Ink Spectra 6, 1200x1600, T133A01 (dual-CS)
-# Driver: stock ESPHome `epaper_spi`, model `t133a01` (>= 2026.9.0).
+# Panel: E Ink Spectra 6, 1200x1600, T133A01 — two UC8179 controllers, master/slave
+# Driver: community `ee02_epaper` external component, pinned to a commit SHA.
+#         Upstream epaper_spi CANNOT drive this panel (esphome discussion #3507).
 #
 # PIN MAP (single source of truth — from Seeed_GFX2 EE02 board config)
-#   SPI CLK -> GPIO7   MOSI -> GPIO9   CS -> GPIO44   CS1 -> GPIO41
-#   DC -> GPIO10   RST -> GPIO38   BUSY -> GPIO4 (inverted)   PWR_EN -> GPIO43
+#   SPI CLK -> GPIO7   MOSI -> GPIO9   CS master -> GPIO44   CS slave -> GPIO41
+#   DC -> GPIO10   RST -> GPIO38   BUSY -> GPIO4   PWR_EN -> GPIO43 (active-low)
 # ============================================================================
 
 substitutions:
@@ -335,12 +348,12 @@ substitutions:
   image_dir: "local/epaper13"
   clk_pin: GPIO7
   mosi_pin: GPIO9
-  cs_pin: GPIO44
-  cs1_pin: GPIO41
+  cs_master_pin: GPIO44
+  cs_slave_pin: GPIO41
   dc_pin: GPIO10
   reset_pin: GPIO38
   busy_pin: GPIO4
-  enable_pin: GPIO43
+  power_pin: GPIO43
   run_duration: 180s     # backstop only — the pipeline sleeps as soon as the render returns
   sleep_duration: 24h
 
@@ -362,25 +375,18 @@ spi:
   mosi_pin: ${mosi_pin}
 
 display:
-  - platform: epaper_spi
+  - platform: ee02_epaper
     id: epaper_display
-    model: t133a01
-    # `dimensions` must be a dict for epaper_spi — the "1200x1600" string form is rejected.
-    dimensions:
-      width: 1200
-      height: 1600
-    cs_pin: ${cs_pin}
-    cs1_pin: ${cs1_pin}
+    cs_master_pin: ${cs_master_pin}
+    cs_slave_pin: ${cs_slave_pin}
     dc_pin: ${dc_pin}
     reset_pin: ${reset_pin}
-    # Q1: ESPHome's E1004 model uses inverted: true for this panel; confirm on the EE02.
-    busy_pin:
-      number: ${busy_pin}
-      inverted: true
-    enable_pin: ${enable_pin}
+    busy_pin: ${busy_pin}
+    power_pin: ${power_pin}
+    rotation: 90           # native 1200x1600 portrait -> 1600x1200 landscape
     update_interval: never
     lambda: |-
-      it.fill(Color(255, 255, 255));
+      it.fill(Color(255, 255, 255));   # REQUIRED: the buffer is not white by default
       it.image(0, 0, id(art_image));
 ```
 
@@ -509,14 +515,14 @@ results recorded back into this spec:
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Blocked (see Q8)** — both polarities deadlock; the semantics indicate idle = HIGH |
+| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Resolved** — BUSY is idle-HIGH (LOW = busy); handled inside `ee02_epaper` |
 | Q2 | `flash_mode` for the XIAO ESP32-S3 Plus (16 MB flash + octal PSRAM): the NULA needed `qio`; Seeed's Arduino default is `dio` | **Resolved P0.1** — `qio` boots; esptool reports `Embedded PSRAM 8MB` and ESPHome logs `Size: 8192 KB` |
 | Q3 | Battery divider ratio, and whether `ADC_EN` (GPIO6) must be driven high before sampling | Bench; calibrate against a multimeter |
-| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | **Resolved P0.1** — `Allocating buffer: 1200x1600, 3840000 bytes` then `Decoding complete: 1200x1600` |
-| Q5 | Panel rotation/transform for portrait vs landscape mounting | Bench, then the enclosure decision |
-| Q6 | Is the ESPHome `t133a01` init sequence (tuned for the E1004 wiring) correct for the EE02's power rails | **Blocked (see Q8)** |
+| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | **Resolved P0.1** — `Allocating buffer: 1200x1600, 3840000 bytes` then `Decoding complete` |
+| Q5 | Panel rotation/transform for portrait vs landscape mounting | **Provisionally resolved** — `rotation: 90` renders the native 1200×1600 as landscape 1600×1200 with correct orientation (bench, six-band test). Confirm against the enclosure |
+| Q6 | Is the upstream `t133a01` init sequence correct for the EE02's power rails | **Resolved** — not by upstream; by the `ee02_epaper` component. Six correct Spectra 6 bands on the glass |
 | Q7 | **PWR_EN polarity** — not in the original questions. ESPHome drives `enable_pin` HIGH by default | **Resolved P0.1** — PWR_EN is **ACTIVE-LOW** (see the note below) |
-| Q8 | **BUSY idle/deadlock (new, open)** — ESPHome's `is_idle_()` wait has no timeout, and this panel only releases BUSY *after* the init sequence | Needs a decision: `external_components` override, or upstream fix |
+| Q8 | **Which driver can actually run this panel** — upstream `epaper_spi` cannot (dual-controller) | **Resolved** — community `ee02_epaper`, pinned to a SHA (see the Q8 note below) |
 
 > **Q7 — the bug that made the panel blank (found 2026-10-14).** The panel power switch Q10 is a
 > **CJ3407 P-channel MOSFET**: a high-side P-ch switch conducts when its gate is pulled **LOW**.
@@ -595,10 +601,34 @@ results recorded back into this spec:
 > - an init value the EE02's panel dislikes (the sequence is copied from the E1004 model);
 > - a rail/power sequencing difference the driver doesn't reproduce.
 >
-> **Recommended next step — compare, don't guess.** Flash Seeed's own `Seeed_GFX2` Arduino
-> HelloWorld for the EE02 to this exact board. If it renders, we have a known-good reference to
-> diff SPI traffic against (logic analyser ideal). If it does not, the board/panel needs attention
-> despite the factory firmware. **The vendored component must be re-diffed on any ESPHome upgrade.**
+> **RESOLVED — use a community driver (2026-10-14).** The comparison test that settled it was not
+> another flash: it was finding that **several people have already written working ESPHome drivers
+> for this exact board+panel**. Both `rkaramandi/esphome-seeed-ee02` and `acegallagher/esphome-bigink`
+> document the same root cause as esphome discussion #3507: *"the EE02 has two individual UC8179
+> display controllers in master/slave configuration… more pins than the class allows and the data
+> format gets real weird."* That is why no amount of patching `epaper_spi` was going to work — the
+> model cannot express the hardware.
+>
+> The device now uses **`ee02_epaper`** (`rkaramandi/esphome-seeed-ee02`), pinned to commit
+> `fce70b8` rather than `@main`. It handles `power_pin`, the dual-CS split and BUSY internally, and
+> implements the full `DisplayBuffer` API — so `it.image()` and the `online_image` pipeline are
+> unchanged. The 44-file vendored `epaper_spi` fork is **deleted**.
+>
+> Bench-verified 2026-10-14:
+> ```
+> Pushing framebuffer to panel...
+> Master half start        <- dual-CS: master half
+> Slave half start         <- dual-CS: slave half
+> Refresh (PON -> DRF -> POF)...
+> Refresh complete         <- 29 s, properly awaited
+> Framebuffer push complete
+> ```
+> A 1600×1200 landscape image of six solid Spectra 6 bands rendered with **all six colours correct
+> and correct orientation**.
+>
+> **Trade-off accepted:** a third-party component is a supply-chain and maintenance dependency. It is
+> pinned to a SHA for reproducibility, and the fallback if it rots is to upstream a dual-controller
+> model (esphome #3507) or vendor it ourselves.
 
 ---
 
@@ -617,7 +647,8 @@ results recorded back into this spec:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | PSRAM exhaustion (~4.8 MB of 8 MB for image + panel buffers) | **High** — OOM at boot or on download | Prove first at bring-up; if it fails, drop to a smaller intermediate (e.g. pre-scale/dither and a 4bpp-friendly path) rather than shipping a fragile config |
-| ESPHome's `t133a01` model is tuned for the E1004 wiring, not the EE02 rails | Medium — panel does not initialise | Bench bring-up; fallback is a small `external_components` override |
+| **REALISED** — upstream `epaper_spi` / `model: t133a01` cannot drive this panel at all: it is two UC8179 controllers in master/slave, needing a dual-CS pin pair the class cannot express | **High** — the driver runs, pushes the whole frame, reports no error, and renders nothing | Resolved by adopting the community `ee02_epaper` component, pinned to a SHA (Q8) |
+| Third-party component dependency (`ee02_epaper`) | Medium — supply chain and maintenance | Pinned to a commit SHA, not `@main`; fallback is to upstream a dual-controller model (esphome #3507) or vendor it ourselves |
 | The refactor silently changes the working 5.65" frame | Medium — regression on a deployed device | Success criterion 2: byte-identical `esphome config` diff before/after |
 | `!secret` used directly in a device file fails to resolve | Low — config will not validate | All `!secret` confined to `common/`; Level-1 gate catches it |
 | 13.3" refresh current drains the battery faster than the 5.65" frame | Medium — cadence must change | Measure at bring-up (step 6); adjust `sleep_duration` if needed |

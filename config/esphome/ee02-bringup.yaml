@@ -55,7 +55,12 @@ substitutions:
   # HA serves www/ at /local/. Use the HA host DNS name (`server`); mDNS names
   # do not resolve from the ESP.
   ha_url: "http://server:8123"
-  spike_image: "local/spike/spike-1200x1600.png"
+  # Q6 COLOUR CHECK: 1600x1200 landscape, six solid bands in the exact Spectra 6
+  # colours (black, red, yellow, green, blue, white), matching the panel's
+  # rotation: 90. A gradient is a bad probe -- its mid-tones legitimately collapse
+  # to black on a 6-colour panel. The earlier 1200x1600 portrait spike was also
+  # the wrong aspect for the rotated display.
+  spike_image: "local/spike/spike-1600x1200-6c.png"
 
 esphome:
   name: ${device_name}
@@ -114,18 +119,17 @@ globals:
     restore_value: false
     initial_value: "false"
 
-# Q8 FIX (2026-10-14): a patched copy of upstream epaper_spi. The stock driver
-# deadlocks on this panel because its idle wait is unbounded and the panel is
-# never ready before the init sequence. The patch bounds that wait for
-# INITIALISE only, mirroring Seeed's 30 s BUSY timeout. See
-# components/epaper_spi/ for the two changed files (both marked "PATCH
-# (epaper-art-frame)") and SPEC.md Q8 for the full evidence.
-# Vendored against ESPHome 2026.9.0 -- re-diff on any ESPHome upgrade.
+# Q8 RESOLVED (2026-10-14): the community `ee02_epaper` component, pinned to a
+# commit SHA rather than @main so a third-party repo cannot change under us.
+# Replaces the vendored epaper_spi fork, which is deleted -- its patch bounded
+# the pre-init deadlock but the panel still never completed a refresh.
 external_components:
   - source:
-      type: local
-      path: components
-    components: [epaper_spi]
+      type: git
+      url: https://github.com/rkaramandi/esphome-seeed-ee02
+      ref: fce70b800fa7e7b57114bc8d46a1b665d86ae720
+    components: [ee02_epaper]
+    refresh: 1d
 
 spi:
   clk_pin: GPIO7
@@ -147,31 +151,26 @@ image:
       - logger.log: "spike image download FAILED (test pattern remains)"
 
 display:
-  - platform: epaper_spi
+  # Q8 RESOLVED (2026-10-14): switched to the community `ee02_epaper` component.
+  # Upstream epaper_spi CANNOT drive this panel: the EE02 is two UC8179
+  # controllers in master/slave, needing a dual-CS pin pair and a data format the
+  # epaper_spi class cannot express (see esphome discussion #3507, still open).
+  # A vendored patch to epaper_spi bounded the symptom but the panel still never
+  # completed a refresh. This component is the only driver observed to work on
+  # this exact board+panel, and it handles power_pin and the dual-CS split itself.
+  # It implements the full DisplayBuffer API, so `it.image()` and the
+  # online_image pipeline above are unchanged.
+  - platform: ee02_epaper
     id: epaper_display
-    model: t133a01
-    # epaper_spi requires dimensions as a dict — the "1200x1600" string form is
-    # rejected by the schema (verified 2026-10-13).
-    dimensions:
-      width: 1200
-      height: 1600
-    cs_pin: GPIO44
-    cs1_pin: GPIO41
+    cs_master_pin: GPIO44
+    cs_slave_pin: GPIO41
     dc_pin: GPIO10
+    busy_pin: GPIO4
     reset_pin: GPIO38
-    # Q7 RESOLVED (bench 2026-10-14): PWR_EN is ACTIVE-LOW — it drives Q10, a
-    # CJ3407 P-channel MOSFET high-side switch, which conducts when its gate is
-    # pulled LOW. ESPHome's default (drive HIGH) held the panel unpowered.
-    enable_pin:
-      number: GPIO43
-      inverted: true
-    # Q1 RESOLVED (bench 2026-10-14): BUSY is idle-HIGH, matching Seeed's
-    # gfxWaitForPin(readyHigh=true). is_idle_() is !digital_read(), so inverted:
-    # true is required. The pre-init deadlock this caused is fixed by the
-    # external_components patch above (Q8), not by changing this polarity.
-    busy_pin:
-      number: GPIO4
-      inverted: true
+    power_pin: GPIO43
+    # Native portrait is 1200x1600; 90 gives the landscape 1600x1200 the frame
+    # will be mounted in (Q5). Revisit once the enclosure decides the orientation.
+    rotation: 90
     update_interval: never
     lambda: |-
       if (id(spike_has_image)) {
