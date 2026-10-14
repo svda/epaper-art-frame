@@ -463,6 +463,24 @@ artwork from one source photo set, with the deployed frame and its sync untouche
       measured colours; measuring them and putting those in `palette-spectra6.png` is the next
       refinement if it is still off. Also inherent: Spectra 6 has **no orange** (unlike the 7-colour
       ACeP panel), so warm mid-tones must be dithered from red + yellow.
+
+      **RESOLVED (2026-10-14): the palette must NOT be measured — that direction was wrong.**
+      Read from `ee02_epaper.cpp`: the component maps every pixel to the nearest of six **pure**
+      primaries by squared RGB distance (`{BLACK 0,0,0}, {WHITE 255,255,255}, {YELLOW 255,255,0},
+      {RED 255,0,0}, {BLUE 0,0,255}, {GREEN 0,255,0}`) — a Voronoi partition, no thresholds. So:
+      1. `palette-spectra6.png` already holds exactly those six values, which is *required* — the
+         dither's output then maps 1:1 onto the component's references. There is no mismatch to fix.
+      2. A measured (muted) palette would be actively harmful: a real red of e.g. `(110,60,50)` is
+         closer to black (18 200) than to red (27 125), so the panel would render **black**. Any
+         measured value would have to be clamped into its own cell to be usable.
+      Decision: **park the measurement**, keep the pure-primary palette, and keep tuning the
+      `pre_filter` instead — that addresses the actual "pale" mechanism (mid-tones dithering toward
+      white). A good part of "pale" is also inherent: Spectra 6's inks are physically muted and it
+      has no orange.
+
+      **Current state:** reverted to the **first** pre-filter iteration
+      (`-modulate 100,150 -sigmoidal-contrast 3,50%`) at the user's request, to evaluate across more
+      images before further tweaking. 37 photos regenerated and deployed.
 - [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches. — needs 2 wakes.
 - [ ] `analyze-memory` on this device — not run; Q4 already proved the budget on the spike, which
       uses the same buffers.
