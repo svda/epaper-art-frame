@@ -425,6 +425,14 @@ artwork from one source photo set, with the deployed frame and its sync untouche
       [11:27:14.230] [I][ee02_epaper:243]: Refresh complete
       [11:27:49.234] [I][deep_sleep:056]: Beginning sleep
       ```
+- [x] **Visual check (user, 2026-10-14):** the panel shows a coherent dithered image — *"some gradient
+      with mostly yellow and blue"* — which is `test-photo-2` (a `#101040`→`#f0e0c0` gradient)
+      correctly quantised onto the six Spectra 6 colours.
+      **Caveat:** both images pushed were **synthetic fixtures** I generated (a plasma field and that
+      gradient), not photographs. So this proves the *render path*, not image fidelity on real
+      photos. Real-artwork fidelity is unverified and is a follow-up: generate genuine 1600×1200
+      artwork with `--profile spectra6-133` (e.g. by running the album sync with
+      `EPAPER_PROFILE=spectra6-133`) and look at the result.
 - [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches. — needs 2 wakes.
 - [ ] `analyze-memory` on this device — not run; Q4 already proved the budget on the spike, which
       uses the same buffers.
