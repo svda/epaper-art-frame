@@ -47,7 +47,7 @@ done
 # The artwork folder comes from the profile unless one was given explicitly.
 command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found" >&2; exit 1; }
 [ -n "$profile" ] || profile=$(python3 "$PROFILE_HELPER" --default)
-[ -n "$images" ] || images=$(python3 "$PROFILE_HELPER" "$profile" --artwork)
+if [ -n "$images" ]; then explicit_dir=1; else explicit_dir=0; images=$(python3 "$PROFILE_HELPER" "$profile" --artwork); fi
 
 if [ $# -ge 1 ]; then dest=$1; else dest=${EPAPER_DEST:-}; fi
 [ -n "$dest" ] || { usage >&2; exit 2; }
@@ -58,6 +58,21 @@ esac
 dest="${dest%/}/"
 host=${dest%%:*}
 remote_dir=${dest#*:}
+
+# The destination is NOT profile-aware -- it comes from $EPAPER_DEST or the
+# argument. So a non-default profile pointed at the default destination would
+# silently overwrite the OTHER panel's rotation with the wrong size images.
+# When the artwork folder came from the profile, require the destination to match
+# it; pass --dir to override deliberately.
+if [ "$explicit_dir" -eq 0 ]; then
+  art_base=${images%/}; art_base=${art_base##*/}
+  dest_base=${remote_dir%/}; dest_base=${dest_base##*/}
+  if [ "$art_base" != "$dest_base" ]; then
+    echo "error: destination '$remote_dir' does not match profile '$profile' artwork folder '$images'" >&2
+    echo "       refusing to deploy the wrong panel's artwork; pass --dir to override" >&2
+    exit 2
+  fi
+fi
 
 command -v scp >/dev/null 2>&1 || { echo "error: scp not found" >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found" >&2; exit 1; }

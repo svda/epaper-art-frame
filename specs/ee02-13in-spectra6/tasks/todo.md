@@ -338,6 +338,21 @@ tool's README and `.env.example`.
 updated for the new `--profile` flag (they are exact-match assertions by design). `test_config.py`'s
 `args()` helper gained `profile: None` to mirror the CLI.
 
+**GAP FOUND AND FIXED (2026-10-14), while generating real artwork.** The profile selects the
+artwork *folder* but **not the deploy destination** — that comes from `$EPAPER_DEST` or the
+argument, and is profile-independent. So running the sync with `--profile spectra6-133` and the
+existing `.env` (`EPAPER_DEST=.../www/epaper/`) would have deployed 1600×1200 artwork **over the
+deployed 5.65" frame's rotation**. Found by reading `resolve_config`/`deploy` before running a
+mutating command, not by losing a rotation.
+
+Fix: `push_to_ha.sh` now refuses when the artwork folder came from the profile and the destination's
+last path component does not match it — a silent wrong-panel deploy becomes a loud error. `--dir`
+overrides deliberately. **Still open:** the destination could be made profile-aware properly (e.g.
+per-profile dests in `.env`) rather than guarded; the guard only catches the mistake.
+
+Real artwork generated with the workaround (`--dest` given explicitly):
+`prepared=37 kept=37 deleted=2`, deployed to `.../www/epaper13/`, 5.65" folder untouched.
+
 **Dependencies:** P2.1 (profile names) · **Scope:** M · **Files:**
 `tools/icloud/sync_album.py`, `tools/icloud/README.md`, `tools/icloud/.env.example`,
 `tools/icloud/tests/*`.
