@@ -182,7 +182,7 @@ confirmed against the EE02 schematic net names and validated with `esphome confi
 | EPD RST | 38 | |
 | EPD BUSY | 4 | `inverted: true` (see Open Question Q1) |
 | Panel PWR_EN | 43 | `enable_pin`; driven high before init |
-| Buttons 1/2/3 | 2 / 3 / 5 | not wired in v1 |
+| Buttons prev / next | 2 / 3 | ext1 deep-sleep wake (active-LOW); button 3 (GPIO5) unwired — see [ee02-buttons](../ee02-buttons/SPEC.md) |
 | BAT_ADC / ADC_EN | 1 / 6 | divider gated by ADC_EN (see Q3) |
 
 ### Device config
@@ -674,8 +674,9 @@ figure only; on USB the board's own quiescent dominates what the battery path wo
 
 ## Non-goals
 
-- Wiring the EE02's 3 user buttons (v1 is "same behaviour as the existing frame").
-- Partial or fast refresh, multi-page, dashboards, or any trigger other than the daily timer.
+- Wiring the EE02's third user button (GPIO5), or any button use beyond previous/next — see
+  [ee02-buttons](../ee02-buttons/SPEC.md).
+- Partial or fast refresh, multi-page, or dashboards.
 - Migrating the existing 5.65" frame to a different board or panel.
 - An enclosure for the 13.3" frame (specify separately if wanted, as `wooden-frame` was).
 - Any change to the iCloud sync's photo-selection logic.

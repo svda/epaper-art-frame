@@ -102,11 +102,12 @@ path, and pipeline behaviour must be identical.
 file (already touched by B2.1). **Ask-first.**
 
 **Acceptance criteria:**
-- [ ] Parent spec's pin-map line and non-goal reflect that prev/next are wired (GPIO5 still unwired).
-- [ ] No other parent-spec content changes.
+- [x] Parent spec's pin-map line and non-goal reflect that prev/next are wired (GPIO5 still unwired).
+- [x] No other parent-spec content changes (the adjacent "any trigger other than the daily timer"
+      clause was dropped to avoid contradicting the new button trigger).
 
 **Verification:**
-- [ ] `rg -n "not wired in v1" specs/` returns nothing.
+- [x] `rg -n "not wired in v1" specs/ee02-13in-spectra6/` returns nothing.
 
 **Dependencies:** B2.1 · **Scope:** S · **Files:** `specs/ee02-13in-spectra6/SPEC.md`
 
