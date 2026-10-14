@@ -54,17 +54,17 @@ ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" \
 `id(art_direction)` to −1 / +1. Update the device header pin map to `prev / next / unwired`.
 
 **Acceptance criteria:**
-- [ ] `deep_sleep:` block adds **only** `esp32_ext1_wakeup` — `id`, `run_duration`,
+- [x] `deep_sleep:` block adds **only** `esp32_ext1_wakeup` — `id`, `run_duration`,
       `sleep_duration` remain inherited from `common/`.
-- [ ] Both pins configured `mode: INPUT_PULLUP`; `mode: ANY_LOW`.
-- [ ] GPIO2's `on_wake` sets `art_direction = -1`; GPIO3's sets `art_direction = 1`.
-- [ ] GPIO5 (third button) is **not** referenced.
-- [ ] Header comment records the button pin map and the `prev / next / unwired` roles.
+- [x] Both pins configured `mode: INPUT_PULLUP`; `mode: ANY_LOW`.
+- [x] GPIO2's `on_wake` sets `art_direction = -1`; GPIO3's sets `art_direction = 1`.
+- [x] GPIO5 (third button) is **not** referenced.
+- [x] Header comment records the button pin map and the `prev / next / unwired` roles.
 
 **Verification:**
-- [ ] `esphome config config/esphome/devices/epaper-art-frame-13in.yaml` passes.
-- [ ] `esphome compile config/esphome/devices/epaper-art-frame-13in.yaml` succeeds (lambda compiles).
-- [ ] `esphome config` output shows `deep_sleep` with both the inherited fields and
+- [x] `esphome config config/esphome/devices/epaper-art-frame-13in.yaml` passes.
+- [x] `esphome compile config/esphome/devices/epaper-art-frame-13in.yaml` succeeds (lambda compiles).
+- [x] `esphome config` output shows `deep_sleep` with both the inherited fields and
       `esp32_ext1_wakeup`.
 
 **Dependencies:** B1.1 · **Scope:** S · **Files:** `config/esphome/devices/epaper-art-frame-13in.yaml`

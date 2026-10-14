@@ -21,7 +21,8 @@
 #   EPD RST    -> GPIO38
 #   EPD BUSY   -> GPIO4   (idle-HIGH; polarity handled inside the component)
 #   PANEL EN   -> GPIO43  (PWR_EN, ACTIVE-LOW — handled inside the component)
-#   Buttons 1/2/3 -> GPIO2 / GPIO3 / GPIO5   (not wired in v1)
+#   Button prev -> GPIO2   Button next -> GPIO3   (ext1 wake, active-LOW)
+#   Button 3    -> GPIO5   (unwired)
 #   BAT_ADC / ADC_EN -> GPIO1 / GPIO6        (P3.2)
 #
 # BOARD: XIAO ESP32-S3 Plus — 16 MB flash, 8 MB octal PSRAM (confirmed on the
@@ -62,6 +63,8 @@ substitutions:
   reset_pin: GPIO38
   busy_pin: GPIO4
   power_pin: GPIO43
+  button_prev_pin: GPIO2
+  button_next_pin: GPIO3
   battery_adc_pin: GPIO1
   battery_en_pin: GPIO6
 
@@ -100,6 +103,29 @@ psram:
 spi:
   clk_pin: ${clk_pin}
   mosi_pin: ${mosi_pin}
+
+# --- User buttons (B2.1) ----------------------------------------------------
+# GPIO2 = previous, GPIO3 = next. Both wake the device from deep sleep via
+# ext1 (active-LOW, internal pull-up); the per-pin on_wake sets the rotation
+# direction BEFORE the shared on_boot runs the fetch — the ext1 wake trigger
+# fires at setup priority 700, the shared on_boot at 600. deep_sleep's id and
+# cadence live in ../common/art-frame.yaml and are deep-merged in.
+deep_sleep:
+  esp32_ext1_wakeup:
+    mode: ANY_LOW
+    pins:
+      - pin:
+          number: ${button_prev_pin}
+          mode: INPUT_PULLUP
+        on_wake:
+          then:
+            - lambda: id(art_direction) = -1;
+      - pin:
+          number: ${button_next_pin}
+          mode: INPUT_PULLUP
+        on_wake:
+          then:
+            - lambda: id(art_direction) = 1;
 
 display:
   - platform: ee02_epaper
