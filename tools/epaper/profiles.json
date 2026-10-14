@@ -20,7 +20,7 @@
       "palette": "palette-spectra6.png",
       "artwork": "www/epaper13",
       "ha_dir": "local/epaper13",
-      "pre_filter": "-modulate 100,150 -sigmoidal-contrast 3,50%"
+      "pre_filter": "-modulate 95,160 -sigmoidal-contrast 4,50%"
     }
   }
 }
