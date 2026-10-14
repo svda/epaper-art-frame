@@ -616,6 +616,33 @@ follow from that on the EE02:
 2. **The panel's refresh current comes through the battery.** On USB alone the panel browns out
    during a refresh, so it never completes — see the evidence below.
 
+**A SECOND, INDEPENDENT CAUSE OF THE SAME SYMPTOM (found the same day): a broken FPC latch.**
+The EE02's 60-pin, 0.5 mm panel connector's lock bar broke, so the ribbon could not be clamped and
+the panel got an intermittent connection. That produces **exactly** the same `Busy wait timed out`
+and non-updating screen — and it was present *before* the battery went flat, which in hindsight is
+why the timeout appeared twice, once without the battery as a factor.
+
+**Resolution: the ribbon was re-inserted manually with tweezers and holds well enough to work.**
+That is a **friction fit with no latch**, so it is marginal by nature: it can creep or vibrate out,
+and this panel gets mounted on a wall where nothing will be watching it. Before this goes anywhere
+permanent, back it up with a shim of 0.2–0.3 mm card laid over the ribbon and taped down with
+polyimide — that substitutes for the missing bar's downward pressure.
+
+**The proper fix is a replacement EE02 board.** The broken connector is on the board, not the panel,
+so it is the cheap part to swap and needs no soldering — unlike replacing a 60-pin 0.5 mm FPC socket.
+An FPC extension is a third option, but only after checking it is straight-through rather than a
+pin-1↔60 crossover: a crossover puts power and ground on the wrong pins and can destroy the panel.
+
+**So this entry has two causes, and the evidence does not distinguish them.** BUSY never asserting
+means "the panel is not responding", and that is the whole of what it tells you. Check, in this
+order: **the FPC seating/latch**, then the battery and slide switch.
+
+**The fix for a broken latch, cheapest first:** re-seat the lock bar (they usually pop out of their
+hinge rather than snap); a shim of 0.2–0.3 mm card laid over the ribbon and taped down with
+polyimide, substituting for the bar's downward pressure; or an FPC extension. The proper fix is a
+**replacement EE02 board** — the broken connector is on the board, not the panel, so it is the cheap
+part to swap and needs no soldering, unlike a 60-pin 0.5 mm FPC socket.
+
 **Evidence.** `[W][ee02_epaper:227]: Busy wait timed out; proceeding` in the device log, while the
 API still answers. BUSY never asserts because the panel never finishes powering up.
 
