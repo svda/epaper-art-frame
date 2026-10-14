@@ -62,6 +62,8 @@ substitutions:
   reset_pin: GPIO38
   busy_pin: GPIO4
   power_pin: GPIO43
+  battery_adc_pin: GPIO1
+  battery_en_pin: GPIO6
 
   # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
   # Deploy: 24h (the SPEC cadence).
@@ -114,3 +116,33 @@ display:
       // REQUIRED: the component's buffer is not white by default.
       it.fill(Color(255, 255, 255));
       it.image(0, 0, id(art_image));
+
+# --- P3.2 battery measurement (PROVISIONAL — Q3 calibration pending) --------
+# The EE02 has its own divider from VBAT to BAT_ADC (GPIO1), gated by ADC_EN
+# (GPIO6) so it does not drain the cell between reads. Two things are UNKNOWN
+# and are what P3.2 resolves:
+#   1. the divider ratio  -> `multiply` below is a guess (2.0);
+#   2. the ADC_EN polarity -> assumed active-HIGH. If the reading is ~0 V or
+#      floats, try `inverted: true`.
+# ADC_EN is asserted from boot rather than pulsed: a 60 s wake with the divider
+# live costs nothing measurable. Pulsing it to sample would be the refinement for
+# a device that did not sleep.
+switch:
+  - platform: gpio
+    id: battery_divider_enable
+    name: "Battery divider enable"
+    pin:
+      number: ${battery_en_pin}
+    restore_mode: ALWAYS_ON
+
+sensor:
+  - platform: adc
+    pin: ${battery_adc_pin}
+    id: battery_voltage
+    name: "Battery voltage"
+    attenuation: 12db
+    update_interval: 10s
+    # PROVISIONAL: replace with the calibrated ratio once the meter comparison is
+    # done. Until then this value is wrong by that factor -- do not trust it.
+    filters:
+      - multiply: 2.0
