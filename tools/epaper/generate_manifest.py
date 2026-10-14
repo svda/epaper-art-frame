@@ -22,15 +22,26 @@ from pathlib import Path
 IMAGE_EXTS = {".png", ".jpg", ".jpeg"}
 MANIFEST_NAME = "manifest.json"
 HERE = Path(__file__).resolve().parent
-DEFAULT_IMAGES = HERE.parent.parent / "www" / "epaper"
+
+# `device_profile.py` sits beside this script; imported after HERE so it can be
+# found when this file is run directly. Deliberately NOT named profile.py, which
+# would shadow the stdlib `profile` module.
+sys.path.insert(0, str(HERE))
+import device_profile as profiles  # noqa: E402
 
 
-def images_dir(arg: str | None) -> Path:
+def default_images_dir(profile_name: str | None = None) -> Path:
+    """The artwork folder for *profile_name* (the default profile when None)."""
+    _, prof = profiles.resolve(profile_name)
+    return profiles.artwork_dir(prof)
+
+
+def images_dir(arg: str | None, profile_name: str | None = None) -> Path:
     if arg:
         return Path(arg).expanduser().resolve()
     if env := os.environ.get("EPAPER_IMAGES"):
         return Path(env).expanduser().resolve()
-    return DEFAULT_IMAGES
+    return default_images_dir(profile_name)
 
 
 def find_images(folder: Path) -> list[str]:
@@ -49,19 +60,30 @@ def render(images: list[str]) -> str:
     return json.dumps(images) + "\n"
 
 
-def prepare_heics(folder: Path) -> None:
-    """Convert any .heic/.HEIC in *folder* to dithered PNGs via prepare_image.sh."""
+def prepare_heics(folder: Path, profile_name: str | None = None) -> None:
+    """Convert any .heic/.HEIC in *folder* to dithered PNGs via prepare_image.sh.
+
+    The profile is passed through so the output matches this panel's dimensions
+    and palette, not the default profile's.
+    """
     script = HERE / "prepare_image.sh"
     if not script.exists():
         raise SystemExit(f"{script} not found; cannot --prepare")
+    profile_name = profile_name or profiles.default_name()
     for p in sorted(folder.iterdir()):
         if p.is_file() and p.suffix.lower() == ".heic":
-            subprocess.run([str(script), str(p)], check=True)
+            subprocess.run([str(script), "--profile", profile_name, str(p)], check=True)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dir", help="artwork folder (default: <repo>/www/epaper)")
+    parser.add_argument("--dir", help="artwork folder (overrides --profile)")
+    parser.add_argument(
+        "--profile",
+        default=None,
+        help="device profile: which panel this artwork is for (default: the "
+        "configured default profile)",
+    )
     parser.add_argument(
         "--check",
         action="store_true",
@@ -72,13 +94,19 @@ def main() -> int:
         action="store_true",
         help="convert any .heic/.HEIC to dithered PNGs (via prepare_image.sh) first",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    folder = images_dir(args.dir)
+    # Validate the profile even when --dir overrides the folder, so a typo fails
+    # loudly instead of silently preparing artwork for the wrong panel.
+    profiles.resolve(args.profile)
+    if args.profile is None:
+        args.profile = profiles.default_name()
+
+    folder = images_dir(args.dir, args.profile)
     if not folder.is_dir():
         raise SystemExit(f"artwork folder not found: {folder}")
     if args.prepare:
-        prepare_heics(folder)
+        prepare_heics(folder, args.profile)
 
     images = find_images(folder)
     desired = render(images)

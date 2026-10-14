@@ -7,15 +7,18 @@
 set -eu
 
 DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-DEFAULT_IMAGES="$DIR/../../www/epaper"
+PROFILE_HELPER="$DIR/device_profile.py"
 dry_run=0
+profile=${EPAPER_PROFILE:-}
 
 usage() {
   cat <<'EOF'
 usage: push_to_ha.sh [options] [user@]host:/path/to/config/www/epaper/
 
 options:
-  --dir DIR       artwork folder (default: <repo>/www/epaper, or $EPAPER_IMAGES)
+  --profile ID    device profile: which panel's artwork this is
+                  (default: the configured default profile, or $EPAPER_PROFILE)
+  --dir DIR       artwork folder (overrides --profile, or $EPAPER_IMAGES)
   -n, --dry-run   show what would be copied, then stop
   -h, --help      show this help
 
@@ -23,10 +26,13 @@ The destination may also be set via the EPAPER_DEST environment variable.
 EOF
 }
 
-images=${EPAPER_IMAGES:-$DEFAULT_IMAGES}
+images=${EPAPER_IMAGES:-}
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --profile)
+      [ $# -ge 2 ] || { echo "error: --profile needs an id" >&2; exit 2; }
+      profile=$2; shift 2 ;;
     --dir)
       [ $# -ge 2 ] || { echo "error: --dir needs a path" >&2; exit 2; }
       images=$2; shift 2 ;;
@@ -37,6 +43,11 @@ while [ $# -gt 0 ]; do
     *) break ;;
   esac
 done
+
+# The artwork folder comes from the profile unless one was given explicitly.
+command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found" >&2; exit 1; }
+[ -n "$profile" ] || profile=$(python3 "$PROFILE_HELPER" --default)
+[ -n "$images" ] || images=$(python3 "$PROFILE_HELPER" "$profile" --artwork)
 
 if [ $# -ge 1 ]; then dest=$1; else dest=${EPAPER_DEST:-}; fi
 [ -n "$dest" ] || { usage >&2; exit 2; }
@@ -54,7 +65,7 @@ command -v python3 >/dev/null 2>&1 || { echo "error: python3 not found" >&2; exi
 
 # Keep the manifest in sync with the folder — never push a stale one.
 echo "regenerating manifest.json"
-python3 "$DIR/generate_manifest.py" --dir "$images" >/dev/null
+python3 "$DIR/generate_manifest.py" --profile "$profile" --dir "$images" >/dev/null
 
 # Collect the artwork.
 set --

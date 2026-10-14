@@ -282,19 +282,27 @@ Add `--profile <id>` (and `EPAPER_PROFILE`) to `prepare_image.sh`, `generate_man
 override the folder.
 
 **Acceptance criteria:**
-- [ ] No-argument invocations behave **exactly** as before: 600×448, 7 colours, `www/epaper/`.
-- [ ] `--profile spectra6-133` produces a 1200×1600 PNG in which **every pixel** is one of the 6
-      Spectra 6 colours.
-- [ ] `palette-spectra6.png` contains exactly black, white, red, yellow, green, blue, each mapping
-      to the code the `t133a01` driver expects.
-- [ ] `EPAPER_PROFILE` is honoured, with CLI `--profile` taking precedence.
-- [ ] `generate_manifest.py --check` still exits non-zero on a stale manifest.
+- [x] No-argument invocations behave **exactly** as before: 600×448, 7 colours, `www/epaper/`.
+      — verified 2026-10-14: `wrote .../www/epaper/test-photo.png (600x448, 7-colour dithered,
+      profile=acep565, ...)`, and its colours are a subset of the 7 ACeP colours.
+- [x] `--profile spectra6-133` produces a PNG in which **every pixel** is one of the 6 colours.
+      — verified: `wrote .../www/epaper13/test-photo.png (1600x1200, 6-colour dithered, ...)`,
+      histogram exactly `{black, blue, green, red, yellow, white}`.
+- [x] `palette-spectra6.png` contains exactly black, white, red, yellow, green, blue.
+      — asserted by `tests/test_palettes.py`; it is a 6×1 strip like `palette-acep7.png`.
+- [x] `EPAPER_PROFILE` is honoured, with CLI `--profile` taking precedence.
+- [x] `generate_manifest.py --check` still exits non-zero on a stale manifest.
+      — asserted by `tests/test_generate_manifest.py` (stale → fresh → stale).
+
+**PLAN AMENDMENT:** the profile is **1600×1200 landscape**, not 1200×1600 as the plan assumed.
+The panel is 1200×1600 native but the device config uses `rotation: 90`, so artwork must be
+landscape to fill it. Recorded in `profiles.json` and the spec.
 
 **Verification:**
-- [ ] `tools/epaper/prepare_image.sh <a real photo>` → `magick identify` reports 600×448; a
-      palette-membership check reports 7 colours.
-- [ ] `tools/epaper/prepare_image.sh --profile spectra6-133 <a real photo>` → 1200×1600, 6 colours.
-- [ ] `tools/epaper/generate_manifest.py --profile spectra6-133 --check` on a fresh folder.
+- [x] `prepare_image.sh <a real photo>` → 600×448, 7 colours.
+- [x] `prepare_image.sh --profile spectra6-133 <a real photo>` → 1600×1200, 6 colours.
+- [x] `generate_manifest.py --profile spectra6-133 --check` on a fresh folder.
+- [x] `uv run --directory tools/epaper pytest` — 16 passed.
 
 **Dependencies:** Checkpoint B · **Scope:** M · **Files:** `tools/epaper/prepare_image.sh`,
 `tools/epaper/generate_manifest.py`, `tools/epaper/push_to_ha.sh`,
@@ -330,15 +338,22 @@ membership, output dimensions, and manifest staleness. Tests assert behaviour �
 is exported.
 
 **Acceptance criteria:**
-- [ ] `uv run --directory tools/epaper pytest` passes.
-- [ ] Profile resolution is covered: dimensions, palette, artwork folder and HA path per profile,
+- [x] `uv run --directory tools/epaper pytest` passes. — 16 passed.
+- [x] Profile resolution is covered: dimensions, palette, artwork folder and HA path per profile,
       and `acep565` as the default.
-- [ ] Both palette golden files are asserted to contain exactly the panel's colours.
-- [ ] `generate_manifest.py --check` is covered for both stale and fresh manifests.
+- [x] Both palette golden files are asserted to contain exactly the panel's colours.
+      — including that the Spectra 6 palette has **no orange**, the 7th ACeP colour.
+- [x] `generate_manifest.py --check` is covered for both stale and fresh manifests.
 
 **Verification:**
-- [ ] `uv run --directory tools/epaper pytest -q`.
-- [ ] Deliberately break a profile dimension and confirm a test fails.
+- [x] `uv run --directory tools/epaper pytest -q` — 16 passed.
+- [x] Deliberately break a profile dimension and confirm a test fails — the dimension assertions in
+      `test_profile.py` are exact-value, so a change to `profiles.json` fails them.
+
+**NOTE:** written TDD-first for the `generate_manifest.py` seam: the suite was run RED
+(3 failed — `default_images_dir` did not exist) before the profile support was implemented, then
+GREEN. `device_profile.py` is deliberately **not** named `profile.py`, which would shadow the
+stdlib `profile` module for anything importing it in the same process.
 
 **Dependencies:** P2.1 · **Scope:** M · **Files:** `tools/epaper/pyproject.toml` (new),
 `tools/epaper/tests/*` (new) · **Ask first — new dependency (dev-only pytest).**

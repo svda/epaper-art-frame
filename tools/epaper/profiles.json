@@ -1,0 +1,24 @@
+{
+  "_comment": "Device profiles for the e-paper image pipeline. A profile is everything a panel needs from the tooling: pixel dimensions, colour palette, and where its artwork lives. Adding a device is a row here -- never an `if` in a script. Read it via profile.py; see README.md.",
+  "default": "acep565",
+  "profiles": {
+    "acep565": {
+      "description": "Waveshare 5.65\" 7-colour ACeP (600x448)",
+      "width": 600,
+      "height": 448,
+      "colours": 7,
+      "palette": "palette-acep7.png",
+      "artwork": "www/epaper",
+      "ha_dir": "local/epaper"
+    },
+    "spectra6-133": {
+      "description": "Seeed EE02 + 13.3\" Spectra 6, landscape (1600x1200)",
+      "width": 1600,
+      "height": 1200,
+      "colours": 6,
+      "palette": "palette-spectra6.png",
+      "artwork": "www/epaper13",
+      "ha_dir": "local/epaper13"
+    }
+  }
+}
