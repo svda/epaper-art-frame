@@ -65,17 +65,19 @@ def test_acep565_uses_the_magick_backend_with_no_pre_filter():
     assert acep["pre_filter"] == ""
 
 
-def test_spectra6_uses_the_library_backend():
-    """Supersedes the magick pre_filter (see test_dither.py).
+def test_spectra6_uses_the_magick_backend_with_a_pre_filter():
+    """Reverted to magick after the epaper-dithering trial.
 
-    Spectra 6's colours are muted and photos needed pre-compensation. That was
-    first done with a magick pre_filter and is now done properly by
-    epaper-dithering's OKLab matching plus tone/gamut compression, so the
-    pre_filter is EMPTY here -- both at once would double-compensate.
+    The library's OKLab matching fixed green (20.4% vs 9.0%) but dropped yellow
+    from 13.4% to 1.0%, and yellow is one of only two bright inks on this panel,
+    so the image read dark. Forcing yellow back by using a mid-tone yellow
+    reference was a cliff, not a knob: yellow 1% -> 38% while green 20% -> 0%.
+    Six inks, and OKLab picks green where sRGB picks yellow -- so this is a
+    hardware trade-off, and the brighter/yellower rendering was chosen.
     """
     _, spect = profile.resolve("spectra6-133")
-    assert spect["backend"] == "epaper-dithering"
-    assert spect["pre_filter"] == ""
+    assert spect["backend"] == "magick"
+    assert spect["pre_filter"] != ""
 
 
 def test_unknown_profile_fails_loudly():

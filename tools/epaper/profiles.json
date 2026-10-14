@@ -22,8 +22,8 @@
       "palette": "palette-spectra6.png",
       "artwork": "www/epaper13",
       "ha_dir": "local/epaper13",
-      "backend": "epaper-dithering",
-      "pre_filter": "",
+      "backend": "magick",
+      "pre_filter": "-modulate 95,160 -sigmoidal-contrast 4,50%",
       "dither": "FloydSteinberg"
     }
   }

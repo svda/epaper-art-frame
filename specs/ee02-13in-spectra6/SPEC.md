@@ -249,6 +249,35 @@ analyze-memory` plus a real render) before anything else is tuned.
   pops. Measured: raising `sigmoidal-contrast` from 2 to 4 changes green by only −1.3% while cutting
   yellow 14.5% and adding black 9.6% — so no prep lever recovers green, and lowering contrast would
   make the yellow complaint *worse*. Accepted as a hardware characteristic; tuning stopped here.
+
+> **COLOUR INVESTIGATION CLOSED (2026-10-14): the panel forces a yellow-or-green choice.**
+> A `dither` + `backend` field exists in `profiles.json`, and an
+> `OpenDisplay/epaper-dithering` backend (`tools/epaper/dither.py`, a Rust-cored library) was
+> built and measured end to end. The findings, all measured on one real photo:
+>
+> | variant | black | white | **yellow** | red | blue | **green** |
+> |---|---|---|---|---|---|---|
+> | **magick + pre_filter (CHOSEN)** | 26.3 | 16.2 | **13.4** | 21.5 | 13.6 | 9.0 |
+> | library, OKLab + idealised palette | 12.6 | 22.0 | **1.0** | 27.1 | 16.8 | **20.4** |
+> | library, mid-tone yellow `(215,205,0)` | 16.9 | 13.1 | **37.6** | 6.6 | 25.7 | **0.1** |
+>
+> - **The library's OKLab matching fixes green** (9.0 → 20.4%) but **collapses yellow**
+>   (13.4 → 1.0%). Since yellow is one of only two bright inks here, that reads as a *dark*
+>   image — the user's verdict, twice, at neutral and at the earlier `exposure: 0.9`.
+> - **The library's `tone`/`gamut` kwargs are no-ops** for idealised palettes: four variants
+>   (plain, tone, gamut, both) produced byte-identical output. So they were never the lever.
+> - **Forcing yellow back is a cliff, not a knob.** A mid-tone yellow reference swings yellow
+>   1% → 38% while green 20% → **0%**, and red collapses to 6.6%. Verified that the custom
+>   palette still mapped to the correct ink codes, so this is *usage*, not the driver.
+> - **A measured (calibrated) palette was worse still:** its mid-grey white reference
+>   `(168,180,182)` swallowed every mid-to-light mid-tone, giving **37% white** on the panel.
+>   The component fork made to support it was reverted.
+>
+> **So: OKLab picks green where ImageMagick's sRGB matching picks yellow, and this six-ink panel
+> cannot have both.** The brighter, yellower rendering was chosen. The library backend and its
+> helper remain in the tree, inert, documented here, one `backend` value away from being
+> re-enabled — with its dependency (`epaper-dithering`) still declared, since `dither.py` needs
+> it and DBS refinement was never tried.
 - `prepare_image.sh --profile spectra6-133` → cover-crop to 1200×1600, dither, remap to that
   palette. On-device quantisation is not used, for the same reason as the existing frame: raw
   RGB bands badly on photos.
