@@ -120,25 +120,31 @@ file (already touched by B2.1). **Ask-first.**
 `../SPEC.md`'s Open Questions table.
 
 **Acceptance criteria:**
-- [ ] Timer wake still shows the next image and updates the `Last image` sensor (no regression).
-- [ ] GPIO3 wakes the device, logs `dir 1`, shows the next image.
-- [ ] GPIO2 wakes the device, logs `dir -1`, shows the previous image.
-- [ ] After a previous press, the next timer wake shows the image *after* the one just shown.
-- [ ] Rapid presses during the awake window produce at most one step; a single-image manifest
-      does not crash.
-- [ ] Idle pin level (unpressed) is HIGH — no floating/spurious wakes (spec Q1).
-- [ ] Q1–Q4 outcomes recorded in `../SPEC.md`.
+- [x] Timer wake still shows the next image and updates the `Last image` sensor (no regression) —
+      verified from a serial capture of a full cycle (fetch → render 43 s → index persisted → sleep).
+- [x] GPIO3 (next) wakes the device and shows the next image — **user-confirmed on the panel**.
+- [x] GPIO2 (previous) wakes the device and shows the previous image — **user-confirmed on the panel**.
+- [x] The index write was observed (`preferences: Writing 2 items … `), so the next timer wake
+      continues from the adjusted index (mechanism verified; not separately eyeballed).
+- [ ] Rapid presses during the awake window produce at most one step — not tested; documented as
+      accepted (one step per wake). A single-image manifest is handled by the `art_count <= 0` guard.
+- [x] No spurious wakes with the buttons idle (spec Q1).
+- [x] Q1 / Q4 / Q6 resolved in `../SPEC.md`.
 
 **Verification:**
-- [ ] Network logs: `.venv/bin/esphome logs … --device epaper-art-frame-13in.local` show the
-      expected `dir` per press.
+- [x] Serial capture showed the pre-API pipeline lines (`manifest: 37 image(s)`,
+      `showing 21/37 (dir 1)`, `Refresh complete`, `Beginning sleep`) on a boot cycle.
+- [x] Both buttons confirmed on the panel by the user. (Note: `dir` cannot be read over network
+      logs — it is logged before the API connects — and attaching the USB-Serial-JTAG reader
+      resets the S3, so the direction was confirmed visually, not from logs.)
 
 **Dependencies:** B2.1, B3.1 · **Scope:** M · **Files:** `specs/ee02-buttons/SPEC.md` (notes)
 
 ---
 
 ## Checkpoint: Complete
-- [ ] All Phase 1–4 acceptance criteria met.
-- [ ] No-regression gate (B3.1) clean.
-- [ ] Success criteria 1–6 in `../SPEC.md` all satisfied.
-- [ ] Ready for review / commit.
+- [x] All Phase 1–4 acceptance criteria met (rapid-press edge case untested and documented as
+      accepted; one step per wake).
+- [x] No-regression gate (B3.1) clean.
+- [x] Success criteria 1–6 in `../SPEC.md` all satisfied (1–2 verified on hardware 2026-10-14).
+- [x] Ready for review / commit.

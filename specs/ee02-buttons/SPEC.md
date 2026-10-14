@@ -1,6 +1,6 @@
 # Spec: EE02 User Buttons — Previous / Next Artwork
 
-Status: **approved** · Revision 1 (2026-10-14)
+Status: **approved · implemented · bench-verified (2026-10-14)** · Revision 1
 Slug: `ee02-buttons`
 
 > **What this adds.** On the EE02 13.3" frame, the two user buttons (GPIO2 / GPIO3) wake
@@ -303,12 +303,19 @@ back into this spec.
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | Are the EE02 buttons active-LOW, and does the board provide external pull-ups? | Bench: read pin state idle vs pressed. If no external pull-up, `mode: INPUT_PULLUP` (already assumed) is required. |
+| Q1 | Are the EE02 buttons active-LOW, and does the board provide external pull-ups? | **Resolved (bench 2026-10-14)** — both buttons work with `mode: INPUT_PULLUP` + `ANY_LOW`; no spurious wakes with the buttons idle. |
 | Q2 | Does `ANY_LOW` validate for the ESP32-S3 variant in ESPHome 2026.9.0? | **Resolved** — `esphome config` accepts `mode: ANY_LOW` on the S3, and `esphome compile` succeeds. |
 | Q3 | Does a second press during the ~51 s awake window get lost (ext1 cannot re-trigger while awake)? | Bench step 7. If a lost press is unacceptable, a follow-up could poll the buttons while awake — **out of scope** for v1. |
-| Q4 | Does the community `ee02_epaper` component's `power_pin` handling interfere with RTC-domain pin config on GPIO2/3? | Bench: confirm both wakes work with the panel driver active. |
+| Q4 | Does the community `ee02_epaper` component's `power_pin` handling interfere with RTC-domain pin config on GPIO2/3? | **Resolved (bench 2026-10-14)** — both button wakes work with the panel driver active. |
 | Q5 | How are the buttons reached with the frame wall-mounted? | **Not this spec** — a requirement handed to the future EE02 enclosure spec (cutout, or lift-off access). |
-| Q6 | Does holding GPIO3 LOW at a button wake disturb boot, given GPIO3 is a strapping pin? | Bench: confirm every "next" press boots normally. |
+| Q6 | Does holding GPIO3 LOW at a button wake disturb boot, given GPIO3 is a strapping pin? | **Resolved (bench 2026-10-14)** — "next" wakes boot and render normally. |
+
+> **Observability note (bench 2026-10-14).** The `dir` log line cannot be read over network logs —
+> it is emitted by `show_image` *before* `wait_until api.connected`, and the API is the only way
+> network logs attach. Attaching the USB-Serial-JTAG reader instead **resets the S3**
+> (`rst:0x15 (USB_UART_CHIP_RESET)`), which re-runs the pipeline with the default `dir 1` and
+> masks the ext1 wake reason. So button direction was confirmed by eye on the panel, not from
+> logs: pressing next advanced the image and pressing previous stepped it back.
 
 > **GPIO3 is an ESP32-S3 strapping pin** (JTAG signal source select). Configuring the internal
 > pull-up on it raises ESPHome's strapping-pin warning. It does **not** affect boot mode (that is
