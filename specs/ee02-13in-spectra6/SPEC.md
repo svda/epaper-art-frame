@@ -509,12 +509,22 @@ results recorded back into this spec:
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | Bench step 3 |
-| Q2 | `flash_mode` for the XIAO ESP32-S3 Plus (16 MB flash + octal PSRAM): the NULA needed `qio`; Seeed's Arduino default is `dio` | Bench step 1 |
+| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Resolved P0.1** — BUSY is idle-HIGH, so `inverted: true` is correct (the driver's `is_idle_()` is `!digital_read()`) |
+| Q2 | `flash_mode` for the XIAO ESP32-S3 Plus (16 MB flash + octal PSRAM): the NULA needed `qio`; Seeed's Arduino default is `dio` | **Resolved P0.1** — `qio` boots; esptool reports `Embedded PSRAM 8MB` and ESPHome logs `Size: 8192 KB` |
 | Q3 | Battery divider ratio, and whether `ADC_EN` (GPIO6) must be driven high before sampling | Bench; calibrate against a multimeter |
-| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | Bench step 4 + `esphome analyze-memory` |
-| Q5 | Panel rotation/transform for portrait vs landscape mounting | Bench step 2, then the enclosure decision |
-| Q6 | Is the ESPHome `t133a01` init sequence (tuned for the E1004 wiring) correct for the EE02's power rails | Bench step 2 |
+| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | Bench — needs the spike image served from HA |
+| Q5 | Panel rotation/transform for portrait vs landscape mounting | Bench, then the enclosure decision |
+| Q6 | Is the ESPHome `t133a01` init sequence (tuned for the E1004 wiring) correct for the EE02's power rails | Bench — visual confirmation of the test pattern |
+| Q7 | **PWR_EN polarity** — not in the original questions. ESPHome drives `enable_pin` HIGH by default | **Resolved P0.1** — PWR_EN is **ACTIVE-LOW** (see the note below) |
+
+> **Q7 — the bug that made the panel blank (found 2026-10-14).** The panel power switch Q10 is a
+> **CJ3407 P-channel MOSFET**: a high-side P-ch switch conducts when its gate is pulled **LOW**.
+> ESPHome's default drives `enable_pin` **HIGH**, which held the panel unpowered — so the driver
+> happily pushed the full 960 KB frame (~3 s of SPI) and the panel never responded. Fixed with
+> `enable_pin: {number: GPIO43, inverted: true}`. **Evidence:** BUSY(GPIO4) sat permanently at 1
+> before the fix and toggled 1→0(≈3 s)→1 after it. This cost nothing to find only because
+> `busy_pin` was temporarily omitted so the panel could be probed directly — the same trick
+> `epaper-diag.yaml` uses.
 
 ---
 

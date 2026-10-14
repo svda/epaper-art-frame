@@ -23,13 +23,24 @@ bring-up aid, like `nula-bringup.yaml` — it is deliberately *not* part of the 
 it does not reorder the two modules. It lives at the config root for now (so `!secret` resolves);
 P1.1 moves it into `devices/`.
 
-> **Build progress (2026-10-14, macOS, ESPHome 2026.9.0):** both stages written into one file so a
-> single flash answers everything. Config valid; compiled — flash 1,036,507 B (12.8%), DIRAM
-> 110,747 B (32.4%). `esphome analyze-memory` shows **no static blowup**: the 960 KB panel buffer
-> and the 3.84 MB RGB565 buffer are *runtime heap* allocations, so **Q4 stays a bench proof**, not
-> something the static analysis can settle. Also found en route: `ESPHOME_DATA_DIR` must be an
-> absolute path (fixed in `f6cf815`).
-> **Awaiting bench: Q1 (BUSY polarity), Q2 (flash mode), Q4 (PSRAM), Q6 (init sequence).**
+> **Bench progress (2026-10-14, EE02 on the bench, USB + OTA):**
+> - **Q2 resolved** — `qio` boots. esptool: `Embedded PSRAM 8MB (AP_3v3)`, 16 MB flash;
+>   ESPHome: `PSRAM Available: YES, Size: 8192 KB`.
+> - **Q1 resolved** — BUSY is idle-HIGH, so `busy_pin: inverted: true` is correct.
+> - **Q7 (new) resolved** — the panel was **blank** because `enable_pin` polarity was wrong.
+>   PWR_EN drives Q10, a **CJ3407 P-channel MOSFET** high-side switch, which conducts when its
+>   gate is pulled **LOW**; ESPHome's default drives `enable_pin` HIGH, holding the panel
+>   unpowered. The driver still pushed the full 960 KB frame (~3 s of SPI), so there was no
+>   error — just a dead panel. Fixed: `enable_pin: {number: GPIO43, inverted: true}`.
+>   **Evidence:** BUSY(GPIO4) sat permanently at 1 before the fix; after it, BUSY toggled
+>   1 → 0 (≈3 s) → 1. Found only because `busy_pin` was temporarily omitted so a gpio
+>   binary_sensor could read GPIO4 — the same trick `epaper-diag.yaml` uses (ESPHome refuses a
+>   probe on a pin the display already owns).
+> - **Still open: Q4** (needs the spike image served from HA — the 404 below) and **Q6**
+>   (visual confirmation of the rendered pattern).
+> - Spike image 404s are expected: `www/spike/` has not been pushed to the HA host yet.
+>
+> **Awaiting: Q4 (PSRAM under a real image), Q6 (visual).**
 
 - Config: `esp32` (S3, 16 MB flash, octal PSRAM), `spi`, `display` with the EE02 pin map,
   `logger`, `api`, `ota`, `wifi` (via `secrets.yaml`), and a `lambda` drawing 6 colour bars plus
@@ -43,10 +54,12 @@ P1.1 moves it into `devices/`.
       — done 2026-10-14: config valid; compiled (flash 1,036,507 B = 12.8%, DIRAM 110,747 B = 32.4%).
 - [ ] All **6** Spectra 6 colours render in the correct positions, correct 1200×1600 geometry,
       no corruption, **no mirroring**.
-- [ ] **Q1 resolved** — BUSY polarity confirmed on the EE02 and recorded. If the driver times out
+- [x] **Q1 resolved** — BUSY polarity confirmed on the EE02 and recorded. If the driver times out
       waiting for IDLE, `inverted` is wrong; record which value is correct.
-- [ ] **Q2 resolved** — the `flash_mode` / PSRAM combination that boots reliably is recorded
+      — **done 2026-10-14: idle-HIGH, `inverted: true` (confirmed from the driver's `is_idle_()`).**
+- [x] **Q2 resolved** — the `flash_mode` / PSRAM combination that boots reliably is recorded
       (the NULA needed `qio` with octal PSRAM; Seeed's Arduino default is `dio`).
+      — **done 2026-10-14: `qio` boots; PSRAM 8 MB confirmed.**
 - [ ] **Q4 resolved** — `esphome analyze-memory` output captured and the PSRAM headroom after
       downloading a 1200×1600 RGB565 image is recorded. If it does not fit, the fallback
       intermediate buffer is chosen and recorded here.
