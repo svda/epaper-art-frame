@@ -545,6 +545,18 @@ results recorded back into this spec:
 > **This is the plan's flagged risk realised** — *"ESPHome's `t133a01` model is tuned for the
 > reTerminal E1004 wiring, not the EE02 rails"* — with the documented fallback being a small
 > `external_components` override. **Ask-first.**
+>
+> **Power sequencing does not fix it (tried 2026-10-14).** Asserting PWR_EN from boot (a gpio
+> switch on GPIO43, `restore_mode: ALWAYS_ON`) so the rails settle 500 ms before the driver's RESET
+> pulse did not help: `INITIALISE` still blocked, for ~14 s in that run and >100 s earlier. That is
+> expected in hindsight — the panel is waiting for its *configuration*, not its supply.
+>
+> **The decisive evidence is in Seeed's own driver.** `Driver_T133A01::reset()` is
+> `delay(20); delay(20); busyWait();`, and `busyWait()` → `waitForReadyPin(pin, true)` carries a
+> **30 000 ms timeout**. So Seeed meets the *same* never-ready condition and simply **proceeds after
+> 30 s**. The panel only signals ready *after* the init sequence; ESPHome waits for ready *before*
+> sending it, and its wait has no timeout. Nothing in the config can express "don't wait" — this
+> needs a code fix: an `external_components` patch adding a timeout, or an upstream change.
 
 ---
 

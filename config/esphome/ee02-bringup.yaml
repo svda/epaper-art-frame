@@ -63,8 +63,14 @@ esphome:
   on_boot:
     priority: 600
     then:
-      # Draw the test pattern first: it needs no network, so a flash with no
-      # HA connectivity still proves the panel (Q1/Q2/Q6).
+      # Power the panel FIRST and let its rails settle before the driver touches
+      # it. The driver only asserts enable inside its RESET state, i.e. at the
+      # same instant as the reset pulse -- if the panel needs a settled supply to
+      # latch its power-up sequence, doing both together can leave it stuck busy.
+      - switch.turn_on: panel_power
+      - delay: 500ms
+      # Draw the test pattern: it needs no network, so a flash with no HA
+      # connectivity still proves the panel.
       - component.update: epaper_display
       - wait_until:
           condition:
@@ -114,6 +120,18 @@ globals:
     restore_value: false
     initial_value: "false"
 
+# Q8 EXPERIMENT (2026-10-14): assert PWR_EN (active-low) from boot, so the panel
+# is powered and settled long before the driver pulses RESET. The factory
+# firmware drew on this panel, so panel + FPC + power path are known good.
+switch:
+  - platform: gpio
+    id: panel_power
+    name: "Panel power"
+    pin:
+      number: GPIO43
+      inverted: true
+    restore_mode: ALWAYS_ON
+
 spi:
   clk_pin: GPIO7
   mosi_pin: GPIO9
@@ -146,21 +164,19 @@ display:
     cs1_pin: GPIO41
     dc_pin: GPIO10
     reset_pin: GPIO38
-    # Q7 RESOLVED (bench 2026-10-14): PWR_EN is ACTIVE-LOW. It drives Q10, a
+    # Q7 RESOLVED (bench 2026-10-14): PWR_EN is ACTIVE-LOW — it drives Q10, a
     # CJ3407 P-channel MOSFET high-side switch, which conducts when its gate is
-    # pulled LOW. ESPHome's default (drive HIGH) held the panel unpowered.
-    enable_pin:
-      number: GPIO43
-      inverted: true
-    # Q1 EXPERIMENT (2026-10-14): Seeed's driver waits for BUSY HIGH with a 30 s
-    # TIMEOUT; ESPHome's wait has NO timeout, so with `inverted: true` the driver
-    # deadlocks in INITIALISE -- "Waiting for idle in state INITIALISE" forever --
-    # and never reaches TRANSFER/POWER_ON/REFRESH, hence a permanently blank panel.
-    # This pass uses inverted: false to unblock it and see whether the panel
-    # renders at all. Seeed's gfxWaitForPin(readyHigh=true) argues for true.
+    # pulled LOW. enable_pin is intentionally NOT used here: the driver would
+    # only assert it inside its RESET state, simultaneously with the reset pulse.
+    # Instead `panel_power` (a gpio switch) asserts it at boot so the rails are
+    # settled before the driver runs. See the Q8 note above.
+    # Q8 EXPERIMENT: idle = HIGH, matching Seeed's gfxWaitForPin(readyHigh=true).
+    # If power sequencing fixes the readiness ordering this should clear
+    # INITIALISE; if it still deadlocks there, the panel really is busy before
+    # init and the driver needs a timeout (external_components fallback).
     busy_pin:
       number: GPIO4
-      inverted: false
+      inverted: true
     update_interval: never
     lambda: |-
       if (id(spike_has_image)) {
