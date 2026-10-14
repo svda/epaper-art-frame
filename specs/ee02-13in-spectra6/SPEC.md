@@ -230,6 +230,16 @@ analyze-memory` plus a real render) before anything else is tuned.
 
 - New palette golden file `tools/epaper/palette-spectra6.png` — exactly the 6 Spectra 6
   colours (black, white, red, yellow, green, blue), matching the codes the driver expects.
+  **It must hold the six PURE primaries** (`#FF0000`, `#0000FF`, `#00FF00`, …), not measured
+  colours: the `ee02_epaper` component quantises every pixel to the nearest of six pure primaries
+  by squared RGB distance (a Voronoi partition, no thresholds), so the palette has to equal those
+  references for the dither's output to map 1:1. A measured muted colour can fall into another
+  colour's cell — a real red of `(110,60,50)` is closer to black than to red, and would render black.
+- **Per-profile `pre_filter`** (`profiles.json`), applied by `prepare_image.sh` *before* the
+  dither. Spectra 6's inks are physically muted, so photos quantised straight onto the palette look
+  washed out; `spectra6-133` uses `-modulate 95,160 -sigmoidal-contrast 4,50%` (brightness,
+  saturation, contrast), settled by eye across real images. `acep565` has none — that frame renders
+  fine as-is, so the deployed 5.65" device is untouched.
 - `prepare_image.sh --profile spectra6-133` → cover-crop to 1200×1600, dither, remap to that
   palette. On-device quantisation is not used, for the same reason as the existing frame: raw
   RGB bands badly on photos.

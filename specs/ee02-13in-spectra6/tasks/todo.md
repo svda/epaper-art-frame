@@ -478,9 +478,12 @@ artwork from one source photo set, with the deployed frame and its sync untouche
       white). A good part of "pale" is also inherent: Spectra 6's inks are physically muted and it
       has no orange.
 
-      **Current state:** reverted to the **first** pre-filter iteration
-      (`-modulate 100,150 -sigmoidal-contrast 3,50%`) at the user's request, to evaluate across more
-      images before further tweaking. 37 photos regenerated and deployed.
+      **SETTLED (2026-10-14):** after reviewing real images at three settings, the user confirmed
+      `-modulate 95,160 -sigmoidal-contrast 4,50%` renders correctly. The brightness reduction was
+      the lever that mattered — the first two iterations only touched saturation and contrast.
+      Measured on one image, mean brightness of the dithered result: none 0.3075, iteration 1
+      0.2933, iteration 3 **0.2677** (~9% less white than iteration 1). 37 photos regenerated and
+      deployed. Real-photo fidelity is now **closed**.
 - [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches. — needs 2 wakes.
 - [ ] `analyze-memory` on this device — not run; Q4 already proved the budget on the spike, which
       uses the same buffers.
