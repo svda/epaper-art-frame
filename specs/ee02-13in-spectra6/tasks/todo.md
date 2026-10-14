@@ -604,4 +604,30 @@ refreshes, and a sane battery trend.
 
 ## Known issues / potential bugs
 
-_(empty — add as bring-up turns up anything, in the style of `epaper-art-frame`'s KI-1)_
+### KI-1: Screen stops updating, green LED blinks fast — the battery is disconnected (2026-10-14)
+
+**Symptom.** The panel stops updating. The green (charge-status) LED blinks rapidly. The device is
+otherwise healthy — USB enumerates and the WiFi API answers, so it looks like a firmware fault.
+
+**Root cause.** The battery is not connected: a loose JST 2.0 mm, or the slide switch OFF. Two things
+follow from that on the EE02:
+
+1. The charger's status LED blinks when no battery is detected.
+2. **The panel's refresh current comes through the battery.** On USB alone the panel browns out
+   during a refresh, so it never completes — see the evidence below.
+
+**Evidence.** `[W][ee02_epaper:227]: Busy wait timed out; proceeding` in the device log, while the
+API still answers. BUSY never asserts because the panel never finishes powering up.
+
+**Fix.** Reseat the JST and confirm the **slide switch is ON**. The LED stops blinking and the panel
+refreshes. This is the second time the slide switch has presented as "the device is dead" — check it
+first, every time.
+
+**Not to be confused with a driver deadlock.** `ee02_epaper` has a BUSY timeout and *proceeds*, so
+the device stays reachable and the failure is a non-updating screen rather than a hang. The upstream
+`epaper_spi` this project started with had no timeout and deadlocked outright (SPEC.md Q8) — same
+class of symptom, very different blast radius.
+
+**Consequence for P4.1.** The awake-current measurement cannot be done on USB: the panel's draw
+through the battery is precisely what this issue is about, so USB-only measurements would be
+unrepresentative as well as brownout-prone.
