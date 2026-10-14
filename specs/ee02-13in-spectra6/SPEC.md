@@ -557,6 +557,21 @@ results recorded back into this spec:
 > 30 s**. The panel only signals ready *after* the init sequence; ESPHome waits for ready *before*
 > sending it, and its wait has no timeout. Nothing in the config can express "don't wait" — this
 > needs a code fix: an `external_components` patch adding a timeout, or an upstream change.
+>
+> **Omitting `busy_pin` completes the cycle but aborts the refresh (tried 2026-10-14).** With no
+> BUSY feedback at all, the driver runs the whole sequence in one pass and logs
+> `Display update took 17591 ms` — `TRANSFER_DATA → POWER_ON → REFRESH_SCREEN → POWER_OFF →
+> DEEP_SLEEP → IDLE`. But **DRF is followed by POF just 23 ms later** (`09:08:08.411` →
+> `09:08:08.434`), so the panel's 15–30 s refresh is cut off almost immediately.
+>
+> **So the fix is precisely two-sided, and neither half is config-expressible:**
+> 1. the pre-`INITIALISE` idle wait must be **bounded** — the panel is never ready before init;
+> 2. the post-`REFRESH_SCREEN` idle wait must be **honoured** — it is the only signal that the
+>    15–30 s refresh has finished, and the panel asserts BUSY throughout it.
+>
+> Seeed's driver gets this right by construction: a 30 s timeout on *every* wait. A minimal
+> `external_components` patch therefore only needs a timeout added — it must **not** simply drop
+> `busy_pin` back out, which is the aborted-refresh failure mode above.
 
 ---
 

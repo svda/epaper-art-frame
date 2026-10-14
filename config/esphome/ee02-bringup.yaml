@@ -170,13 +170,13 @@ display:
     # only assert it inside its RESET state, simultaneously with the reset pulse.
     # Instead `panel_power` (a gpio switch) asserts it at boot so the rails are
     # settled before the driver runs. See the Q8 note above.
-    # Q8 EXPERIMENT: idle = HIGH, matching Seeed's gfxWaitForPin(readyHigh=true).
-    # If power sequencing fixes the readiness ordering this should clear
-    # INITIALISE; if it still deadlocks there, the panel really is busy before
-    # init and the driver needs a timeout (external_components fallback).
-    busy_pin:
-      number: GPIO4
-      inverted: true
+    # Q8 EXPERIMENT (2): busy_pin OMITTED entirely, so the driver performs NO
+    # idle wait and runs INITIALISE -> TRANSFER_DATA -> POWER_ON -> REFRESH ->
+    # POWER_OFF in one pass (the epaper-diag.yaml trick, and the only
+    # configuration observed to complete a full update). If anything renders,
+    # init + transfer + refresh all work and the only defect is the wait policy.
+    # If the frame is partial/aborted, that confirms it too: DRF is followed
+    # almost immediately by POF, so the refresh needs the (fixed) wait back.
     update_interval: never
     lambda: |-
       if (id(spike_has_image)) {
