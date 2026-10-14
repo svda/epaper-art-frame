@@ -527,7 +527,7 @@ results recorded back into this spec:
 |---|---|---|
 | Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Resolved** — BUSY is idle-HIGH (LOW = busy); handled inside `ee02_epaper` |
 | Q2 | `flash_mode` for the XIAO ESP32-S3 Plus (16 MB flash + octal PSRAM): the NULA needed `qio`; Seeed's Arduino default is `dio` | **Resolved P0.1** — `qio` boots; esptool reports `Embedded PSRAM 8MB` and ESPHome logs `Size: 8192 KB` |
-| Q3 | Battery divider ratio, and whether `ADC_EN` (GPIO6) must be driven high before sampling | Bench; calibrate against a multimeter |
+| Q3 | Battery divider ratio, and whether `ADC_EN` (GPIO6) must be driven high before sampling | **Resolved P3.2** — the EE02 has its own **1:1 divider (ratio 2.0)**, and **ADC_EN is ACTIVE-HIGH**. Meter 3.896 V vs firmware 3.86 V (raw pin 1.930 V) — 0.9% agreement, so 2.0 is kept rather than fitting a single sample's noise |
 | Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | **Resolved P0.1** — `Allocating buffer: 1200x1600, 3840000 bytes` then `Decoding complete` |
 | Q5 | Panel rotation/transform for portrait vs landscape mounting | **Provisionally resolved** — `rotation: 90` renders the native 1200×1600 as landscape 1600×1200 with correct orientation (bench, six-band test). Confirm against the enclosure |
 | Q6 | Is the upstream `t133a01` init sequence correct for the EE02's power rails | **Resolved** — not by upstream; by the `ee02_epaper` component. Six correct Spectra 6 bands on the glass |

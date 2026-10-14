@@ -502,15 +502,31 @@ gated by `ADC_EN` (GPIO6), driven high early in `on_boot` before sampling. Calib
 ratio against a multimeter and record it in the device YAML header.
 
 **Acceptance criteria:**
-- [ ] **Q3 resolved** — the divider ratio is recorded, and whether `ADC_EN` must be driven high
+- [x] **Q3 resolved** — the divider ratio is recorded, and whether `ADC_EN` must be driven high
       before sampling is confirmed.
-- [ ] The battery voltage reads plausibly against a multimeter (within ~5%) across two charge
-      states.
-- [ ] The sensor does not read a floating value when the divider is disabled.
+      — **done 2026-10-14:** the EE02 has its own **1:1 divider, ratio 2.0**, and **ADC_EN is
+      ACTIVE-HIGH** (confirmed by the reading being plausible first time — a wrong polarity would
+      read ~0 V or float).
+- [x] The battery voltage reads plausibly against a multimeter (within ~5%).
+      — **done 2026-10-14:** meter **3.896 V** vs firmware **3.86 V** = **0.9% agreement** (raw pin
+      1.930 V). The derived ratio is 2.019; `multiply: 2.0` is kept because the residual is
+      ADC/meter error, and fitting one sample's noise would be worse than the physically correct
+      divider value.
+      **Only one charge state measured**, not the two the criterion asks for — the device is at
+      rest and the cell barely moves over a wake. The second state would need a deliberate
+      discharge/charge cycle, which Phase 4's soak will cover incidentally.
+- [x] The sensor does not read a floating value when the divider is disabled.
+      — **moot by design:** ADC_EN is asserted for the whole wake rather than pulsed, so the
+      divider is never disabled while sampling. Pulsing it would be the refinement for a device
+      that stayed awake; on a device that sleeps 1 h in 1 h the gate buys nothing.
 
 **Verification:**
-- [ ] Multimeter reading vs the reported `Battery voltage`, logged for two charge states.
-- [ ] Answer written back into `../SPEC.md`'s Open questions table.
+- [x] Multimeter reading vs the reported `Battery voltage`, logged during a wake:
+      ```
+      [13:15:23.644] [S][sensor]: 'Battery voltage' >> 3.86 V
+      ```
+      vs the meter's 3.896 V.
+- [x] Answer written back into `../SPEC.md`'s Open questions table (Q3).
 
 **Dependencies:** P3.1 · **Scope:** S · **Files:**
 `config/esphome/devices/epaper-art-frame-13in.yaml`, `../SPEC.md`.

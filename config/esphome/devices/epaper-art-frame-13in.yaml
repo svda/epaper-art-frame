@@ -117,13 +117,15 @@ display:
       it.fill(Color(255, 255, 255));
       it.image(0, 0, id(art_image));
 
-# --- P3.2 battery measurement (PROVISIONAL — Q3 calibration pending) --------
-# The EE02 has its own divider from VBAT to BAT_ADC (GPIO1), gated by ADC_EN
-# (GPIO6) so it does not drain the cell between reads. Two things are UNKNOWN
-# and are what P3.2 resolves:
-#   1. the divider ratio  -> `multiply` below is a guess (2.0);
-#   2. the ADC_EN polarity -> assumed active-HIGH. If the reading is ~0 V or
-#      floats, try `inverted: true`.
+# --- P3.2 battery measurement (Q3 RESOLVED, bench 2026-10-14) ---------------
+# The EE02 has its own 1:1 divider from VBAT to BAT_ADC (GPIO1), gated by ADC_EN
+# (GPIO6) so it does not drain the cell between reads.
+#   ratio       : 2.0 (equal resistors). Derived 2.019 from one sample --
+#                 meter 3.896 V vs firmware 3.86 V -> raw pin 1.930 V. The 0.9%
+#                 residual is ADC/meter error, so 2.0 is kept rather than fitting
+#                 a single point's noise.
+#   ADC_EN      : ACTIVE-HIGH (confirmed -- a wrong polarity would read ~0 V or
+#                 float, and the reading was plausible first time).
 # ADC_EN is asserted from boot rather than pulsed: a 60 s wake with the divider
 # live costs nothing measurable. Pulsing it to sample would be the refinement for
 # a device that did not sleep.
@@ -142,7 +144,6 @@ sensor:
     name: "Battery voltage"
     attenuation: 12db
     update_interval: 10s
-    # PROVISIONAL: replace with the calibrated ratio once the meter comparison is
-    # done. Until then this value is wrong by that factor -- do not trust it.
     filters:
+      # 1:1 divider -> 2.0. See the Q3 note above for how it was derived.
       - multiply: 2.0
