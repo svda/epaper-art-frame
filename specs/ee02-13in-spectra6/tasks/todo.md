@@ -229,27 +229,40 @@ device spec. Leave historical task records (`tasks/*.md`) alone — they describ
 the time and rewriting them would falsify the record.
 
 **Acceptance criteria:**
-- [ ] `README.md` documents both devices and the profile-per-panel image workflow.
-- [ ] No remaining reference to the old path `config/esphome/epaper-art-frame.yaml` in
-      `README.md` or `specs/epaper-art-frame/SPEC.md`.
-- [ ] `specs/epaper-art-frame/SPEC.md` changed **only** where it names the config path.
-- [ ] README commands include `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"`.
+- [x] `README.md` documents the new tree, the shared-package seam, and the profile-per-panel
+      workflow (the 13.3" row is marked as not yet built).
+- [x] No remaining reference to the old path `config/esphome/epaper-art-frame.yaml` in `README.md`.
+- [x] **Corrected target:** `specs/epaper-art-frame/SPEC.md` turned out to contain **no** config-path
+      reference at all, so it was not touched. The stale reference was in
+      **`specs/wooden-frame/SPEC.md`** — a re-validation command that would now fail — and that one
+      command was updated. Lines 146–147 of that file ("the device firmware stays where it is
+      (`config/esphome/`)") remain accurate at the directory level and were left alone.
+- [x] README commands include `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"`.
 
 **Verification:**
-- [ ] `rg -n 'config/esphome/epaper-art-frame\.yaml' README.md specs/epaper-art-frame/SPEC.md`
-      returns nothing.
-- [ ] Walk the README's firmware commands once and confirm they run.
+- [x] `rg -n 'config/esphome/epaper-art-frame\.yaml' README.md` returns nothing.
+- [x] Historical task records (`specs/*/tasks/*.md`) deliberately left alone — they describe what
+      was done at the time and rewriting them would falsify the record.
+- [ ] Walk the README's firmware commands once and confirm they run — the `config` and `compile`
+      forms are already exercised in P1.1; the `upload` form is the same command P1.1's boot check
+      uses.
 
 **Dependencies:** P1.2 · **Scope:** S · **Files:** `README.md`,
-`specs/epaper-art-frame/SPEC.md` · **Ask first — editing a shipped spec.**
+`specs/wooden-frame/SPEC.md` · **Ask first — editing a shipped spec (approved 2026-10-14).**
 
 ---
 
 ### Checkpoint B — Two devices, one codebase
-- [ ] The existing frame still works, unchanged, from its new path.
-- [ ] `common/` contains no device-specific value (no pin, dimension, or model).
-- [ ] The registry is accurate.
-- [ ] **Review with user** before Phase 2.
+- [x] The existing frame still works, unchanged, from its new path. — the `esphome config` diff is
+      **content-identical** to the pre-refactor baseline; the physical boot check was authorised by
+      the user as passing (the OTA could not be completed: the frame is a deep-sleep device and was
+      unreachable outside its ~1 min wake window).
+- [x] `common/` contains no device-specific value (no pin, dimension, or model) — verified by
+      inspection: `base.yaml` is api/ota/wifi/logger only; `art-frame.yaml` uses only
+      `${ha_url}`/`${image_dir}`/`${manifest_file}`/`${image_file}`/`${run_duration}`/
+      `${sleep_duration}`/`${device_name}`/`${friendly_name}`.
+- [x] The registry is accurate.
+- [x] **Review with user** before Phase 2.
 
 ---
 

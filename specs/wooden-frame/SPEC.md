@@ -127,7 +127,7 @@ Finish             → oil/wax per product data sheet; fully cure (≥72 h) befo
 Fit check          → panel in rebate, active margin even, panel removable, USB-C reachable
 Wall test          → hang with 2× device weight; confirm no rock and a ≤2 mm wall gap
 Commit             → git add specs/wooden-frame && git commit -F -   (with Spec:/Task: trailers)
-Device re-validate → .venv/bin/esphome config config/esphome/epaper-art-frame.yaml
+Device re-validate → ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome config config/esphome/devices/epaper-art-frame.yaml
 ```
 
 ---
