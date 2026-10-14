@@ -240,6 +240,15 @@ analyze-memory` plus a real render) before anything else is tuned.
   washed out; `spectra6-133` uses `-modulate 95,160 -sigmoidal-contrast 4,50%` (brightness,
   saturation, contrast), settled by eye across real images. `acep565` has none — that frame renders
   fine as-is, so the deployed 5.65" device is untouched.
+- **Dither method is a profile field too** (`dither`). Both panels use **FloydSteinberg**.
+  **Riemersma was tried and rejected (2026-10-14):** it measured worse on both a synthetic and a
+  real image — +59% black and −29% green on the former; on a real photo it gave 0.9% green against
+  11% yellow. The user confirmed it on the panel: *"way worse"*.
+- **Yellow-vibrant / green-dark is the panel's gamut, not the prep.** On Spectra 6, yellow is a
+  light ink and green a notably darker one, so green areas read near-black at distance while yellow
+  pops. Measured: raising `sigmoidal-contrast` from 2 to 4 changes green by only −1.3% while cutting
+  yellow 14.5% and adding black 9.6% — so no prep lever recovers green, and lowering contrast would
+  make the yellow complaint *worse*. Accepted as a hardware characteristic; tuning stopped here.
 - `prepare_image.sh --profile spectra6-133` → cover-crop to 1200×1600, dither, remap to that
   palette. On-device quantisation is not used, for the same reason as the existing frame: raw
   RGB bands badly on photos.
