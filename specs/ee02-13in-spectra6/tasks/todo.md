@@ -5,8 +5,11 @@ Plan: [`plan.md`](./plan.md) · Spec: [`../SPEC.md`](../SPEC.md)
 Every task additionally clears the **Definition of Done** in `plan.md`.
 
 Commands are run **from the repo root**. `ESPHOME_DATA_DIR` is pinned on every ESPHome
-invocation so both devices share one build cache; it is shown in full the first time and
-abbreviated to `esphome …` afterwards (export it once per shell to shorten them).
+invocation so both devices share one build cache, and it **must be an absolute path** —
+`ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"`. A relative value is re-relativised against
+the config dir and doubles, failing the build with a `kconfgen FileNotFoundError` (found in
+P0.1). Commands are abbreviated to `esphome …` from the second mention on; `export` it once per
+shell to shorten them.
 
 ---
 
@@ -131,7 +134,7 @@ the time and rewriting them would falsify the record.
 - [ ] No remaining reference to the old path `config/esphome/epaper-art-frame.yaml` in
       `README.md` or `specs/epaper-art-frame/SPEC.md`.
 - [ ] `specs/epaper-art-frame/SPEC.md` changed **only** where it names the config path.
-- [ ] README commands include `ESPHOME_DATA_DIR=config/esphome/.esphome`.
+- [ ] README commands include `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"`.
 
 **Verification:**
 - [ ] `rg -n 'config/esphome/epaper-art-frame\.yaml' README.md specs/epaper-art-frame/SPEC.md`
@@ -258,7 +261,7 @@ and `common/art-frame.yaml`. Push the `spectra6-133` artwork to HA's `config/www
 **Verification:**
 - [ ] Logs show `manifest: N image(s)`, the chosen filename, and `Beginning sleep`.
 - [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches.
-- [ ] `ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome analyze-memory
+- [ ] `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome analyze-memory
       config/esphome/devices/epaper-art-frame-13in.yaml` confirms PSRAM headroom at runtime.
 
 **Dependencies:** Checkpoint C, P0.1 · **Scope:** M · **Files:**

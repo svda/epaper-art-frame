@@ -30,9 +30,10 @@ image tooling, and a bench bring-up — but the plan front-loads the one genuine
 - **All `!secret` lives in `common/`.** ESPHome resolves `!secret` relative to the *including*
   file and only falls back to the main config's directory for included files — a `!secret` used
   directly in `devices/*.yaml` would look for `devices/secrets.yaml` and hard-fail.
-- **`ESPHOME_DATA_DIR=config/esphome/.esphome` on every command.** The build dir is derived from
-  the main config's directory and there is no CLI flag for it; pinning it keeps one shared build
-  cache instead of one per device.
+- **`ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"` on every command.** The build dir is
+  derived from the main config's directory and there is no CLI flag for it; pinning it (as an
+  **absolute** path — a relative one doubles and breaks the build) keeps one shared build cache
+  instead of one per device.
 - **Profiles are data, not branches.** `acep565` (600×448, 7-colour) and `spectra6-133`
   (1200×1600, 6-colour) are a table. Adding a panel is a row plus a device file — never an `if`.
 - **`acep565` is the default profile.** Existing invocations, the launchd iCloud sync, and the
@@ -93,8 +94,8 @@ Phase 4  acceptance: current, soak                            ← module ee02-13
 
 The standing bar every task clears, in addition to its own acceptance criteria:
 
-- [ ] `ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome config <device yaml>` validates
-      with no warnings.
+- [ ] `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome config <device yaml>`
+      validates with no warnings (absolute path — a relative value breaks the build).
 - [ ] `esphome compile` succeeds against the pinned ESPHome version (≥ 2026.9.0).
 - [ ] No secrets committed — credentials only via `secrets.yaml`, which is git-ignored.
 - [ ] Pin assignments documented once, in the device YAML header.

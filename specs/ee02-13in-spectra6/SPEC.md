@@ -103,8 +103,11 @@ These were read out of the installed ESPHome 2026.9.0 source and are load-bearin
   `secrets.yaml` stays at `config/esphome/secrets.yaml`.
 - **The build dir is derived from the main config's directory** (`config_dir/.esphome`), and
   there is no CLI flag for it — only the `ESPHOME_DATA_DIR` env var. → **Every ESPHome command
-  sets `ESPHOME_DATA_DIR=config/esphome/.esphome`** (run from the repo root), so both devices
-  share one build cache instead of creating `devices/.esphome/`.
+  sets `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome"`** (run from the repo root), so both
+  devices share one build cache instead of creating `devices/.esphome/`.
+  **The value must be absolute** — a relative one is re-relativised against the config dir and
+  doubles (`…/.esphome/build/<name>/config/esphome/.esphome/build/<name>/sdkconfig…`), failing
+  the build with a `kconfgen FileNotFoundError`. Found while building P0.1.
 - **`dimensions` must be a dict** for `epaper_spi` (`width:`/`height:`). The `1200x1600`
   string form is rejected by the schema — verified, not assumed.
 
@@ -276,20 +279,20 @@ lives in one place:
 
 ```
 # Validate (also validates every shared package each device pulls in)
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome config config/esphome/devices/epaper-art-frame.yaml
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome config config/esphome/devices/epaper-art-frame-13in.yaml
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome config config/esphome/devices/epaper-art-frame.yaml
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome config config/esphome/devices/epaper-art-frame-13in.yaml
 
 # Build
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome compile config/esphome/devices/epaper-art-frame-13in.yaml
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome compile config/esphome/devices/epaper-art-frame-13in.yaml
 
 # Flash (USB first, then OTA). upload does NOT recompile after a config edit.
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome upload config/esphome/devices/epaper-art-frame-13in.yaml
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome upload config/esphome/devices/epaper-art-frame-13in.yaml
 
 # Logs over the network API (the EE02's console may be USB-SERIAL-JTAG, so serial is unreliable)
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome logs config/esphome/devices/epaper-art-frame-13in.yaml --device epaper-art-frame-13in.local
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome logs config/esphome/devices/epaper-art-frame-13in.yaml --device epaper-art-frame-13in.local
 
 # Memory check for the PSRAM budget
-ESPHOME_DATA_DIR=config/esphome/.esphome .venv/bin/esphome analyze-memory config/esphome/devices/epaper-art-frame-13in.yaml
+ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome analyze-memory config/esphome/devices/epaper-art-frame-13in.yaml
 ```
 
 ```
