@@ -27,7 +27,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PROFILES_FILE = HERE / "profiles.json"
-FIELDS = ("description", "width", "height", "colours", "palette", "artwork", "ha_dir")
+FIELDS = ("description", "width", "height", "colours", "palette", "artwork", "ha_dir", "pre_filter")
 
 
 def load() -> dict:

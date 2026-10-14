@@ -448,6 +448,21 @@ artwork from one source photo set, with the deployed frame and its sync untouche
       photos. Real-artwork fidelity is unverified and is a follow-up: generate genuine 1600×1200
       artwork with `--profile spectra6-133` (e.g. by running the album sync with
       `EPAPER_PROFILE=spectra6-133`) and look at the result.
+- [x] **Real-photo fidelity — first pass done (2026-10-14).** 37 genuine photos generated and
+      deployed, and the user reported the colours as **washed out / pale**. Diagnosed as a missing
+      **saturation/contrast pre-compensation**: `prepare_image.sh` quantised photos straight onto
+      the six muted Spectra 6 colours with no boost. The standard practice for this panel (per
+      `acegallagher`'s README) is to map the gamut to the panel's muted range *with* saturation and
+      contrast enhancement. Fixed with a **profile-gated `pre_filter`** —
+      `-modulate 100,150 -sigmoidal-contrast 3,50%` for `spectra6-133`, empty for `acep565` so the
+      deployed 5.65" frame is untouched. 37 photos regenerated and redeployed; awaiting a look.
+      **Note:** the dither *algorithm* was not the cause — `prepare_image.sh` dithers to exactly the
+      palette RGB values, and the six-band test proved the component maps those exactly, so the
+      component sees only palette colours. The lever is *which* colours and how they are arranged.
+      **Still open:** the palette holds idealised primaries (`#FF0000` etc.) rather than the panel's
+      measured colours; measuring them and putting those in `palette-spectra6.png` is the next
+      refinement if it is still off. Also inherent: Spectra 6 has **no orange** (unlike the 7-colour
+      ACeP panel), so warm mid-tones must be dithered from red + yellow.
 - [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches. — needs 2 wakes.
 - [ ] `analyze-memory` on this device — not run; Q4 already proved the budget on the spike, which
       uses the same buffers.

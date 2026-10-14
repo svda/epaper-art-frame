@@ -69,6 +69,7 @@ WIDTH=$(python3 "$PROFILE_HELPER" "$profile" width)
 HEIGHT=$(python3 "$PROFILE_HELPER" "$profile" height)
 COLOURS=$(python3 "$PROFILE_HELPER" "$profile" colours)
 PALETTE=$(python3 "$PROFILE_HELPER" "$profile" --palette)
+PRE_FILTER=$(python3 "$PROFILE_HELPER" "$profile" pre_filter)
 [ -n "$out_dir" ] || out_dir=$(python3 "$PROFILE_HELPER" "$profile" --artwork)
 [ -f "$PALETTE" ] || { echo "error: palette not found: $PALETTE" >&2; exit 1; }
 
@@ -83,6 +84,16 @@ fi
 
 set -- -auto-orient -colorspace sRGB
 [ "$rotate" -ne 0 ] && set -- "$@" -rotate "$rotate"
+
+# Profile-specific pre-compensation, applied BEFORE the dither. Spectra 6's six
+# colours are muted, so a photo quantised straight onto them looks washed out;
+# boosting saturation and contrast first is the standard practice for this panel.
+# Empty for profiles that do not need it (the ACeP frame renders fine as-is).
+if [ -n "$PRE_FILTER" ]; then
+  # Deliberate word splitting: the profile holds a magick argument list.
+  # shellcheck disable=SC2086
+  set -- "$@" $PRE_FILTER
+fi
 
 if [ "$mode" = fit ]; then
   set -- "$@" -resize "${WIDTH}x${HEIGHT}" -background white -gravity center -extent "${WIDTH}x${HEIGHT}"

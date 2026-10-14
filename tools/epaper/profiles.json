@@ -9,7 +9,8 @@
       "colours": 7,
       "palette": "palette-acep7.png",
       "artwork": "www/epaper",
-      "ha_dir": "local/epaper"
+      "ha_dir": "local/epaper",
+      "pre_filter": ""
     },
     "spectra6-133": {
       "description": "Seeed EE02 + 13.3\" Spectra 6, landscape (1600x1200)",
@@ -18,7 +19,8 @@
       "colours": 6,
       "palette": "palette-spectra6.png",
       "artwork": "www/epaper13",
-      "ha_dir": "local/epaper13"
+      "ha_dir": "local/epaper13",
+      "pre_filter": "-modulate 100,150 -sigmoidal-contrast 3,50%"
     }
   }
 }

@@ -58,6 +58,18 @@ def test_every_profile_palette_file_exists():
         assert profile.palette_path(prof).is_file(), f"{name} palette missing"
 
 
+def test_spectra6_boosts_saturation_before_dithering():
+    """Spectra 6's six colours are muted, so photos need pre-compensation.
+
+    Without it, artwork quantised straight onto the palette looks washed out.
+    The ACeP profile deliberately has none: that frame renders fine as-is.
+    """
+    _, spect = profile.resolve("spectra6-133")
+    _, acep = profile.resolve("acep565")
+    assert "modulate" in spect["pre_filter"]
+    assert acep["pre_filter"] == ""
+
+
 def test_unknown_profile_fails_loudly():
     with pytest.raises(SystemExit):
         profile.resolve("no-such-panel")
