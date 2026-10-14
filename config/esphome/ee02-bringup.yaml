@@ -85,7 +85,9 @@ psram:
   speed: 80MHz
 
 logger:
-  level: DEBUG
+  # VERBOSE for the bench: the epaper_spi driver logs every command, the
+  # PON/DTM/DRF/POF state transitions and "Screen was busy for N ms" there.
+  level: VERBOSE
 
 api:
   encryption:
@@ -144,19 +146,21 @@ display:
     cs1_pin: GPIO41
     dc_pin: GPIO10
     reset_pin: GPIO38
-    # Q1 RESOLVED (bench 2026-10-14): BUSY is idle-HIGH. The driver's is_idle_()
-    # returns `!digital_read()`, so it only reports correctly when inverted.
-    # Q1b RESOLVED: PWR_EN is ACTIVE-LOW. PWR_EN drives Q10, a CJ3407 P-channel
-    # MOSFET high-side switch, which conducts when its gate is pulled LOW.
-    # ESPHome's default (drive HIGH) held the panel unpowered — the symptom was
-    # BUSY never asserting and a blank panel while the driver still pushed the
-    # full 960 KB frame (~3 s of SPI).
+    # Q7 RESOLVED (bench 2026-10-14): PWR_EN is ACTIVE-LOW. It drives Q10, a
+    # CJ3407 P-channel MOSFET high-side switch, which conducts when its gate is
+    # pulled LOW. ESPHome's default (drive HIGH) held the panel unpowered.
     enable_pin:
       number: GPIO43
       inverted: true
+    # Q1 EXPERIMENT (2026-10-14): Seeed's driver waits for BUSY HIGH with a 30 s
+    # TIMEOUT; ESPHome's wait has NO timeout, so with `inverted: true` the driver
+    # deadlocks in INITIALISE -- "Waiting for idle in state INITIALISE" forever --
+    # and never reaches TRANSFER/POWER_ON/REFRESH, hence a permanently blank panel.
+    # This pass uses inverted: false to unblock it and see whether the panel
+    # renders at all. Seeed's gfxWaitForPin(readyHigh=true) argues for true.
     busy_pin:
       number: GPIO4
-      inverted: true
+      inverted: false
     update_interval: never
     lambda: |-
       if (id(spike_has_image)) {

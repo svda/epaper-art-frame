@@ -509,22 +509,42 @@ results recorded back into this spec:
 
 | # | Question | Resolved by |
 |---|---|---|
-| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Resolved P0.1** — BUSY is idle-HIGH, so `inverted: true` is correct (the driver's `is_idle_()` is `!digital_read()`) |
+| Q1 | EE02 panel BUSY polarity — ESPHome's E1004 model uses `inverted: true`; confirm on the EE02 | **Blocked (see Q8)** — both polarities deadlock; the semantics indicate idle = HIGH |
 | Q2 | `flash_mode` for the XIAO ESP32-S3 Plus (16 MB flash + octal PSRAM): the NULA needed `qio`; Seeed's Arduino default is `dio` | **Resolved P0.1** — `qio` boots; esptool reports `Embedded PSRAM 8MB` and ESPHome logs `Size: 8192 KB` |
 | Q3 | Battery divider ratio, and whether `ADC_EN` (GPIO6) must be driven high before sampling | Bench; calibrate against a multimeter |
-| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | Bench — needs the spike image served from HA |
+| Q4 | Does the RGB565 image buffer (3.84 MB) + panel buffer (960 KB) fit comfortably in 8 MB PSRAM at runtime | **Resolved P0.1** — `Allocating buffer: 1200x1600, 3840000 bytes` then `Decoding complete: 1200x1600` |
 | Q5 | Panel rotation/transform for portrait vs landscape mounting | Bench, then the enclosure decision |
-| Q6 | Is the ESPHome `t133a01` init sequence (tuned for the E1004 wiring) correct for the EE02's power rails | Bench — visual confirmation of the test pattern |
+| Q6 | Is the ESPHome `t133a01` init sequence (tuned for the E1004 wiring) correct for the EE02's power rails | **Blocked (see Q8)** |
 | Q7 | **PWR_EN polarity** — not in the original questions. ESPHome drives `enable_pin` HIGH by default | **Resolved P0.1** — PWR_EN is **ACTIVE-LOW** (see the note below) |
+| Q8 | **BUSY idle/deadlock (new, open)** — ESPHome's `is_idle_()` wait has no timeout, and this panel only releases BUSY *after* the init sequence | Needs a decision: `external_components` override, or upstream fix |
 
 > **Q7 — the bug that made the panel blank (found 2026-10-14).** The panel power switch Q10 is a
 > **CJ3407 P-channel MOSFET**: a high-side P-ch switch conducts when its gate is pulled **LOW**.
 > ESPHome's default drives `enable_pin` **HIGH**, which held the panel unpowered — so the driver
-> happily pushed the full 960 KB frame (~3 s of SPI) and the panel never responded. Fixed with
+> happily pushed the full 960 KB frame and the panel never responded. Fixed with
 > `enable_pin: {number: GPIO43, inverted: true}`. **Evidence:** BUSY(GPIO4) sat permanently at 1
-> before the fix and toggled 1→0(≈3 s)→1 after it. This cost nothing to find only because
-> `busy_pin` was temporarily omitted so the panel could be probed directly — the same trick
-> `epaper-diag.yaml` uses.
+> before the fix and toggled 1→0(≈3 s)→1 after it.
+
+> **Q8 — the wall P0.1 hit (2026-10-14), and the risk the plan flagged.** With the panel correctly
+> powered, the driver deadlocks in **both** BUSY polarities, and never renders:
+>
+> | `busy_pin` | Result |
+> |---|---|
+> | `inverted: true` (idle = HIGH) | stuck in `INITIALISE` — `Waiting for idle in state INITIALISE`, forever |
+> | `inverted: false` (idle = LOW) | clears `INITIALISE`, runs the whole init sequence (`0x74, 0xF0, 0x00, 0xA5, 0x50, 0x60, 0x86, 0xE3, 0x61, 0x01, 0xB6, 0x06, 0xB7, 0x05, 0xB0, 0xB1`), then stuck in `TRANSFER_DATA` |
+>
+> Read together: BUSY is **LOW after reset** and goes **HIGH once the init commands land** — the
+> panel only becomes ready *after* the init sequence, while `EPaperBase::process_state_()` waits
+> for idle *before* `INITIALISE` sends it. `is_idle_()` is `!busy_pin_->digital_read()`, and the
+> wait has **no timeout**, so it blocks forever either way.
+>
+> The difference from Seeed's driver is timeouts, not pins or sequence: their init sequence matches
+> ESPHome's command-for-command, and their `gfxWaitForPin(pin, readyHigh, timeoutMs = 30000)`
+> proceeds after 30 s instead of hanging.
+>
+> **This is the plan's flagged risk realised** — *"ESPHome's `t133a01` model is tuned for the
+> reTerminal E1004 wiring, not the EE02 rails"* — with the documented fallback being a small
+> `external_components` override. **Ask-first.**
 
 ---
 
