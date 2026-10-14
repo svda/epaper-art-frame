@@ -72,6 +72,7 @@ HEIGHT=$(python3 "$PROFILE_HELPER" "$profile" height)
 COLOURS=$(python3 "$PROFILE_HELPER" "$profile" colours)
 PALETTE=$(python3 "$PROFILE_HELPER" "$profile" --palette)
 PRE_FILTER=$(python3 "$PROFILE_HELPER" "$profile" pre_filter)
+BACKEND=$(python3 "$PROFILE_HELPER" "$profile" backend)
 [ -n "$dither" ] || dither=$(python3 "$PROFILE_HELPER" "$profile" dither)
 [ -n "$out_dir" ] || out_dir=$(python3 "$PROFILE_HELPER" "$profile" --artwork)
 [ -f "$PALETTE" ] || { echo "error: palette not found: $PALETTE" >&2; exit 1; }
@@ -104,7 +105,20 @@ else
   set -- "$@" -resize "${WIDTH}x${HEIGHT}^" -gravity center -extent "${WIDTH}x${HEIGHT}"
 fi
 
-set -- "$@" -dither "$dither" -remap "$PALETTE" -strip -depth 8
-
-magick "$in" "$@" "$out"
-echo "wrote $out (${WIDTH}x${HEIGHT}, ${COLOURS}-colour dithered, profile=$profile, dither=$dither)"
+if [ "$BACKEND" = magick ]; then
+  set -- "$@" -dither "$dither" -remap "$PALETTE" -strip -depth 8
+  magick "$in" "$@" "$out"
+  echo "wrote $out (${WIDTH}x${HEIGHT}, ${COLOURS}-colour dithered, profile=$profile, backend=magick, dither=$dither)"
+else
+  # Geometry in magick, then the profile's dither backend. The library backends do
+  # perceptual (OKLab) matching plus automatic tone and gamut compression, which
+  # replaces `pre_filter` -- so that stays empty for them.
+  # The backend needs this project's venv (epaper-dithering + pillow), so it is
+  # invoked through uv rather than the system python3 that resolves the profile.
+  command -v uv >/dev/null 2>&1 || { echo "error: uv not found (needed for backend '$BACKEND')" >&2; exit 1; }
+  geom=$(mktemp /tmp/epaper_geom_XXXXXX).png
+  magick "$in" "$@" -strip -depth 8 "$geom"
+  uv run --quiet --directory "$DIR" python "$DIR/dither.py" "$profile" "$geom" "$out"
+  rm -f "$geom"
+  echo "wrote $out (${WIDTH}x${HEIGHT}, ${COLOURS}-colour dithered, profile=$profile, backend=$BACKEND)"
+fi

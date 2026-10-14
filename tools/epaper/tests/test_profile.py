@@ -58,16 +58,24 @@ def test_every_profile_palette_file_exists():
         assert profile.palette_path(prof).is_file(), f"{name} palette missing"
 
 
-def test_spectra6_boosts_saturation_before_dithering():
-    """Spectra 6's six colours are muted, so photos need pre-compensation.
+def test_acep565_uses_the_magick_backend_with_no_pre_filter():
+    """The deployed 5.65" frame renders fine as-is and must stay untouched."""
+    _, acep = profile.resolve("acep565")
+    assert acep["backend"] == "magick"
+    assert acep["pre_filter"] == ""
 
-    Without it, artwork quantised straight onto the palette looks washed out.
-    The ACeP profile deliberately has none: that frame renders fine as-is.
+
+def test_spectra6_uses_the_library_backend():
+    """Supersedes the magick pre_filter (see test_dither.py).
+
+    Spectra 6's colours are muted and photos needed pre-compensation. That was
+    first done with a magick pre_filter and is now done properly by
+    epaper-dithering's OKLab matching plus tone/gamut compression, so the
+    pre_filter is EMPTY here -- both at once would double-compensate.
     """
     _, spect = profile.resolve("spectra6-133")
-    _, acep = profile.resolve("acep565")
-    assert "modulate" in spect["pre_filter"]
-    assert acep["pre_filter"] == ""
+    assert spect["backend"] == "epaper-dithering"
+    assert spect["pre_filter"] == ""
 
 
 def test_unknown_profile_fails_loudly():
