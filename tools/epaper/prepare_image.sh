@@ -34,7 +34,9 @@ EOF
 
 mode=cover
 rotate=0
-dither=FloydSteinberg
+# Empty means "use the profile's dither method" (resolved below, once the profile
+# is known). --dither still overrides it.
+dither=
 out_dir=${EPAPER_IMAGES:-}
 profile=${EPAPER_PROFILE:-}
 
@@ -70,6 +72,7 @@ HEIGHT=$(python3 "$PROFILE_HELPER" "$profile" height)
 COLOURS=$(python3 "$PROFILE_HELPER" "$profile" colours)
 PALETTE=$(python3 "$PROFILE_HELPER" "$profile" --palette)
 PRE_FILTER=$(python3 "$PROFILE_HELPER" "$profile" pre_filter)
+[ -n "$dither" ] || dither=$(python3 "$PROFILE_HELPER" "$profile" dither)
 [ -n "$out_dir" ] || out_dir=$(python3 "$PROFILE_HELPER" "$profile" --artwork)
 [ -f "$PALETTE" ] || { echo "error: palette not found: $PALETTE" >&2; exit 1; }
 
