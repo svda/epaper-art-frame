@@ -20,11 +20,18 @@ import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Mapping
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
+
+# Panel profiles are shared with the image tooling; tools/epaper/profiles.json is
+# the single source of truth for what each panel needs.
+sys.path.insert(0, str(REPO / "tools" / "epaper"))
+import device_profile  # noqa: E402
+
 DEFAULT_ARTWORK = REPO / "www" / "epaper"
 DEFAULT_ENV_FILE = HERE / ".env"
 DEFAULT_INTERVAL_H = 6
@@ -50,6 +57,8 @@ class Config:
     album: str | None
     interval_h: int
     dry_run: bool
+    # Which panel to prepare for. None means the configured default profile.
+    profile: str | None = None
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
@@ -87,6 +96,12 @@ def _as_int(value, key: str) -> int:
         raise ValueError(f"invalid {key}: {value!r} (expected an integer)") from None
 
 
+def artwork_dir_for(profile: str | None = None) -> Path:
+    """The artwork folder for *profile* (the configured default when None)."""
+    _, prof = device_profile.resolve(profile)
+    return device_profile.artwork_dir(prof)
+
+
 def resolve_config(
     args: argparse.Namespace,
     env: Mapping[str, str],
@@ -98,9 +113,20 @@ def resolve_config(
         _pick(args.interval_h, env, env_file, "SYNC_INTERVAL_H", DEFAULT_INTERVAL_H),
         "SYNC_INTERVAL_H",
     )
-    artwork_dir = Path(
-        _pick(args.artwork_dir, env, env_file, "EPAPER_IMAGES", default_artwork)
-    ).expanduser()
+    # `--profile` selects the panel, and its artwork folder is the default folder.
+    # Validate it even when an artwork dir is given, so a typo fails loudly.
+    profile = _pick(args.profile, env, env_file, "EPAPER_PROFILE", None)
+    try:
+        device_profile.resolve(profile)
+    except SystemExit as exc:  # device_profile is CLI-oriented; normalise for this caller
+        raise ValueError(str(exc.code)) from exc
+    artwork = _pick(args.artwork_dir, env, env_file, "EPAPER_IMAGES", None)
+    if artwork:
+        artwork_dir = Path(artwork).expanduser()
+    elif profile:
+        artwork_dir = artwork_dir_for(profile)
+    else:
+        artwork_dir = default_artwork
     library = _pick(args.library, env, env_file, "PHOTOS_LIBRARY", None)
     dest = _pick(args.dest, env, env_file, "EPAPER_DEST", None)
     album = _pick(args.album, env, env_file, "ALBUM", None)
@@ -111,6 +137,7 @@ def resolve_config(
         album=album,
         interval_h=interval_h,
         dry_run=bool(args.dry_run),
+        profile=profile,
     )
 
 
@@ -316,11 +343,13 @@ def prepare_one(
     export_fn=export_photo,
     run_fn=_run,
     prepare_script: Path = PREPARE_SCRIPT,
+    profile: str | None = None,
 ) -> None:
     """Export one photo and prepare it to *dest* as a panel-ready PNG.
 
     Options precede the positional input/output for prepare_image.sh (its arg
-    loop breaks at the first non-option).
+    loop breaks at the first non-option). The profile is passed through so the
+    output matches the right panel's dimensions and palette.
     """
     dest = Path(dest)
     export_dir = Path(tempfile.mkdtemp(prefix="epaper_export_"))
@@ -329,16 +358,35 @@ def prepare_one(
         if not paths:
             raise RuntimeError(f"export produced no file for {photo.uuid}")
         src = _maybe_convert_raw(Path(paths[0]), export_dir, run_fn)
-        run_fn([str(prepare_script), "--out-dir", str(dest.parent), str(src), str(dest)])
+        run_fn(
+            [
+                str(prepare_script),
+                "--profile",
+                profile or device_profile.default_name(),
+                "--out-dir",
+                str(dest.parent),
+                str(src),
+                str(dest),
+            ]
+        )
     finally:
         shutil.rmtree(export_dir, ignore_errors=True)
 
 
-def manifest_writer(script: Path = MANIFEST_SCRIPT, run_fn=_run):
+def manifest_writer(script: Path = MANIFEST_SCRIPT, run_fn=_run, profile: str | None = None):
     """A manifest regenerator that calls generate_manifest.py (its only writer)."""
 
     def regenerate(artwork_dir: Path) -> None:
-        run_fn([sys.executable, str(script), "--dir", str(artwork_dir)])
+        run_fn(
+            [
+                sys.executable,
+                str(script),
+                "--profile",
+                profile or device_profile.default_name(),
+                "--dir",
+                str(artwork_dir),
+            ]
+        )
 
     return regenerate
 
@@ -382,13 +430,13 @@ def exit_code(result: SyncResult) -> int:
     return 1 if result.failures else 0
 
 
-def deploy(dest: str | None, changed: bool, run_fn=_run) -> None:
+def deploy(dest: str | None, changed: bool, run_fn=_run, profile: str | None = None) -> None:
     """Push to the HA host when something changed; skip otherwise."""
     if not changed:
         return
     if not dest:
         raise RuntimeError("no deploy destination configured (set EPAPER_DEST or --dest)")
-    run_fn([str(PUSH_SCRIPT), dest])
+    run_fn([str(PUSH_SCRIPT), "--profile", profile or device_profile.default_name(), dest])
 
 
 def render_plist(
@@ -418,7 +466,12 @@ def build_parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--artwork-dir", help="artwork folder (default: <repo>/www/epaper)")
+    parser.add_argument(
+        "--profile",
+        help="device profile: which panel to prepare for (default: the configured "
+        "default profile, or $EPAPER_PROFILE)",
+    )
+    parser.add_argument("--artwork-dir", help="artwork folder (overrides --profile)")
     parser.add_argument("--dest", help="deploy destination [user@]host:/path (default: $EPAPER_DEST)")
     parser.add_argument("--library", help="Photos library path (default: system library)")
     parser.add_argument("--album", help="Photos album name to mirror (default: $ALBUM)")
@@ -463,7 +516,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     db = open_library(cfg)
-    result = sync(cfg, db, prepare_one, manifest_writer())
+    result = sync(
+        cfg,
+        db,
+        partial(prepare_one, profile=cfg.profile),
+        manifest_writer(profile=cfg.profile),
+    )
     print(summarize(result))
     for uuid, error in result.failures:
         print(f"  failed {uuid}: {error}", file=sys.stderr)
@@ -471,7 +529,7 @@ def main(argv: list[str] | None = None) -> int:
     if not cfg.dry_run:
         changed = bool(result.deleted) or result.copied > 0
         try:
-            deploy(cfg.dest, changed)
+            deploy(cfg.dest, changed, profile=cfg.profile)
         except Exception as exc:  # noqa: BLE001 - report and exit non-zero
             print(f"error: deploy failed: {exc}", file=sys.stderr)
             return 1

@@ -98,7 +98,9 @@ def test_prepare_one_exports_then_prepares_with_options_before_input(tmp_path):
     )
 
     assert calls["argv"][0] == "/repo/tools/epaper/prepare_image.sh"
-    assert calls["argv"][1:3] == ["--out-dir", str(dest.parent)]
+    # --profile comes first, then --out-dir, then the positional input/output.
+    assert calls["argv"][1:3] == ["--profile", "acep565"]
+    assert calls["argv"][3:5] == ["--out-dir", str(dest.parent)]
     assert Path(calls["argv"][-2]).name == "IMG_0001.HEIC"
     assert calls["argv"][-1] == str(dest)
     assert dest.read_bytes() == b"png"

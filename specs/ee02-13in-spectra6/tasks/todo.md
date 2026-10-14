@@ -316,14 +316,27 @@ it through to `prepare_image.sh`, so the launchd sync can target either panel. D
 tool's README and `.env.example`.
 
 **Acceptance criteria:**
-- [ ] The launchd sync with no profile set behaves exactly as today (`acep565`, `www/epaper/`).
-- [ ] `EPAPER_PROFILE=spectra6-133` prepares into `www/epaper13/` and regenerates that manifest.
-- [ ] `--dry-run` still writes nothing.
+- [x] The launchd sync with no profile set behaves exactly as today (`acep565`, `www/epaper/`).
+      — the default artwork folder is unchanged; `--profile` is always passed through as
+      `acep565`, which is a no-op for the deployed frame.
+- [x] `EPAPER_PROFILE=spectra6-133` prepares into `www/epaper13/` and regenerates that manifest.
+      — asserted in `tests/test_config.py`: the profile selects the folder, and it is passed
+      through to `prepare_image.sh` and `generate_manifest.py`.
+- [x] `--dry-run` still writes nothing.
+- [x] An unknown profile is a clean error, not a silent wrong-panel prepare. — `device_profile`
+      raises `SystemExit` (it is CLI-oriented); `resolve_config` normalises that to `ValueError`
+      so `sync_album.py`'s existing exit-2 path handles it. Covered by a test.
 
 **Verification:**
-- [ ] `tools/icloud/.venv/bin/python tools/icloud/sync_album.py --dry-run` — unchanged output.
-- [ ] `EPAPER_PROFILE=spectra6-133 … --dry-run` — targets `www/epaper13/`.
-- [ ] `tools/icloud/.venv/bin/python -m pytest tools/icloud/tests` passes.
+- [x] `tools/icloud/.venv/bin/python -m pytest tools/icloud/tests` — 59 passed.
+- [x] `uv run --directory tools/epaper pytest` — 16 passed.
+- [ ] `tools/icloud/.venv/bin/python tools/icloud/sync_album.py --dry-run` — not run: it needs
+      Full Disk Access to the real Photos library. The resolution logic it would exercise is
+      covered by `tests/test_config.py` instead.
+
+**NOTE:** three existing icloud tests asserted the exact argv of the generated commands and were
+updated for the new `--profile` flag (they are exact-match assertions by design). `test_config.py`'s
+`args()` helper gained `profile: None` to mirror the CLI.
 
 **Dependencies:** P2.1 (profile names) · **Scope:** M · **Files:**
 `tools/icloud/sync_album.py`, `tools/icloud/README.md`, `tools/icloud/.env.example`,

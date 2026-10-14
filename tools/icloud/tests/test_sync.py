@@ -98,4 +98,4 @@ def test_manifest_writer_calls_generate_manifest_with_dir(tmp_path):
 
     assert calls[0][0] == sys.executable
     assert calls[0][1] == "/repo/tools/epaper/generate_manifest.py"
-    assert calls[0][2:] == ["--dir", "/art"]
+    assert calls[0][2:] == ["--profile", "acep565", "--dir", "/art"]

@@ -28,7 +28,13 @@ uv sync                 # creates .venv with osxphotos + pytest
 
 Config comes from `tools/icloud/.env` (see `.env.example`), overridden by real environment
 variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `ALBUM`,
-`SYNC_INTERVAL_H`, `EPAPER_IMAGES`.
+`SYNC_INTERVAL_H`, `EPAPER_IMAGES`, `EPAPER_PROFILE`.
+
+`EPAPER_PROFILE` selects which panel to prepare for, and with it the artwork folder: the default
+(`acep565`) is the deployed 5.65" frame and `www/epaper/`, while `spectra6-133` is the 13.3"
+Spectra 6 frame and `www/epaper13/`. It is passed through to `prepare_image.sh` and
+`generate_manifest.py`, so the prepared images match that panel's dimensions and palette. See
+[`../epaper/profiles.json`](../epaper/profiles.json).
 
 ## Schedule (launchd)
 

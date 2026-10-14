@@ -13,6 +13,7 @@ def args(**overrides):
         "album": None,
         "interval_h": None,
         "dry_run": False,
+        "profile": None,
     }
     base.update(overrides)
     return type("Args", (), base)
@@ -72,6 +73,27 @@ def test_invalid_interval_is_a_clear_error():
 def test_artwork_dir_can_be_overridden_by_env():
     cfg = resolve(env={"EPAPER_IMAGES": "/tmp/art"})
     assert cfg.artwork_dir == Path("/tmp/art")
+
+
+def test_profile_selects_its_own_artwork_folder():
+    """EPAPER_PROFILE picks the panel, and with it the artwork folder."""
+    cfg = resolve(env={"EPAPER_PROFILE": "spectra6-133"})
+    assert cfg.profile == "spectra6-133"
+    # Not a hardcoded repo root: the profile's folder, wherever the repo lives.
+    assert cfg.artwork_dir.parent.name == "www"
+    assert cfg.artwork_dir.name == "epaper13"
+
+
+def test_explicit_artwork_dir_still_wins_over_the_profile():
+    cfg = resolve(env={"EPAPER_PROFILE": "spectra6-133", "EPAPER_IMAGES": "/tmp/art"})
+    assert cfg.artwork_dir == Path("/tmp/art")
+    assert cfg.profile == "spectra6-133"  # still recorded: it selects the palette
+
+
+def test_unknown_profile_is_a_clean_error():
+    """A typo must not silently prepare artwork for the wrong panel."""
+    with pytest.raises(ValueError, match="no-such-panel"):
+        resolve(env={"EPAPER_PROFILE": "no-such-panel"})
 
 
 def test_parse_env_file_ignores_comments_blanks_and_quotes(tmp_path):

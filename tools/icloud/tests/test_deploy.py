@@ -14,7 +14,8 @@ def test_deploy_skips_when_nothing_changed():
 def test_deploy_runs_push_script_with_the_destination():
     calls = []
     deploy("ha:/cfg/www/epaper", changed=True, run_fn=calls.append)
-    assert calls == [[str(PUSH_SCRIPT), "ha:/cfg/www/epaper"]]
+    # --profile is always passed so the push uses the right artwork folder.
+    assert calls == [[str(PUSH_SCRIPT), "--profile", "acep565", "ha:/cfg/www/epaper"]]
 
 
 def test_deploy_requires_a_destination_when_changed():
