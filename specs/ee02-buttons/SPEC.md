@@ -304,10 +304,16 @@ back into this spec.
 | # | Question | Resolved by |
 |---|---|---|
 | Q1 | Are the EE02 buttons active-LOW, and does the board provide external pull-ups? | Bench: read pin state idle vs pressed. If no external pull-up, `mode: INPUT_PULLUP` (already assumed) is required. |
-| Q2 | Does `ANY_LOW` validate for the ESP32-S3 variant in ESPHome 2026.9.0? | Level-1 `esphome config` (the schema restricts some modes/variants). |
+| Q2 | Does `ANY_LOW` validate for the ESP32-S3 variant in ESPHome 2026.9.0? | **Resolved** — `esphome config` accepts `mode: ANY_LOW` on the S3, and `esphome compile` succeeds. |
 | Q3 | Does a second press during the ~51 s awake window get lost (ext1 cannot re-trigger while awake)? | Bench step 7. If a lost press is unacceptable, a follow-up could poll the buttons while awake — **out of scope** for v1. |
 | Q4 | Does the community `ee02_epaper` component's `power_pin` handling interfere with RTC-domain pin config on GPIO2/3? | Bench: confirm both wakes work with the panel driver active. |
 | Q5 | How are the buttons reached with the frame wall-mounted? | **Not this spec** — a requirement handed to the future EE02 enclosure spec (cutout, or lift-off access). |
+| Q6 | Does holding GPIO3 LOW at a button wake disturb boot, given GPIO3 is a strapping pin? | Bench: confirm every "next" press boots normally. |
+
+> **GPIO3 is an ESP32-S3 strapping pin** (JTAG signal source select). Configuring the internal
+> pull-up on it raises ESPHome's strapping-pin warning. It does **not** affect boot mode (that is
+> GPIO0 / GPIO46), so it is benign for normal operation — but a deep-sleep wake *is* a reset and
+> the button is held LOW at that instant, so Q6 verifies it on the bench.
 
 ---
 
