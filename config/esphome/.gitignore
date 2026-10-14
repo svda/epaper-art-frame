@@ -2,4 +2,8 @@
 # This is an example and may include too much for your use-case.
 # You can modify this file to suit your needs.
 /.esphome/
+# Secrets live beside the configs that use them (devices/), because ESPHome
+# resolves !secret relative to the including file and falls back to the MAIN
+# config's directory -- not to this one. See specs/ee02-13in-spectra6/SPEC.md.
+/devices/secrets.yaml
 /secrets.yaml

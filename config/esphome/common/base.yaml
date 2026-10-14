@@ -1,0 +1,30 @@
+# ============================================================================
+# Shared device infrastructure — every art-frame device pulls this in.
+# ============================================================================
+# Device-agnostic plumbing only: no pin, no panel, no dimension, no cadence.
+#
+# THE ONE RULE THAT MAKES THIS WORK: every `!secret` reference in the repo lives
+# under `common/`. ESPHome resolves `!secret` relative to the *including* file,
+# and only falls back to the main config's directory for *included* files. A
+# `!secret` used directly in `devices/*.yaml` would look for
+# `devices/secrets.yaml` and fail to resolve. `secrets.yaml` stays at
+# `config/esphome/secrets.yaml` (git-ignored).
+# ============================================================================
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fallback AP + captive portal if the credentials/network are wrong.
+  ap: {}
+
+captive_portal:

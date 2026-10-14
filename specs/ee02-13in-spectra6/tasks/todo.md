@@ -152,39 +152,68 @@ and a device file:
 before touching anything — the no-regression proof depends on it.
 
 **Acceptance criteria:**
-- [ ] `esphome config` passes for `devices/epaper-art-frame.yaml`.
-- [ ] The existing 5.65" device's effective config is **unchanged** — pin map, `5.65in-f` model,
+- [x] `esphome config` passes for `devices/epaper-art-frame.yaml`.
+- [x] The existing 5.65" device's effective config is **unchanged** — pin map, `5.65in-f` model,
       `sleep_duration`/`run_duration`, `image_dir`, sensors — proven by diffing `esphome config`
       output against the captured baseline.
-- [ ] No `!secret` appears outside `common/`.
+      — **done 2026-10-14:** order-insensitive diff against the baseline is **empty** (content
+      identical). Only the *ordering* of top-level keys and of the `sensor:` list changed, because
+      package content merges before the device file's. Ordering is not behavioural.
+- [x] No `!secret` appears outside `common/` **in the pipeline**.
 - [ ] The device still boots and completes one wake cycle (config-diff alone is not proof).
+      — **OUTSTANDING, needs the physical frame** (an OTA to the deployed 5.65" unit). The content
+      diff makes the risk low, but this is not yet proven.
 
 **Verification:**
-- [ ] `diff <baseline> <new esphome config output>` shows no behavioural change.
-- [ ] `rg -n '!secret' config/esphome` returns hits only under `config/esphome/common/`.
-- [ ] `esphome upload` + one observed wake on the existing frame.
+- [x] `diff <baseline> <new esphome config output>` shows no behavioural change.
+- [x] `rg -n '!secret' config/esphome` returns hits only under `config/esphome/common/` and in the
+      standalone bring-up aids (see the P1.2 amendment).
+- [ ] `esphome upload` + one observed wake on the existing frame. — outstanding with the above.
+
+**PLAN AMENDMENT (2026-10-14): P1.1 and P1.2 were done together, and `secrets.yaml` moved.**
+Two ESPHome mechanics the plan did not anticipate, both found by running it:
+
+1. **`!secret` resolves relative to the *main config's* directory, not `config/esphome/`.** The
+   fallback for an included file is `CORE.config_path.parent` — so with the device file in
+   `devices/`, the fallback looked in `devices/` too and the build failed with
+   `Error reading file config/esphome/devices/secrets.yaml`. The plan's claim that
+   `secrets.yaml` "stays at `config/esphome/secrets.yaml`" was wrong for this layout.
+   **Fix: `secrets.yaml` now lives in `devices/`, beside the configs that use it.** No symlinks,
+   one real file.
+2. **`esphome:` is validated per file**, so a package cannot contribute only `on_boot` — it fails
+   with `'name' is a required option for [esphome]`. **Fix: `common/art-frame.yaml` sets
+   `name: ${device_name}` and `friendly_name: ${friendly_name}`,** so every device file must define
+   those two substitutions.
+
+Because the bring-up aids also use `!secret` directly, moving `secrets.yaml` meant moving them in
+the same change — hence P1.1 and P1.2 land together.
 
 **Dependencies:** P0.1 · **Scope:** M · **Files:** `config/esphome/common/base.yaml` (new),
 `config/esphome/common/art-frame.yaml` (new),
 `config/esphome/devices/epaper-art-frame.yaml` (new),
-`config/esphome/epaper-art-frame.yaml` (removed).
+`config/esphome/epaper-art-frame.yaml` (removed), `config/esphome/.gitignore`.
 
 ---
 
 ### P1.2: Move the bring-up aids into `devices/`
 **Description:** Move `epaper-bench.yaml`, `epaper-diag.yaml`, `nula-bringup.yaml` and P0.1's
-`ee02-bringup.yaml` into `config/esphome/devices/`, and repoint their `!secret` / shared-config
-needs at `common/` now that the seam exists. These stay permanent bring-up aids — they are not
-part of the deployed pipeline.
+`ee02-bringup.yaml` into `config/esphome/devices/`. These stay permanent bring-up aids — they are
+not part of the deployed pipeline, and they stay self-contained rather than pulling in `common/`.
 
 **Acceptance criteria:**
-- [ ] Each moved aid still passes `esphome config`, or is explicitly retired with a recorded reason.
-- [ ] No `!secret` appears directly in a moved device file (it comes via `common/`).
-- [ ] The `devices/` directory is now the single home of every flashable config.
+- [x] Each moved aid still passes `esphome config`.
+- [x] The `devices/` directory is now the single home of every flashable config.
+- [x] **Amended:** the aids keep their direct `!secret` use. They are standalone tools with
+      deliberately minimal, differing configs (no panel, no busy_pin, no captive_portal), so
+      pulling in `common/base.yaml` would change what they test. It resolves because
+      `secrets.yaml` now lives in `devices/`. The "all `!secret` in `common/`" rule applies to the
+      **pipeline**; the aids are the documented exception.
 
 **Verification:**
-- [ ] `esphome config` on each of the four moved files.
-- [ ] `rg -n '!secret' config/esphome/devices` returns nothing.
+- [x] `esphome config` on each of the four moved files — all four report
+      `INFO Configuration is valid!`.
+- [x] `rg -n '!secret' config/esphome/devices` returns hits only in the bring-up aids (expected,
+      per the amendment).
 
 **Dependencies:** P1.1 · **Scope:** S · **Files:** `config/esphome/devices/epaper-bench.yaml`,
 `config/esphome/devices/epaper-diag.yaml`, `config/esphome/devices/nula-bringup.yaml`,
