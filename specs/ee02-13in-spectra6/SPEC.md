@@ -508,16 +508,46 @@ results recorded back into this spec:
 
 ## Power budget
 
-> Not yet measured for the 13.3" panel. The structure mirrors the existing frame's budget; the
-> numbers are placeholders until bring-up step 6 fills them in. The larger panel's ~30 s full
-> refresh dominates the awake window, so the refresh current is the figure that decides whether
-> the 24 h cadence holds on the same battery.
+> **Partially measured (2026-10-14, P4.1).** The **durations are measured**; the **currents are
+> not**, and no runtime estimate is given, because the dominant term — deep-sleep current — is
+> unknown. Recording "unmeasured" beats recording a number we don't trust.
 
 | Phase | Current | Duration/day |
 |---|---|---|
-| Deep sleep (EE02 + XIAO ESP32-S3 Plus) | to measure | ~23 h 59 m |
-| Wake: WiFi connect + fetch | to measure | ~3–5 s |
-| Wake: 1200×1600 Spectra 6 refresh | to measure (~30 s blocking) | ~30 s |
+| Deep sleep (EE02 + XIAO ESP32-S3 Plus) | **unmeasured** | ~23 h 59 m |
+| Wake: WiFi connect + fetch + download | unmeasured | ~21 s (measured) |
+| Wake: 1200×1600 Spectra 6 refresh | unmeasured | **~29 s (measured)** |
+| **Total awake** | unmeasured | **~51 s (measured)** |
+
+Measured from a wake log:
+
+```
+13:14:37  first log line (device already up)
+13:14:41  image fully downloaded (10.2 s)
+13:15:23  Refresh complete
+13:15:28  Beginning sleep
+```
+
+So the panel refresh alone is **~29 s of the ~51 s awake** — it dominates the awake window, as
+predicted. If the awake current is in the tens of mA (the expected order), the daily cost is well
+under 1 mAh, and a 24 h cadence is limited by cell self-discharge rather than by the device.
+
+**Why the currents are unmeasured.** Two attempts failed for instructive reasons:
+
+1. **Meter in parallel, not series.** The probes were clipped onto the JST with the battery still
+   plugged in, so the meter measured the current through *its own* shunt — 3.9 V ÷ ~850 kΩ ≈ the
+   4.6 µA it displayed. Being identical awake and asleep was the giveaway: the reading was
+   state-independent, so it could not have been the device.
+2. **A DMM in series cannot span the range anyway.** On the µA range the burden resistance (~1 kΩ)
+   would drop ~46 V at an awake current of 46 mA, browning the board out. That is the same failure
+   recorded as KI-1 in `specs/epaper-art-frame/SPEC.md`, where an interrupted refresh left the panel
+   stuck mid-cycle.
+
+**To finish it**, either break the battery + lead and bridge it through the meter (the only path must
+be through the meter), or insert a known shunt and measure the voltage across it — 1 Ω for the awake
+figure (46 mA → 46 mV), ~100 kΩ for the sleep figure (4.6 µA → 0.46 V), the two swapped between
+measurements since no single shunt covers a 10 000:1 range. A USB-C inline meter works for the awake
+figure only; on USB the board's own quiescent dominates what the battery path would show.
 
 ---
 

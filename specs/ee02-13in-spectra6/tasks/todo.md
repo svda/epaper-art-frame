@@ -549,13 +549,30 @@ capacity. Confirm the 24 h cadence holds, or adjust `sleep_duration` and say so.
 
 **Acceptance criteria:**
 - [ ] Deep-sleep and refresh current measured and recorded in `SPEC.md`.
+      — **NOT DONE (2026-10-14).** Durations were measured (awake ~51 s, refresh ~29 s of it), but
+      the **currents are unmeasured** and recorded as such rather than guessed. Two attempts failed
+      for instructive reasons: (1) the probes were clipped onto the JST with the battery still
+      plugged in, i.e. **in parallel, not series**, so the meter read the current through its own
+      shunt (3.9 V ÷ ~850 kΩ ≈ the 4.6 µA displayed — and being identical awake and asleep is what
+      proved it was not the device); (2) a DMM in series **cannot span the range anyway**, because
+      the µA range's ~1 kΩ burden would drop ~46 V at 46 mA and brown the board out — the same
+      failure as KI-1 in `specs/epaper-art-frame/SPEC.md`.
+      **To finish:** break the battery + lead and bridge it through the meter, or use a known shunt
+      (1 Ω for awake, ~100 kΩ for sleep, swapped between measurements). User called time on this for
+      now.
 - [ ] A months-scale runtime estimate computed from the measured figures.
-- [ ] The 24 h cadence confirmed, or a justified new cadence recorded in both the spec and the
-      device file.
+      — **deliberately not computed:** the dominant term (deep-sleep current) is unknown, so any
+      figure would be invented. The spec says "unmeasured" instead.
+- [ ] The 24 h cadence confirmed, or a justified new cadence recorded.
+      — **not confirmed.** Reasoned but unproven: the refresh dominates the ~51 s awake window, and
+      at any plausible awake current the daily cost is well under 1 mAh, so a 24 h cadence would be
+      self-discharge-bound rather than device-bound.
 
 **Verification:**
-- [ ] Multimeter (or coulomb counter) idle reading; extrapolated months figure.
-- [ ] `SPEC.md` Power budget table has no placeholders left.
+- [x] Awake duration measured from a wake log (13:14:37 → 13:15:28 = ~51 s).
+- [ ] Multimeter (or coulomb counter) idle reading; extrapolated months figure. — **not obtained.**
+- [x] `SPEC.md` Power budget records the state honestly: durations measured, currents marked
+      **unmeasured** with the reasons, and no invented runtime figure.
 
 **Dependencies:** Checkpoint D · **Scope:** S · **Files:** `../SPEC.md`,
 `config/esphome/devices/epaper-art-frame-13in.yaml`.
