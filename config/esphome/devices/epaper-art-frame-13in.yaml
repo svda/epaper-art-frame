@@ -1,0 +1,116 @@
+# ============================================================================
+# E-Paper Art Frame 13" — Seeed XIAO ePaper Display Board EE02 + 13.3" Spectra 6
+# ============================================================================
+# Panel: E Ink Spectra 6, 1200x1600 native (two UC8179 controllers, master/slave)
+# Driver: community `ee02_epaper` external component, pinned to a commit SHA.
+#         Upstream `epaper_spi` CANNOT drive this panel -- it cannot express the
+#         second chip-select or the split data format. See SPEC.md Q8 and
+#         esphome discussion #3507 (open).
+#
+# Behaviour (wake -> fetch -> render -> sleep) lives in ../common/art-frame.yaml;
+# infrastructure (api/ota/wifi) in ../common/base.yaml. This file is only what is
+# true of THIS device: its pins, its panel, its cadence.
+#
+# PIN MAP (single source of truth — from Seeed_GFX2 EE02 board config,
+#   Config_XIAO_ePaper_EE02_Board -> esp32DisplayPins(10, -1, 41)):
+#   SPI CLK    -> GPIO7   (D8)
+#   SPI MOSI   -> GPIO9   (D10)
+#   EPD CS master -> GPIO44  (CSB_M)
+#   EPD CS slave  -> GPIO41  (CSB_S)
+#   EPD DC     -> GPIO10
+#   EPD RST    -> GPIO38
+#   EPD BUSY   -> GPIO4   (idle-HIGH; polarity handled inside the component)
+#   PANEL EN   -> GPIO43  (PWR_EN, ACTIVE-LOW — handled inside the component)
+#   Buttons 1/2/3 -> GPIO2 / GPIO3 / GPIO5   (not wired in v1)
+#   BAT_ADC / ADC_EN -> GPIO1 / GPIO6        (P3.2)
+#
+# BOARD: XIAO ESP32-S3 Plus — 16 MB flash, 8 MB octal PSRAM (confirmed on the
+#   bench: esptool "Embedded PSRAM 8MB (AP_3v3)", ESPHome "Size: 8192 KB").
+#   `esp32-s3-devkitc-1` + explicit flash_size/mode is what the P0.1 spike ran on
+#   and booted reliably; the community example uses `seeed_xiao_esp32s3`, which
+#   should be equivalent but is not yet verified here.
+#
+# ORIENTATION: the panel is 1200x1600 portrait native; rotation 90 gives the
+#   1600x1200 landscape the frame is mounted in (Q5). Artwork must therefore be
+#   1600x1200 — that is what the `spectra6-133` profile produces.
+#
+# NOTE: sleep_duration is 1h for bench bring-up, matching the 5.65" frame's bench
+#   cadence. Set it to 24h for deployment (the SPEC cadence).
+#
+# Run from the repo root:
+#   ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" \
+#     .venv/bin/esphome config config/esphome/devices/epaper-art-frame-13in.yaml
+# ============================================================================
+
+substitutions:
+  device_name: epaper-art-frame-13in
+  friendly_name: E-Paper Art Frame (13.3in)
+
+  # Image source — HA serves www/ at /local/... . Use the HA host DNS name
+  # (`server`); mDNS names do not resolve from the ESP.
+  ha_url: "http://server:8123"
+  image_dir: "local/epaper13"
+  manifest_file: "manifest.json"
+  image_file: "test.png"
+
+  # Pin map — see header.
+  clk_pin: GPIO7
+  mosi_pin: GPIO9
+  cs_master_pin: GPIO44
+  cs_slave_pin: GPIO41
+  dc_pin: GPIO10
+  reset_pin: GPIO38
+  busy_pin: GPIO4
+  power_pin: GPIO43
+
+  # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
+  # Deploy: 24h (the SPEC cadence).
+  run_duration: 180s
+  sleep_duration: 1h
+
+packages:
+  base: !include ../common/base.yaml
+  art_frame: !include ../common/art-frame.yaml
+
+# Q8: the only driver observed to work on this board+panel. Pinned to a commit
+# SHA rather than @main so a third-party repo cannot change under us.
+external_components:
+  - source:
+      type: git
+      url: https://github.com/rkaramandi/esphome-seeed-ee02
+      ref: fce70b800fa7e7b57114bc8d46a1b665d86ae720
+    components: [ee02_epaper]
+    refresh: 1d
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  # The P0.1 spike booted reliably with qio on this board.
+  flash_mode: qio
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+spi:
+  clk_pin: ${clk_pin}
+  mosi_pin: ${mosi_pin}
+
+display:
+  - platform: ee02_epaper
+    id: epaper_display
+    cs_master_pin: ${cs_master_pin}
+    cs_slave_pin: ${cs_slave_pin}
+    dc_pin: ${dc_pin}
+    reset_pin: ${reset_pin}
+    busy_pin: ${busy_pin}
+    power_pin: ${power_pin}
+    rotation: 90
+    update_interval: never
+    lambda: |-
+      // REQUIRED: the component's buffer is not white by default.
+      it.fill(Color(255, 255, 255));
+      it.image(0, 0, id(art_image));

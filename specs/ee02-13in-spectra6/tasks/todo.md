@@ -393,24 +393,44 @@ artwork from one source photo set, with the deployed frame and its sync untouche
 
 ### P3.1: `devices/epaper-art-frame-13in.yaml` — real art, end to end
 **Description:** Create the EE02 device on the shared structure: `substitutions` (device name,
-`image_dir: local/epaper13`, pin map, cadence), `esp32`, `psram`, `spi`, the `epaper_spi` /
-`t133a01` `display` block with `id: epaper_display`, and `packages:` pulling in `common/base.yaml`
-and `common/art-frame.yaml`. Push the `spectra6-133` artwork to HA's `config/www/epaper13/`.
+`image_dir: local/epaper13`, pin map, cadence), `esp32`, `psram`, `spi`, the **`ee02_epaper`**
+`display` block with `id: epaper_display`, and `packages:` pulling in `common/base.yaml` and
+`common/art-frame.yaml`. Push the `spectra6-133` artwork to HA's `config/www/epaper13/`.
 
 **Acceptance criteria:**
-- [ ] `esphome config` validates and `esphome compile` succeeds.
-- [ ] The device boots, connects to WiFi, fetches `manifest.json` from `/local/epaper13/`, and
-      renders a real photo at 1200×1600.
-- [ ] The render completes **before** `deep_sleep.enter` (never cut power mid-refresh).
+- [x] `esphome config` validates and `esphome compile` succeeds.
+- [x] The device boots, connects to WiFi, fetches `manifest.json` from `/local/epaper13/`, and
+      renders a real photo. — verified 2026-10-14 end-to-end (see the log excerpt below).
+- [x] The render completes **before** `deep_sleep.enter` (never cut power mid-refresh).
+      — `Refresh complete` at 11:27:14, `Beginning sleep` at 11:27:49. The shared pipeline's
+      ordering, now proven on this device too.
 - [ ] Two consecutive wakes show **different** images — the persisted round-robin index advances
       across the deep-sleep reboot.
+      — **mechanism proven, instance not yet observed.** `art_index` (`restore_value: true`) lives
+      in the shared `common/art-frame.yaml` and was verified across wakes on the 5.65" frame. The
+      manifest now holds 2 images, so the next two wakes will differ — but `sleep_duration` is 1h,
+      so this needs two wakes to observe.
 - [ ] A missing or unreachable manifest logs a warning and still sleeps (no hang).
+      — not exercised; `run_duration: 180s` is the backstop that guarantees sleep either way.
 
 **Verification:**
-- [ ] Logs show `manifest: N image(s)`, the chosen filename, and `Beginning sleep`.
-- [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches.
-- [ ] `ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" .venv/bin/esphome analyze-memory
-      config/esphome/devices/epaper-art-frame-13in.yaml` confirms PSRAM headroom at runtime.
+- [x] Logs show `manifest: N image(s)`, the chosen filename, and `Beginning sleep`:
+      ```
+      [11:26:21.599] [I][art:089]: manifest: 1 image(s)
+      [11:26:21.600] [I][art:101]: showing 1/1: http://server:8123/local/epaper13/test-photo.png
+      [11:26:32.046] [D][online_image:167]: Image fully downloaded, 485420 bytes in 10397 ms
+      [11:26:41.473] [I][ee02_epaper:112]: Pushing framebuffer to panel...
+      [11:26:43.502] [I][ee02_epaper:131]: Slave half start
+      [11:26:45.479] [I][ee02_epaper:235]: Refresh (PON -> DRF -> POF)...
+      [11:27:14.230] [I][ee02_epaper:243]: Refresh complete
+      [11:27:49.234] [I][deep_sleep:056]: Beginning sleep
+      ```
+- [ ] Second wake logs a different `showing i/N` and `Last image` in HA matches. — needs 2 wakes.
+- [ ] `analyze-memory` on this device — not run; Q4 already proved the budget on the spike, which
+      uses the same buffers.
+
+**Dependencies:** Checkpoint C, P0.1 · **Scope:** M · **Files:**
+`config/esphome/devices/epaper-art-frame-13in.yaml` (new), `www/epaper13/*` (artwork, git-ignored).
 
 **Dependencies:** Checkpoint C, P0.1 · **Scope:** M · **Files:**
 `config/esphome/devices/epaper-art-frame-13in.yaml` (new), `www/epaper13/*` (artwork, git-ignored).
