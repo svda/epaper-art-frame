@@ -63,14 +63,8 @@ esphome:
   on_boot:
     priority: 600
     then:
-      # Power the panel FIRST and let its rails settle before the driver touches
-      # it. The driver only asserts enable inside its RESET state, i.e. at the
-      # same instant as the reset pulse -- if the panel needs a settled supply to
-      # latch its power-up sequence, doing both together can leave it stuck busy.
-      - switch.turn_on: panel_power
-      - delay: 500ms
-      # Draw the test pattern: it needs no network, so a flash with no HA
-      # connectivity still proves the panel.
+      # Draw the test pattern first: it needs no network, so a flash with no
+      # HA connectivity still proves the panel.
       - component.update: epaper_display
       - wait_until:
           condition:
@@ -120,17 +114,18 @@ globals:
     restore_value: false
     initial_value: "false"
 
-# Q8 EXPERIMENT (2026-10-14): assert PWR_EN (active-low) from boot, so the panel
-# is powered and settled long before the driver pulses RESET. The factory
-# firmware drew on this panel, so panel + FPC + power path are known good.
-switch:
-  - platform: gpio
-    id: panel_power
-    name: "Panel power"
-    pin:
-      number: GPIO43
-      inverted: true
-    restore_mode: ALWAYS_ON
+# Q8 FIX (2026-10-14): a patched copy of upstream epaper_spi. The stock driver
+# deadlocks on this panel because its idle wait is unbounded and the panel is
+# never ready before the init sequence. The patch bounds that wait for
+# INITIALISE only, mirroring Seeed's 30 s BUSY timeout. See
+# components/epaper_spi/ for the two changed files (both marked "PATCH
+# (epaper-art-frame)") and SPEC.md Q8 for the full evidence.
+# Vendored against ESPHome 2026.9.0 -- re-diff on any ESPHome upgrade.
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [epaper_spi]
 
 spi:
   clk_pin: GPIO7
@@ -166,17 +161,17 @@ display:
     reset_pin: GPIO38
     # Q7 RESOLVED (bench 2026-10-14): PWR_EN is ACTIVE-LOW — it drives Q10, a
     # CJ3407 P-channel MOSFET high-side switch, which conducts when its gate is
-    # pulled LOW. enable_pin is intentionally NOT used here: the driver would
-    # only assert it inside its RESET state, simultaneously with the reset pulse.
-    # Instead `panel_power` (a gpio switch) asserts it at boot so the rails are
-    # settled before the driver runs. See the Q8 note above.
-    # Q8 EXPERIMENT (2): busy_pin OMITTED entirely, so the driver performs NO
-    # idle wait and runs INITIALISE -> TRANSFER_DATA -> POWER_ON -> REFRESH ->
-    # POWER_OFF in one pass (the epaper-diag.yaml trick, and the only
-    # configuration observed to complete a full update). If anything renders,
-    # init + transfer + refresh all work and the only defect is the wait policy.
-    # If the frame is partial/aborted, that confirms it too: DRF is followed
-    # almost immediately by POF, so the refresh needs the (fixed) wait back.
+    # pulled LOW. ESPHome's default (drive HIGH) held the panel unpowered.
+    enable_pin:
+      number: GPIO43
+      inverted: true
+    # Q1 RESOLVED (bench 2026-10-14): BUSY is idle-HIGH, matching Seeed's
+    # gfxWaitForPin(readyHigh=true). is_idle_() is !digital_read(), so inverted:
+    # true is required. The pre-init deadlock this caused is fixed by the
+    # external_components patch above (Q8), not by changing this polarity.
+    busy_pin:
+      number: GPIO4
+      inverted: true
     update_interval: never
     lambda: |-
       if (id(spike_has_image)) {

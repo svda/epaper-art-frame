@@ -572,6 +572,33 @@ results recorded back into this spec:
 > Seeed's driver gets this right by construction: a 30 s timeout on *every* wait. A minimal
 > `external_components` patch therefore only needs a timeout added — it must **not** simply drop
 > `busy_pin` back out, which is the aborted-refresh failure mode above.
+>
+> **The patch was written and is CORRECT BUT INSUFFICIENT (2026-10-14).** `config/esphome/components/`
+> now carries a vendored `epaper_spi` (against ESPHome 2026.9.0) with the pre-`INITIALISE` wait
+> bounded at 30 s, mirroring Seeed. It does exactly what it was built to do:
+>
+> ```
+> [10:22:54.729][W][epaper_spi:169]: Panel not idle after 30000 ms in INITIALISE; proceeding anyway
+> ```
+>
+> …after which the driver completed `INITIALISE → TRANSFER_DATA → POWER_ON → REFRESH_SCREEN`. **But
+> the panel then holds BUSY busy forever after DRF** — still `Waiting for idle in state
+> REFRESH_SCREEN` 3.5 minutes later, so the refresh never completes and nothing renders.
+>
+> **What that narrows it to.** BUSY semantics are now consistent — **LOW = busy, HIGH = idle**,
+> matching Seeed's `gfxWaitForPin(readyHigh=true)`. The panel is busy after reset *and* again after
+> DRF, and **neither busy period ever ends on its own**. Combined with the factory firmware drawing
+> correctly, the panel is most likely **faulting** on our sequence rather than merely timing out.
+> Remaining candidates, none of which logs alone can rank:
+>
+> - the transfer's CS/CS1 half-mapping (600 px per controller) being wrong for this panel revision;
+> - an init value the EE02's panel dislikes (the sequence is copied from the E1004 model);
+> - a rail/power sequencing difference the driver doesn't reproduce.
+>
+> **Recommended next step — compare, don't guess.** Flash Seeed's own `Seeed_GFX2` Arduino
+> HelloWorld for the EE02 to this exact board. If it renders, we have a known-good reference to
+> diff SPI traffic against (logic analyser ideal). If it does not, the board/panel needs attention
+> despite the factory firmware. **The vendored component must be re-diffed on any ESPHome upgrade.**
 
 ---
 
