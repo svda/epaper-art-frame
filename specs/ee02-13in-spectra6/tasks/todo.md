@@ -26,7 +26,8 @@ P1.1 moves it into `devices/`.
 > **Bench progress (2026-10-14, EE02 on the bench, USB + OTA):**
 > - **Q2 resolved** — `qio` boots. esptool: `Embedded PSRAM 8MB (AP_3v3)`, 16 MB flash;
 >   ESPHome: `PSRAM Available: YES, Size: 8192 KB`.
-> - **Q1 resolved** — BUSY is idle-HIGH, so `busy_pin: inverted: true` is correct.
+> - **Q1 not resolved** — superseded by Q8 below. Both BUSY polarities deadlock, so no polarity
+>   can be declared correct yet.
 > - **Q7 (new) resolved** — the panel was **blank** because `enable_pin` polarity was wrong.
 >   PWR_EN drives Q10, a **CJ3407 P-channel MOSFET** high-side switch, which conducts when its
 >   gate is pulled **LOW**; ESPHome's default drives `enable_pin` HIGH, holding the panel
@@ -36,11 +37,36 @@ P1.1 moves it into `devices/`.
 >   1 → 0 (≈3 s) → 1. Found only because `busy_pin` was temporarily omitted so a gpio
 >   binary_sensor could read GPIO4 — the same trick `epaper-diag.yaml` uses (ESPHome refuses a
 >   probe on a pin the display already owns).
-> - **Still open: Q4** (needs the spike image served from HA — the 404 below) and **Q6**
->   (visual confirmation of the rendered pattern).
-> - Spike image 404s are expected: `www/spike/` has not been pushed to the HA host yet.
+> - **Q4 resolved** (the top-risk item): `Allocating buffer: 1200x1600, 3840000 bytes` then
+>   `Decoding complete: 1200x1600` — the 3.84 MB RGB565 buffer plus the 960 KB panel buffer fit
+>   in 8 MB PSRAM.
+> - **Q6 blocked → Q8.** Panel hardware is confirmed good: the *factory SenseCraft firmware drew*
+>   on it before we flashed. The blocker is firmware-only.
 >
-> **Awaiting: Q4 (PSRAM under a real image), Q6 (visual).**
+> **BLOCKED ON A DRIVER CODE FIX (Q8) — resume here.**
+>
+> The upstream `epaper_spi` T133A01 driver deadlocks or aborts, in both BUSY polarities, because
+> its idle wait is unbounded and this panel is never ready before the init sequence:
+>
+> | Config | Result |
+> |---|---|
+> | `busy_pin: inverted: true` | deadlock in `INITIALISE` (>100 s, then re-entry error) |
+> | `busy_pin: inverted: false` | clears init, deadlock in `TRANSFER_DATA` |
+> | `busy_pin` omitted | **completes**, `Display update took 17591 ms`, but DRF → POF in **23 ms**, so the 15–30 s refresh is aborted |
+> | power sequencing (PWR_EN from boot + 500 ms settle) | no change — the panel waits for *configuration*, not supply |
+>
+> Seeed's driver survives this only because every wait carries a **30 000 ms timeout**
+> (`gfxWaitForPin(pin, readyHigh, timeoutMs = 30000)`), so it proceeds instead of hanging.
+>
+> **The fix is two-sided and neither half is expressible in YAML** — a minimal `external_components`
+> patch adding a timeout: (1) **bound** the pre-`INITIALISE` wait; (2) **honour** the
+> post-`REFRESH_SCREEN` wait. It must not simply drop `busy_pin`, which is the aborted-refresh
+> failure above. **Ask-first** per `plan.md` — the user has not yet chosen between patching,
+> reporting upstream, or switching to Seeed's Arduino driver.
+>
+> **State of the tree:** `config/esphome/ee02-bringup.yaml` currently has `busy_pin` omitted and a
+> `panel_power` gpio switch, marked as experiments. Both are deliberate; read the comments before
+> changing them.
 
 - Config: `esp32` (S3, 16 MB flash, octal PSRAM), `spi`, `display` with the EE02 pin map,
   `logger`, `api`, `ota`, `wifi` (via `secrets.yaml`), and a `lambda` drawing 6 colour bars plus
