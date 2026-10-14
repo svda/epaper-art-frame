@@ -1,0 +1,183 @@
+# ============================================================================
+# EE02 bring-up — 13.3" Spectra 6 panel (1200x1600, T133A01)
+# ============================================================================
+# Bring-up aid, NOT a deliverable. Proves the panel path before the shared
+# `common/` structure exists; stays on as a permanent aid like nula-bringup.yaml
+# / epaper-diag.yaml (P1.2 moves it into `devices/`).
+#
+# P0.1 of specs/ee02-13in-spectra6/tasks/todo.md — resolves Q1 (BUSY polarity),
+# Q2 (flash mode), Q4 (PSRAM budget), Q6 (init sequence).
+#
+# Two things in one flash, so one bench session answers everything:
+#   1. Boots drawing a 6-colour test pattern -> panel render, geometry, colour
+#      mapping, mirroring, BUSY polarity, flash mode.
+#   2. Then downloads a real 1200x1600 image from HA and redraws -> proves the
+#      ~3.84 MB RGB565 decode buffer plus the ~960 KB panel buffer fit in the
+#      8 MB PSRAM (Q4) without an OOM.
+# If the download fails the test pattern simply stays on screen.
+#
+# PANEL: Seeed XIAO ePaper Display Board EE02 + 13.3" E Ink Spectra 6.
+#   Stock ESPHome `epaper_spi`, model `t133a01`. No custom component.
+#   This display block was validated with `esphome config` on ESPHome 2026.9.0.
+#
+# PIN MAP (single source of truth — from Seeed_GFX2 EE02 board config,
+#   Config_XIAO_ePaper_EE02_Board -> esp32DisplayPins(10, -1, 41)):
+#   SPI CLK   -> GPIO7   (D8)
+#   SPI MOSI  -> GPIO9   (D10)
+#   EPD CS    -> GPIO44  (CSB_M)
+#   EPD CS1   -> GPIO41  (CSB_S) — required by the dual-CS T133A01
+#   EPD DC    -> GPIO10
+#   EPD RST   -> GPIO38
+#   EPD BUSY  -> GPIO4   (inverted: true — Q1, confirm on the bench)
+#   PANEL EN  -> GPIO43  (PWR_EN)
+#
+# Q2 PROVISIONAL: flash_mode qio. The NULA (R8 = quad flash + octal PSRAM) crashed
+#   with the DIO default in esp_psram_extram_test; the XIAO Plus is the same PSRAM
+#   class. If boot fails, DIO is the first thing to try.
+#
+# BENCH PROCEDURE (one flash answers all four questions):
+#   .venv/bin/esphome run config/esphome/ee02-bringup.yaml      # USB, first flash
+#   # then serve the spike image from HA (see ../www/spike/):
+#   tools/epaper/push_to_ha.sh --dir www/spike user@host:/path/to/config/www/spike/
+#   Q1  no `Timeout while displaying image!` in the log + a rendered frame
+#       -> `inverted: true` is right. On a 35 s timeout, flip it.
+#   Q2  device boots at all -> qio is right. On a boot loop, try dio.
+#   Q4  log shows the spike image decoded and redrawn, and the board does not
+#       reboot -> 3.84 MB + 960 KB fit. Record `esphome analyze-memory` too.
+#   Q6  the frame looks right (6 colours, correct 1200x1600 geometry, no
+#       mirroring) -> the upstream init sequence is correct for these rails.
+#   Record the four answers back into ../SPEC.md's Open questions table.
+# ============================================================================
+
+substitutions:
+  device_name: ee02-bringup
+  friendly_name: EE02 Bring-up
+  # HA serves www/ at /local/. Use the HA host DNS name (`server`); mDNS names
+  # do not resolve from the ESP.
+  ha_url: "http://server:8123"
+  spike_image: "local/spike/spike-1200x1600.png"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  on_boot:
+    priority: 600
+    then:
+      # Draw the test pattern first: it needs no network, so a flash with no
+      # HA connectivity still proves the panel (Q1/Q2/Q6).
+      - component.update: epaper_display
+      - wait_until:
+          condition:
+            wifi.connected:
+      - logger.log: "spike image download starting"
+      - lambda: 'id(spike_img).update();'
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  flash_mode: qio
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fallback AP + captive portal if the credentials/network are wrong.
+  ap: {}
+
+captive_portal:
+
+http_request:
+
+globals:
+  # False until the spike image has decoded; the display lambda draws the test
+  # pattern until then, so the panel is never left blank on a download failure.
+  - id: spike_has_image
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
+spi:
+  clk_pin: GPIO7
+  mosi_pin: GPIO9
+
+image:
+  - platform: online_image
+    id: spike_img
+    format: AUTO
+    type: RGB565
+    url: "${ha_url}/${spike_image}"
+    buffer_size: 65536
+    update_interval: never
+    on_download_finished:
+      - lambda: 'id(spike_has_image) = true;'
+      - logger.log: "spike image decoded; redrawing"
+      - component.update: epaper_display
+    on_error:
+      - logger.log: "spike image download FAILED (test pattern remains)"
+
+display:
+  - platform: epaper_spi
+    id: epaper_display
+    model: t133a01
+    # epaper_spi requires dimensions as a dict — the "1200x1600" string form is
+    # rejected by the schema (verified 2026-10-13).
+    dimensions:
+      width: 1200
+      height: 1600
+    cs_pin: GPIO44
+    cs1_pin: GPIO41
+    dc_pin: GPIO10
+    reset_pin: GPIO38
+    busy_pin:
+      number: GPIO4
+      inverted: true
+    enable_pin: GPIO43
+    update_interval: never
+    lambda: |-
+      if (id(spike_has_image)) {
+        // Q4: the 1200x1600 RGB565 decode buffer is live here.
+        it.image(0, 0, id(spike_img));
+        return;
+      }
+      // --- Q1/Q2/Q6: 6-colour test pattern + geometry ---
+      const int W = 1200;
+      const int H = 1600;
+      const Color bars[6] = {
+        Color(0, 0, 0),        // BLACK
+        Color(255, 255, 255),  // WHITE
+        Color(255, 0, 0),      // RED
+        Color(255, 255, 0),    // YELLOW
+        Color(0, 255, 0),      // GREEN
+        Color(0, 0, 255),      // BLUE
+      };
+      it.fill(Color(255, 255, 255));
+      const int bar_w = W / 6;
+      for (int i = 0; i < 6; i++) {
+        it.filled_rectangle(i * bar_w, 200, bar_w, 1200, bars[i]);
+        it.rectangle(i * bar_w, 200, bar_w, 1200, Color(0, 0, 0));
+      }
+      // Geometry: full border, four distinctly-coloured corners (mirroring /
+      // rotation), and diagonals (shear).
+      it.rectangle(0, 0, W, H, Color(0, 0, 0));
+      it.filled_rectangle(0, 0, 24, 24, Color(0, 0, 0));
+      it.filled_rectangle(W - 24, 0, 24, 24, Color(255, 0, 0));
+      it.filled_rectangle(0, H - 24, 24, 24, Color(0, 255, 0));
+      it.filled_rectangle(W - 24, H - 24, 24, 24, Color(0, 0, 255));
+      it.line(0, 0, W - 1, H - 1, Color(0, 0, 0));
+      it.line(W - 1, 0, 0, H - 1, Color(0, 0, 0));

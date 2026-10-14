@@ -23,6 +23,14 @@ bring-up aid, like `nula-bringup.yaml` — it is deliberately *not* part of the 
 it does not reorder the two modules. It lives at the config root for now (so `!secret` resolves);
 P1.1 moves it into `devices/`.
 
+> **Build progress (2026-10-14, macOS, ESPHome 2026.9.0):** both stages written into one file so a
+> single flash answers everything. Config valid; compiled — flash 1,036,507 B (12.8%), DIRAM
+> 110,747 B (32.4%). `esphome analyze-memory` shows **no static blowup**: the 960 KB panel buffer
+> and the 3.84 MB RGB565 buffer are *runtime heap* allocations, so **Q4 stays a bench proof**, not
+> something the static analysis can settle. Also found en route: `ESPHOME_DATA_DIR` must be an
+> absolute path (fixed in `f6cf815`).
+> **Awaiting bench: Q1 (BUSY polarity), Q2 (flash mode), Q4 (PSRAM), Q6 (init sequence).**
+
 - Config: `esp32` (S3, 16 MB flash, octal PSRAM), `spi`, `display` with the EE02 pin map,
   `logger`, `api`, `ota`, `wifi` (via `secrets.yaml`), and a `lambda` drawing 6 colour bars plus
   geometry marks.
@@ -31,7 +39,8 @@ P1.1 moves it into `devices/`.
 - Do **not** add an `external_components:` source in this task.
 
 **Acceptance criteria:**
-- [ ] `esphome config` validates and `esphome compile` succeeds on ESPHome 2026.9.0.
+- [x] `esphome config` validates and `esphome compile` succeeds on ESPHome 2026.9.0.
+      — done 2026-10-14: config valid; compiled (flash 1,036,507 B = 12.8%, DIRAM 110,747 B = 32.4%).
 - [ ] All **6** Spectra 6 colours render in the correct positions, correct 1200×1600 geometry,
       no corruption, **no mirroring**.
 - [ ] **Q1 resolved** — BUSY polarity confirmed on the EE02 and recorded. If the driver times out
@@ -47,7 +56,8 @@ P1.1 moves it into `devices/`.
 **Verification:**
 - [ ] Photograph the rendered test pattern; compare against the expected 6-colour layout.
 - [ ] Confirm no `Timeout while displaying image!` in the logs, and record `Setup display took …`.
-- [ ] `esphome analyze-memory config/esphome/ee02-bringup.yaml` output pasted into the task notes.
+- [x] `esphome analyze-memory config/esphome/ee02-bringup.yaml` output pasted into the task notes.
+      — captured 2026-10-14: no static blowup; buffers are runtime heap, so Q4 stays a bench proof.
 - [ ] Q1/Q2/Q4/Q6 answers written back into `../SPEC.md`'s Open questions table.
 
 **Dependencies:** none · **Scope:** M · **Files:** `config/esphome/ee02-bringup.yaml` (new),

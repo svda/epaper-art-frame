@@ -1,0 +1,5 @@
+# Bring-up spike artwork: a throwaway 1200x1600 test image used by
+# config/esphome/ee02-bringup.yaml to prove the PSRAM budget (SPEC P0.1 / Q4).
+# Kept out of www/epaper/ so the album sync's mirror never reaps it, and out of
+# git because it is a generated artifact.
+*.png
