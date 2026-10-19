@@ -76,8 +76,8 @@ acrylic sizes. Keep it to one board so grain runs continuously.
 to length with 45° mitres. Test the mitre setup on offcuts first.
 
 **Acceptance criteria:**
-- [ ] Species/tone chosen and approved; timber acquired.
-- [ ] Four members cut to the cut-list lengths (400 / 332.4); mitres test-fitted on offcuts.
+- [x] Species/tone chosen and approved; timber acquired.
+- [x] Four members cut to the cut-list lengths (400 / 332.4); mitres test-fitted on offcuts.
 - [ ] Members marked to preserve continuous grain around the frame.
 
 **Dependencies:** Checkpoint A · **Scope:** S · **Files:** `drawings/cut-list.md`
@@ -182,13 +182,14 @@ acrylic's protective film on until final assembly.
 
 ### F5.1: Mount the electronics and fit the front stack
 **Description:** Mount the **EE02 flipped onto the back plate** (component side toward the plate;
-its left-edge FPC connector facing the panel) and the LiPo (**removably**) with M3 standoffs. Route
-the panel FPC with a **gentle S-bend / fold — never a twist**; anchor the leads with a **service
-loop**, strain-relieved off all sharp edges. Cut the **back-plate opening** over the board's right
-side (buttons + USB-C + switch). Fit the front stack into the rebate — **acrylic, mat, float spacer
-ring, panel** — locating the panel on the mat window (±0.5 mm, 3.95 mm right); back it with **foam
-pads + the backing ring**; the ring is **captured by 4 pads/bosses on the back plate**; screw the
-back plate on.
+its left-edge FPC connector facing the panel) and the LiPo (**removably**) with **M2 standoffs**
+(36 × 75). The **25 mm ribbon has no extender**, so the board **straddles the panel's right edge**
+and the **backing ring is notched** over it. Route the ribbon with **slack (never taut) and no twist**;
+anchor the leads with a **service loop**, strain-relieved off all sharp edges. Cut the **back-plate
+opening** over the board's right side (buttons + USB-C + switch). Fit the front stack into the rebate —
+**acrylic, mat, float spacer ring, panel** — locating the panel on the mat window (±0.5 mm, 3.95 mm
+right); back it with **foam pads + the notched backing ring** (foam pad on the board's edge where it
+backs the panel); the ring is **captured by 4 pads/bosses on the back plate**; screw the back plate on.
 
 **Acceptance criteria:**
 - [ ] Back plate is both the panel and the electronics carrier; unscrews with the electronics attached.

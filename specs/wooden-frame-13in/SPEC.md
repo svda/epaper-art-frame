@@ -68,18 +68,20 @@ to the device's firmware or behaviour.
   ring** (2.5 mm card/foam, ring-shaped) between the mat and the panel, which sets the shadow gap `G`
   and keeps the panel off the mat/acrylic; a **backing ring** (**3.6 mm plywood**, ~8 mm wide) sitting
   **behind the panel's edge only** (outer ≈ the panel edge, 284.5 × 209; the centre stays open so the
-  EE02 + LiPo clear it), with **closed-cell foam** between it and the panel's back pressing gently
-  forward. The ring is **captured by the back plate**: **4 pads/bosses**, the **same width as the
+  EE02 + LiPo clear it), **notched on the right** over the board's footprint (the board straddles the
+  panel's right edge; its foam-padded edge backs that stretch), with **closed-cell foam** between it
+  and the panel's back pressing gently forward. The ring is **captured by the back plate**: **4 pads/bosses**, the **same width as the
   ring**, on the plate's inner face press it forward **directly behind it** when the
   plate is screwed on — **no fixing in the frame**. Nothing is bonded to the panel; **unscrew the back
   plate → the ring + panel lift out**.
 - **Panel interface:** the **EE02 + its 60-pin FPC**; the panel is **two UC8179 controllers in
   master/slave**. The cavity must clear the FPC and the driver/FPC tab, not just the glass.
-  **Cross-spec dependency:** the whole layout (seat offset right, board bottom-left-from-back, plate
-  opening side) assumes the FPC lands on the panel's **right** in the mounted landscape orientation —
+  **Cross-spec dependency:** the whole layout (seat offset right, board straddling the panel's right
+  edge, plate opening side) assumes the FPC lands on the panel's **right** in the mounted landscape
+  orientation —
   confirm against [`../ee02-13in-spectra6/SPEC.md`](../ee02-13in-spectra6/SPEC.md) **Q5**
   (`rotation: 90`) at Checkpoint A.
-- **Back plate = electronics carrier.** The **EE02 board** (M3 standoffs) and the **LiPo** (held
+- **Back plate = electronics carrier.** The **EE02 board** (M2 standoffs) and the **LiPo** (held
   **removably** — velcro / strap / pocket, never bonded) mount on the back plate's inner face;
   unscrewing the plate frees all the electronics. The plate sits in a **3.6 mm rebate in the frame's
   back** (~9 mm rim) — **flush and hidden from the side**. The EE02 mounts **flipped** (component side toward
@@ -89,12 +91,12 @@ to the device's firmware or behaviour.
 - **Buttons & power — one back opening.** The panel's FPC exits the panel's **right** edge; the
   EE02's 60-pin connector is on the board's **left** edge (at the top). Mount the board on the **back
   plate**, **flipped** so its **component side faces the back plate** (buttons + USB-C face inward).
-  The FPC takes a gentle **S-bend**/fold — **never a twist** — and the board sits **inboard** (bottom-left
-  viewed from the back, **clear of the backing ring/boss**), so the panel FPC still plugs **straight in,
-  no extension**.
-  A **single opening in the back plate** exposes the whole **right side of the board** (both buttons,
-  the USB-C and the power switch), reached with the frame **off the wall** (accepted — no wall-mounted
-  access). The board is **never glued to the panel**. Q2.
+  The ribbon is only **25 mm** long, so — with **no extender** (owner decision) — the board cannot sit
+  fully inboard: it **straddles the panel's right edge**, the ribbon running **~20 mm inboard with
+  slack** (never taut, no twist). **Consequence: the backing ring is notched** over the board's
+  footprint (see Panel retention). A **single opening in the back plate** exposes the whole **right
+  side of the board** (both buttons, the USB-C and the power switch), reached with the frame **off the
+  wall** (accepted — no wall-mounted access). The board is **never glued to the panel**. Q2.
 - **Charging / power:** through that same opening — either plug a **right-angle USB-C** connector in
   directly, or leave a short **USB-C pigtail** plugged in and dress its free end at the opening (Q5).
 - **Wall mount — load path defined.** A **French cleat** mounted on the frame's **solid back rim**,

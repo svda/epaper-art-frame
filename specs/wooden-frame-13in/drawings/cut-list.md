@@ -128,7 +128,7 @@ glass centre **3.95 mm right of the opening centre** (right side = FPC), keeping
 | 4 | Right stile | 1 | **332.4** | 45° × 2 | as rail 1 | |
 | 5 | Back plate | 1 | **381 × 313.4 × 3.6** | — | — | 1 mm clearance in the 382 × 314.4 rebate; recessed **flush**, hidden from the side; screws to the frame; carries EE02 + LiPo + the opening + 4 bosses |
 | 6 | Float spacer ring | 1 | ring | — | — | **2.5 mm** card/foam; sets gap `G`; inner ≈ mat window |
-| 7 | Backing ring | 1 | **284.5 × 209 (outer) · 268.5 × 193 (inner)** | — | — | **3.6 mm plywood**, ~8 mm ring **behind the panel edge only**; captured by the 4 plate bosses |
+| 7 | Backing ring | 1 | **284.5 × 209 (outer) · 268.5 × 193 (inner)** | — | — | **3.6 mm plywood**, ~8 mm ring **behind the panel edge only**; **notched on the right** over the board's footprint (25 mm ribbon, no extender — the board straddles the panel's right edge); captured by the 4 plate bosses |
 | 8 | French cleat (frame rail) | 1 | 100 × 20 × ~12 | — | — | rail screwed to the frame's **20 mm back rim** (≥4 screws, cross-grain) — **not the plate**; + a matching wall rail; add a **lateral stop** |
 
 **Stock:** one **black walnut** board, **width ≥ ~20 mm** (member = `F` 18 + saw allowance), **thickness

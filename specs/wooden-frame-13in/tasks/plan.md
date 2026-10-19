@@ -31,7 +31,7 @@ with the back plate **recessed into the frame's back**; the EE02 + LiPo ride on 
   tolerance against the window cut, and the acrylic never touches the panel.
 - **Solid hardwood, mitred + splined.** Members cut with a mitre saw, corners reinforced with
   splines or dowels, rebates cut with a router or stacked saw cuts. No table saw / router table.
-- **Back plate carries the electronics.** The EE02 (M3 standoffs) and the LiPo (removable — velcro /
+- **Back plate carries the electronics.** The EE02 (M2 standoffs) and the LiPo (removable — velcro /
   strap / pocket) mount on the back plate's inner face; unscrewing it frees the electronics. The board
   is **flipped so its component side faces the back plate**; the panel's FPC takes a gentle
   **S-bend**/fold (no twist) to the board's left-edge connector.
