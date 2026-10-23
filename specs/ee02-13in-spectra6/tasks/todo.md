@@ -658,3 +658,42 @@ class of symptom, very different blast radius.
 **Consequence for P4.1.** The awake-current measurement cannot be done on USB: the panel's draw
 through the battery is precisely what this issue is about, so USB-only measurements would be
 unrepresentative as well as brownout-prone.
+
+---
+
+### KI-2: Both frames stop updating — the artwork folders vanished from the HA host (2026-10-22)
+
+**Symptom.** Both frames stop updating. Their screens keep showing the last image, the devices are
+healthy and reachable during a wake, and there is no firmware fault. Nothing on the device side
+changed.
+
+**Root cause.** `/srv/home-assistant/config/www/epaper/`, `www/epaper13/` and `www/spike/` were
+deleted from the HA host. Both manifests then returned **404**, so each device woke, fetched the
+manifest, logged a warning and went back to sleep without rendering — leaving the previous frame on
+the glass, which reads as "the frame is broken".
+
+**Evidence and diagnosis.** `http://server:8123/` returned 200 and `/local/spring.jpg` returned 200
+from the same directory, so HA and `/local/` were fine; only the epaper folders were gone. `config/www`
+mtime was that day, and `find` showed no relocated copies. `www/community` is git-tracked in the HA
+config repo and `git status -- www` was clean, while `www/epaper*` was never tracked — so no git
+operation caused it.
+
+**Why it went unnoticed for a while.** The pipeline treats a failed manifest fetch as non-fatal by
+design (`run_duration` is the sleep backstop), so the device recovers into sleep and says nothing to
+HA. There is no entity that reports "last successful render", so the failure is invisible until
+someone looks at the glass.
+
+**Fix.** Re-push from the repo — the artwork is the source of truth and still had all 65 + 37 images:
+
+```
+tools/epaper/push_to_ha.sh server:/srv/home-assistant/config/www/epaper/
+tools/epaper/push_to_ha.sh --profile spectra6-133 server:/srv/home-assistant/config/www/epaper13/
+```
+
+Both manifests verified 200 afterwards.
+
+**What actually deleted them is UNKNOWN** — it needs the HA host's own logs, and this repo cannot see
+the cause. Two things would prevent a silent recurrence: a low-frequency guard that checks
+`/local/epaper13/manifest.json` for 200 and re-pushes on failure, and an ESPHome template sensor
+publishing "last successful render" so HA can alert on a frame that has silently stopped. Neither is
+built.
