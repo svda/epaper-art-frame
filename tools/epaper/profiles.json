@@ -25,6 +25,18 @@
       "backend": "magick",
       "pre_filter": "-modulate 95,160 -sigmoidal-contrast 4,50%",
       "dither": "FloydSteinberg"
+    },
+    "spectra6-133-art": {
+      "description": "Spectra 6 13.3\" (1600x1200) — art mode",
+      "width": 1600,
+      "height": 1200,
+      "colours": 6,
+      "palette": "palette-spectra6.png",
+      "artwork": "www/epaper13-modes/art",
+      "ha_dir": "local/epaper13",
+      "backend": "magick",
+      "pre_filter": "",
+      "dither": "FloydSteinberg"
     }
   }
 }

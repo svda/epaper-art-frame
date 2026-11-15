@@ -116,12 +116,12 @@ Expose `python -m placard IMAGE TITLE ARTIST DATE OUT` and a filename helper tha
 sanitises object numbers to `[A-Za-z0-9._-]`.
 
 **Acceptance criteria:**
-- [ ] The output is 1600×1200, its unique colours are a subset of `palette-spectra6.png`, and strip pixels are only `#000000` or `#FFFFFF`.
-- [ ] A tall input and a wide input are both fitted with no crop; a long title ends in `…`.
-- [ ] Both suites pass with the new row; placard tests skip with a reason when `magick` is missing.
+- [x] The output is 1600×1200, its unique colours are a subset of `palette-spectra6.png`, and strip pixels are only `#000000` or `#FFFFFF`.
+- [x] A tall input and a wide input are both fitted with no crop; a long title ends in `…`.
+- [x] Both suites pass with the new row; placard tests skip with a reason when `magick` is missing.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest tests/test_placard.py && uv run --directory tools/epaper pytest`
+- [x] `uv run --directory tools/museum pytest tests/test_placard.py && uv run --directory tools/epaper pytest`
 
 **Dependencies:** T-01 · **Scope:** M
 **Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest tests/test_placard.py && uv run --directory tools/epaper pytest`

@@ -90,7 +90,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 - [ ] A live `--dry-run` shows ok, `type`, rights, and `portrait` lines
 
 ### Phase 2: Rendering
-- [ ] T-04: Art profile row and placard renderer
+- [x] T-04: Art profile row and placard renderer
 - [ ] T-05: Render review: pre_filter, font, sizes (human choice)
 
 ### Checkpoint B: Rendering

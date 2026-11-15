@@ -23,8 +23,12 @@ def test_default_profile_is_acep565():
     assert name == "acep565"
 
 
-def test_both_panels_are_known():
-    assert set(profile.load()["profiles"]) == {"acep565", "spectra6-133"}
+def test_all_profiles_are_known():
+    assert set(profile.load()["profiles"]) == {
+        "acep565",
+        "spectra6-133",
+        "spectra6-133-art",
+    }
 
 
 def test_acep565_geometry_and_artwork():
@@ -42,6 +46,16 @@ def test_spectra6_geometry_is_landscape_and_artwork_is_separate():
     assert prof["colours"] == 6
     assert prof["palette"] == "palette-spectra6.png"
     assert prof["ha_dir"] == "local/epaper13"
+
+
+def test_art_profile_matches_the_panel_but_has_its_own_artwork():
+    """Art mode is the same panel and palette, with a separate folder."""
+    _, art = profile.resolve("spectra6-133-art")
+    _, photo = profile.resolve("spectra6-133")
+    assert (art["width"], art["height"]) == (photo["width"], photo["height"])
+    assert art["palette"] == photo["palette"]
+    assert art["artwork"] == "www/epaper13-modes/art"
+    assert art["artwork"] != photo["artwork"]
 
 
 def test_artwork_dirs_are_absolute_and_distinct():
