@@ -140,12 +140,12 @@ Q3 (sizes) stays open until the panel check in T-10. Change the strip or type si
 if the user asks.
 
 **Acceptance criteria:**
-- [ ] The contact sheet covers 8 objects × 3 candidates, each labelled.
-- [ ] The user's choice is written into `profiles.json`, and Q1 and Q2 in the spec are marked resolved with the date.
-- [ ] Review images live outside the repo (the session temp dir).
+- [x] The contact sheet covers 8 objects × 3 candidates, each labelled.
+- [x] The user's choice is written into `profiles.json`, and Q1 and Q2 in the spec are marked resolved with the date.
+- [x] Review images live outside the repo (the session temp dir).
 
 **Verification:**
-- [ ] Manual: the user confirms the choice; `uv run --directory tools/epaper pytest` still passes.
+- [x] Manual: the user confirms the choice; `uv run --directory tools/epaper pytest` still passes.
 
 **Dependencies:** T-03, T-04 · **Scope:** S
 **Tier:** standard · **Risk:** normal · **Verify:** `manual`

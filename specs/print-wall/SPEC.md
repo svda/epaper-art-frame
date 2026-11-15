@@ -293,6 +293,9 @@ photographs; PD and landscape) with (a) empty, (b) the photo filter `-modulate 9
 -sigmoidal-contrast 4,50%`, and (c) one milder candidate. The user picks one. The choice
 is recorded in the profile row's description and in this spec's Open Questions.
 
+**Chosen 2026-11-15:** empty (no boost), Georgia. The photo filter over-saturated and
+yellowed the paper; the source's own colour was more faithful.
+
 **Exit criteria:** for any input, the output is 1600×1200. Its unique colours are a subset
 of `palette-spectra6.png`. Strip pixels are only black or white. The print is never
 cropped. Title, artist and date read correctly on the panel from 1 m away.
@@ -580,8 +583,8 @@ def rights_of(visual_item: dict) -> str | None:
 
 | # | Question | Default if unresolved | Resolved by |
 |---|---|---|---|
-| Q1 | `pre_filter` for `spectra6-133-art` | Empty (no boost) | Render review during the build |
-| Q2 | Placard font | Georgia (macOS system font), configurable | Render review |
+| Q1 | `pre_filter` for `spectra6-133-art` | **Resolved: empty (no boost).** The photo filter over-saturated and yellowed the paper | User, 2026-11-15 |
+| Q2 | Placard font | **Resolved: Georgia** (macOS system font, configurable) | User, 2026-11-15 |
 | Q3 | Strip height and type sizes (144 px, ~40/30 px) | As specified | Render review on the panel |
 | Q4 | Rotation follows `prints.toml` order? The manifest writer sorts, so today it is object-number order | Accept sorted order | User. Changing it means touching `generate_manifest.py` (ask first) |
 | Q5 | Should `ACTIVE` be visible in Home Assistant (e.g. a sensor)? | No. `--status` only | Later spec |

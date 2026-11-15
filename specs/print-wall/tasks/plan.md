@@ -91,7 +91,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 
 ### Phase 2: Rendering
 - [x] T-04: Art profile row and placard renderer
-- [ ] T-05: Render review: pre_filter, font, sizes (human choice)
+- [x] T-05: Render review: pre_filter, font, sizes (human choice)
 
 ### Checkpoint B: Rendering
 - [ ] Both test suites pass; Q1 and Q2 resolved in the spec

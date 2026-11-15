@@ -27,7 +27,7 @@
       "dither": "FloydSteinberg"
     },
     "spectra6-133-art": {
-      "description": "Spectra 6 13.3\" (1600x1200) — art mode",
+      "description": "Spectra 6 13.3\" (1600x1200) — art mode, no pre_filter",
       "width": 1600,
       "height": 1200,
       "colours": 6,
