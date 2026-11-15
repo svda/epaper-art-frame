@@ -1,10 +1,10 @@
 # Spec: Print Wall
 
-Status: **approved** (2026-11-15) · Revision 2 (2026-11-15: rotation position across a mode switch documented, Q8)
+Status: **approved** (2026-11-15) · Revision 4 (2026-11-15: landscape and square images only; portrait skipped)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
-> public-domain prints from the Rijksmuseum, each rendered with a gallery placard (title,
+> public-domain objects from the Rijksmuseum, each rendered with a gallery placard (title,
 > artist, date), switchable against the existing photo rotation with one command. It is a
 > new *source*, in the same shape as [`icloud-album-sync`](../icloud-album-sync/SPEC.md).
 > It does not change the device. The 13" frame is specified in
@@ -18,15 +18,25 @@ Slug: `print-wall`
 
 ## Objective
 
-Let the household's 13" frame hang **prints** as well as photos. One manual command fetches
-a hand-curated list of Rijksmuseum prints, renders each for the panel with a placard below
-it, and, when art mode is active, deploys them to Home Assistant. The device picks them up
-on its next daily wake. A second command switches the frame between **art** and **photos**.
+Let the household's 13" frame hang **curated art** as well as photos. One manual command
+fetches a hand-curated list of Rijksmuseum objects, renders each for the panel with a
+placard below it, and, when art mode is active, deploys them to Home Assistant. The device
+picks them up on its next daily wake. A second command switches the frame between **art**
+and **photos**.
+
+**The list is the scope.** There is no object-type filter: whatever object numbers are in
+`prints.toml` is what gets fetched — prints, posters, drawings, anything the Rijksmuseum
+serves with a public-domain image. The name "Print Wall" is historical; the mechanism is
+type-agnostic.
+
+**Landscape only.** The panel is 1600×1200 landscape, so only images that are landscape or
+square (`width ≥ height`) are used. Portrait images are skipped with a logged reason rather
+than letterboxed into a narrow strip.
 
 **The user** is the same household that runs the existing frames. They curate by copying
 object numbers from rijksmuseum.nl into a text file.
 
-**Success:** after editing the list and running one command, the frame shows those prints
+**Success:** after editing the list and running one command, the frame shows those objects
 with readable placards. Switching modes is one command. Nothing on the device changes, and
 nothing about the 5.65" frame changes.
 
@@ -36,7 +46,8 @@ nothing about the 5.65" frame changes.
 |---|---|
 | Source | Rijksmuseum Linked Art Search API, `https://data.rijksmuseum.nl/search/collection`, no API key |
 | Curation | Hand-picked **object numbers** (e.g. `RP-P-OB-12.345`) in `tools/museum/prints.toml` |
-| Scope | Prints (`type=print`); any technique the user curates |
+| Scope | **No type filter.** The curated list is the scope; any object type the Rijksmuseum serves |
+| Orientation | **Landscape or square only** (`width ≥ height`). Portrait images are skipped |
 | Rights | Only objects whose own VisualItem rights are **Public Domain Mark** or **CC0** |
 | Image | IIIF via `iiif.micr.io`, requested as `/full/!1600,1600/0/default.jpg` |
 | Panel profile | New row `spectra6-133-art`: same panel, size and palette as `spectra6-133`, own `pre_filter` |
@@ -54,16 +65,22 @@ nothing about the 5.65" frame changes.
 
 - **One spec, four internal modules**, following the repo's existing specs. Capability map
   approved 2026-11-15 (below).
-- **Done means a manual sync.** One command, then the frame shows prints on its next wake.
+- **Done means a manual sync.** One command, then the frame shows art on its next wake.
   Scheduling is a later spec.
 - **Curation by object number**, resolved through the API's `objectNumber` parameter.
+- **No type filter** (2026-11-15). The curated list is the scope. `type=print` was
+  considered and dropped: it excludes posters (a separate type, `2203113`), and the list
+  already expresses intent better than a facet does.
+- **Landscape and square only** (2026-11-15). Portrait images are skipped, not letterboxed.
+  Orientation comes from the IIIF `info.json`, so a portrait object costs one small request
+  and no image download.
 - **Placard as a strip below a fitted print**, like a museum mat. No overlay, no crop.
 - **Art gets its own profile row** (`spectra6-133-art`). Its `pre_filter` is chosen by a
   before/after render during the build. The photo profile is not touched, and no script
   gets an `if`.
 - **Mode switching publishes and deploys in one command** (`set_mode.sh art|photos`).
 - **The art sync deploys only when art is the active mode.** Otherwise it stages the
-  prints and says so. It never switches the mode itself.
+  art and says so. It never switches the mode itself.
 - **No new runtime dependencies.** Python stdlib (`urllib`, `json`, `tomllib`) plus
   ImageMagick, which the pipeline already requires.
 - **No Rijksmuseum credit line** on the placard. PD/CC0 does not require one, and the strip
@@ -111,7 +128,7 @@ moved.
 **Input:** `tools/museum/prints.toml`
 
 ```toml
-# Prints for the 13" frame's art mode. Copy object numbers from rijksmuseum.nl.
+# Objects for the 13" frame's art mode. Copy object numbers from rijksmuseum.nl.
 # Order here is rotation order.
 prints = [
   "RP-P-OB-12.345",
@@ -127,12 +144,20 @@ prints = [
    `shows[0]` VisualItem.
 3. `GET <VisualItem>` → rights from `subject_to[].classified_as[].id`, and
    `digitally_shown_by[0]`.
-4. `GET <DigitalObject>` → `access_point[0].id`. Rewrite its `/full/...` suffix to
-   `/full/!1600,1600/0/default.jpg`.
+4. `GET <DigitalObject>` → `access_point[0].id`. Keep the base (everything before
+   `/full/`).
+5. `GET <base>/info.json` → `width`, `height`. If `height > width`, skip the entry with
+   reason `portrait`. Otherwise build the image URL as
+   `<base>/full/!1600,1600/0/default.jpg`.
 
 **Rights rule.** Accept only `creativecommons.org/publicdomain/mark/` or
 `creativecommons.org/publicdomain/zero/`. Anything else (CC BY, unknown, missing) means the
 entry is skipped, with a logged reason. Search results never decide rights.
+
+**Orientation rule.** Accept only landscape or square images (`width ≥ height`). The check
+uses the IIIF `info.json`, which is small and cached, so a portrait object costs one extra
+request and no image download. Square is included: it fills the art area with small side
+margins.
 
 **Metadata returned** (a small dataclass):
 
@@ -143,11 +168,12 @@ entry is skipped, with a logged reason. Search results never decide rights.
 | `artist` | `produced_by` → `carried_out_by[]._label`, joined with `", "` (including `part[]`) | `"Anonymous"` |
 | `date` | `produced_by.timespan.identified_by[0].content` (display date) | year of `begin_of_the_begin`, then `""` |
 | `rights` | `"PD"` or `"CC0"` | — (skipped) |
+| `width`, `height` | IIIF `info.json` | — (skipped if portrait) |
 | `image_path` | cached JPEG | — |
 
-**Cache.** `tools/museum/.cache/` (git-ignored). The three JSON hops are stored by object
-number. Images are stored by IIIF id. A cached entry is reused without any network call.
-`--refresh` bypasses the cache.
+**Cache.** `tools/museum/.cache/` (git-ignored). The three JSON hops and the IIIF
+`info.json` are stored by object number. Images are stored by IIIF id. A cached entry is
+reused without any network call. `--refresh` bypasses the cache.
 
 **Politeness.** Requests are sequential, at least 0.25 s apart, with a
 `User-Agent: epaper-art-frame/print-wall`. HTTP 429 and 5xx are retried up to 3 times with
@@ -155,9 +181,9 @@ exponential backoff. Pagination is not needed, because each `objectNumber` looku
 a single page.
 
 **Exit criteria:** `sync_prints.py --dry-run` prints one line per curated entry: object
-number, title, artist, date, rights, and *ok* or a *skip reason*. It writes nothing outside
-`.cache/`. A non-PD entry and an unknown object number each show up as a skip with a
-reason.
+number, title, artist, date, rights, orientation, and *ok* or a *skip reason*. It writes
+nothing outside `.cache/`. A non-PD entry, an unknown object number, and a portrait image
+each show up as a skip with a reason.
 
 ---
 
@@ -286,7 +312,7 @@ new mode on its next wake, and the prev/next buttons work within it.
 4. Regenerate that folder's manifest last
    (`generate_manifest.py --profile spectra6-133-art`).
 5. If `www/epaper13-modes/ACTIVE` reads `art`, call `set_mode.sh art`, which publishes and
-   deploys. Otherwise print `art staged (N prints); active mode is photos — run
+   deploys. Otherwise print `art staged (N objects); active mode is photos — run
    set_mode.sh art to show them` and exit 0.
 
 **Filenames:** `<object number>.png`, sanitised to `[A-Za-z0-9._-]` (other characters
@@ -304,7 +330,7 @@ spec accepts that rather than changing the manifest writer. See Q4.
 manifest byte-identical, and makes no network calls when everything is cached.
 
 **Exit criteria:** with `ACTIVE=art`, editing `prints.toml` and running `sync_prints.py`
-puts exactly the PD/CC0 prints from the list, with placards, on the HA host. The frame
+puts exactly the PD/CC0 objects from the list, with placards, on the HA host. The frame
 shows them on its next wake. With `ACTIVE=photos`, the same run changes only
 `www/epaper13-modes/art/`.
 
@@ -415,6 +441,9 @@ def rights_of(visual_item: dict) -> str | None:
     with two matches, one with no English title, one anonymous, one undated). The fetcher
     is injected, so the cache hit path makes **zero** fetch calls. Covers the IIIF URL
     rewrite and retry/backoff on 429 (fake clock).
+  - `museum-source` orientation: landscape, square, and portrait `info.json` fixtures. The
+    first two resolve; portrait is skipped with reason `portrait` and **no image download**.
+    A missing or malformed `info.json` is skipped with a reason, not a crash.
   - `placard`: output size is 1600×1200. `magick identify -format %k` and the unique
     colours are a subset of the palette. Strip pixels are only black or white. A tall and
     a wide input are both fitted with no crop. Long titles are truncated with `…`.
@@ -430,9 +459,9 @@ def rights_of(visual_item: dict) -> str | None:
   and `device_profile.py spectra6-133-art` resolves.
 - **Render review (manual, gating):** the six spike samples rendered with each
   `pre_filter` candidate. The user chooses.
-- **End-to-end (manual, on hardware):** curate about 5 prints, then
+- **End-to-end (manual, on hardware):** curate about 5 objects, then
   `set_mode.sh --migrate`, `sync_prints.py`, `set_mode.sh art`. Press the next button:
-  prints appear with readable placards. Then `set_mode.sh photos` and press next: photos
+  art appears with readable placards. Then `set_mode.sh photos` and press next: photos
   return. The 5.65" frame keeps working the whole time.
 
 ---
@@ -470,10 +499,11 @@ def rights_of(visual_item: dict) -> str | None:
 ## Success criteria
 
 1. With `ACTIVE=art`, a single `sync_prints.py` run takes `prints.toml` to the HA host's
-   `/local/epaper13/`, and the frame shows those prints with placards on its next wake.
+   `/local/epaper13/`, and the frame shows those objects with placards on its next wake.
    No other command is needed.
-2. Every deployed print is PD or CC0 according to its own VisualItem. Non-PD and
-   unresolvable entries are skipped with a logged reason, and the run still succeeds.
+2. Every deployed image is PD or CC0 according to its own VisualItem, and is landscape or
+   square (`width ≥ height`). Non-PD, unresolvable, and portrait entries are skipped with a
+   logged reason, and the run still succeeds.
 3. Every art PNG is 1600×1200, uses only palette colours, has a black-on-white placard
    (title, then "artist, date") readable at 1 m, and shows the whole print uncropped.
 4. `set_mode.sh art` and `set_mode.sh photos` each leave the live folder, the manifest and
@@ -507,7 +537,8 @@ def rights_of(visual_item: dict) -> str | None:
 
 - Scheduling or launchd for the art sync.
 - Query-driven discovery, random picks, or "print of the day". Curation is the list.
-- Paintings or any non-print object type.
+- No type filter, but the dithering evidence covers prints only; tonal works stylize more.
+- Portrait images (skipped by design; the panel is landscape).
 - Firmware, pin, or driver changes, and any change to the 5.65" frame.
 - Captions in the manifest, or text rendered on the device.
 - Mixing art and photos in one rotation.
@@ -521,10 +552,12 @@ def rights_of(visual_item: dict) -> str | None:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Rijksmuseum changes the Linked Art shape again (the old API is already gone) | **High.** The sync resolves nothing | Fixtures pin the expected shape. Fail loudly per entry. The cache keeps the last good set deployable |
+| A curated object is portrait | Low. It is missing from the wall | Skipped with reason `portrait`; `--dry-run` shows it before anything renders |
+| A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spike covered prints; re-run it on a sample before adding a new medium. The user curates, so this is a choice, not a surprise |
 | A curated object is not PD/CC0 | Medium. It is missing from the wall | Skipped with a reason; `--dry-run` shows it before anything renders |
 | `push_to_ha.sh` mirrors the remote, so the last deploy owns the frame | **High.** One mode could wipe the other on HA | Only `set_mode.sh` deploys the 13" frame. The art profile's folder fails the destination guard on purpose |
 | The migration moves the live 13" photos | Medium. A mistake would empty the frame | `--migrate` is idempotent and has `--dry-run`. It moves files, never deletes them. It publishes without deploying until verified |
 | Anti-aliased placard text dithers into speckle | Low. Ugly text | Text is rendered 1-bit; the test asserts strip pixels are only black or white |
-| Aquatint/mezzotint tones flatten (from the spike) | Low. A stylised look | Accepted for prints; the user curates around it |
+| Aquatint/mezzotint tones flatten (from the spike) | Low. A stylised look | Accepted; tonal works stylize more, and the user curates around it |
 | The sorted manifest ignores list order | Low. Unexpected order | Recorded as Q4 |
 | Running the album sync for the 13" without the override writes the live folder | Medium. Bypasses modes | Documented in `tools/icloud/README.md`. `set_mode.sh --status` shows the drift. Revisit if it happens |
