@@ -79,7 +79,7 @@ def test_compose_fits_a_tall_source_without_cropping(tmp_path):
     compose(source, out)
 
     assert size(out) == (1600, 1200)
-    assert trim_size(out) == (508, 1016)
+    assert trim_size(out) == (528, 1056)
 
 
 def test_compose_fits_a_wide_source_without_cropping(tmp_path):
@@ -90,10 +90,10 @@ def test_compose_fits_a_wide_source_without_cropping(tmp_path):
     compose(source, out)
 
     assert size(out) == (1600, 1200)
-    assert trim_size(out) == (1520, 760)
+    assert trim_size(out) == (1552, 776)
 
 
-def test_letter_strip_is_only_black_and_white(tmp_path):
+def test_letter_strip_contains_black_text_on_white(tmp_path):
     base = tmp_path / "base.png"
     magick("-size", "1600x1200", "xc:white", str(base))
     out = tmp_path / "lettered.png"
@@ -101,8 +101,8 @@ def test_letter_strip_is_only_black_and_white(tmp_path):
     letter(base, "Title", "Artist", "1890", font=FONT, out=out)
 
     strip = tmp_path / "strip.png"
-    magick(str(out), "-crop", "1600x144+0+1056", "+repage", str(strip))
-    assert unique_colours(strip) <= {"#000000", "#FFFFFF"}
+    magick(str(out), "-crop", "1600x120+0+1080", "+repage", str(strip))
+    assert unique_colours(strip) == {"#000000", "#FFFFFF"}
 
 
 def test_render_uses_only_palette_colours(tmp_path):

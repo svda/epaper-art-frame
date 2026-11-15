@@ -13,8 +13,8 @@ PREPARE = REPO / "tools" / "epaper" / "prepare_image.sh"
 PROFILE = "spectra6-133-art"
 
 WIDTH, HEIGHT = 1600, 1200
-MARGIN = 40
-STRIP = 144
+MARGIN = 24
+STRIP = 120
 ART_W, ART_H = WIDTH - 2 * MARGIN, HEIGHT - STRIP - MARGIN
 DEFAULT_FONT = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 TITLE_SIZE = 40
@@ -115,24 +115,28 @@ def letter(
         "-fill",
         "black",
         "-gravity",
-        "northwest",
+        "north",
         "-pointsize",
         str(TITLE_SIZE),
         "-annotate",
-        f"+{MARGIN}+8",
+        "+0+20",
         title,
         "-pointsize",
         str(SUB_SIZE),
         "-annotate",
-        f"+{MARGIN}+{TITLE_SIZE + 24}",
+        "+0+70",
         subtitle,
         "-threshold",
         "50%",
+        "-alpha",
+        "off",
         str(text),
     )
     _magick(
         str(image),
         str(text),
+        "-gravity",
+        "northwest",
         "-geometry",
         f"+0+{HEIGHT - STRIP}",
         "-composite",
