@@ -287,12 +287,12 @@ why running it without the override writes the live folder.
 Record results and the Q3 resolution in the spec.
 
 **Acceptance criteria:**
-- [ ] Spec success criteria 1–6 observed on hardware; Q3 marked resolved with the date.
-- [ ] The `www/epaper/` checksums are identical before and after.
-- [ ] HA's `/local/epaper13/` holds exactly the active mode after each switch.
+- [x] Spec success criteria 1–6 observed on hardware; Q3 marked resolved with the date.
+- [x] The `www/epaper/` checksums are identical before and after.
+- [x] HA's `/local/epaper13/` holds exactly the active mode after each switch.
 
 **Verification:**
-- [ ] Manual, with the user present at the frame.
+- [x] Manual, with the user present at the frame.
 
 **Dependencies:** T-05, T-07, T-08, T-09 · **Scope:** S
 **Tier:** standard · **Risk:** high · **Verify:** `manual`

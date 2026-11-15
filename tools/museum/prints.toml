@@ -3,4 +3,8 @@
 # The manifest writer sorts, so rotation follows object-number order, not this list.
 prints = [
   "RP-P-1956-733",  # Hokusai, The Great Wave off Kanagawa
+  "KOG-ZG-1-19-90", # print
+  "SK-A-3089",      # Henriëtte Ronner, Cat at Play
+  "RP-T-1921-120",  # drawing
+  "RP-F-00-630",    # George Hendrik Breitner, photograph
 ]

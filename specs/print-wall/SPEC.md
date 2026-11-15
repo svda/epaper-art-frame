@@ -243,12 +243,12 @@ palette colours**.
 ```
 ┌──────────────────────────────────────────────┐
 │                                              │
-│      print, fitted (never cropped),          │  art area 1600 × 1056
-│      centred on white                        │  (inset by a 40 px margin)
+│      print, fitted (never cropped),          │  art area 1552 × 1056
+│      centred on white                        │  (inset by a 24 px margin)
 │                                              │
 ├──────────────────────────────────────────────┤
-│  Title of the Print                          │  placard strip 1600 × 144
-│  Artist Name, 1890                           │  white, 2 lines, left-aligned
+│  Title of the Print                          │  placard strip 1600 × 120
+│  Artist Name, 1890                           │  white, 2 lines, centred
 └──────────────────────────────────────────────┘
 ```
 
@@ -293,8 +293,9 @@ photographs; PD and landscape) with (a) empty, (b) the photo filter `-modulate 9
 -sigmoidal-contrast 4,50%`, and (c) one milder candidate. The user picks one. The choice
 is recorded in the profile row's description and in this spec's Open Questions.
 
-**Chosen 2026-11-15:** empty (no boost), Georgia. The photo filter over-saturated and
-yellowed the paper; the source's own colour was more faithful.
+**Chosen 2026-11-15:** empty (no boost), Georgia, 24 px margin, 120 px strip, centred
+text. The photo filter over-saturated and yellowed the paper; the source's own colour was
+more faithful.
 
 **Exit criteria:** for any input, the output is 1600×1200. Its unique colours are a subset
 of `palette-spectra6.png`. Strip pixels are only black or white. The print is never
@@ -585,7 +586,7 @@ def rights_of(visual_item: dict) -> str | None:
 |---|---|---|---|
 | Q1 | `pre_filter` for `spectra6-133-art` | **Resolved: empty (no boost).** The photo filter over-saturated and yellowed the paper | User, 2026-11-15 |
 | Q2 | Placard font | **Resolved: Georgia** (macOS system font, configurable) | User, 2026-11-15 |
-| Q3 | Strip height and type sizes (144 px, ~40/30 px) | As specified | Render review on the panel |
+| Q3 | Strip height and type sizes | **Resolved: 24 px margin, 120 px strip, centred text, 40/30 px type** | User, 2026-11-15 |
 | Q4 | Rotation follows `prints.toml` order? The manifest writer sorts, so today it is object-number order | Accept sorted order | User. Changing it means touching `generate_manifest.py` (ask first) |
 | Q5 | Should `ACTIVE` be visible in Home Assistant (e.g. a sensor)? | No. `--status` only | Later spec |
 | Q6 | Scheduled art sync (launchd) | Not in this spec | Later spec |
