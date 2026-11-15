@@ -112,6 +112,7 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 | A stale object stays on the wall | Remove it from `prints.toml` and re-run `sync_prints.py`; the mirror deletes it |
 | The API rate-limits | The fetcher retries 429/5xx with backoff and caches every response under `.cache/` |
 | `--refresh` shows the wrong set | Check `set_mode.sh --status`; `ACTIVE` names the mode being republished |
+| The placard strip looks off-white | The image is pure `#FFFFFF`; the Spectra 6 white ink is slightly warm/grey. This is the panel, not the image |
 
 ## Files
 

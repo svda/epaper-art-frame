@@ -621,6 +621,7 @@ def rights_of(visual_item: dict) -> str | None:
 | `push_to_ha.sh` mirrors the remote, so the last deploy owns the frame | **High.** One mode could wipe the other on HA | Only `set_mode.sh` deploys the 13" frame. The art profile's folder fails the destination guard on purpose |
 | The migration moves the live 13" photos | Medium. A mistake would empty the frame | `--migrate` is idempotent and has `--dry-run`. It moves files, never deletes them. It publishes without deploying until verified |
 | Anti-aliased placard text dithers into speckle | Low. Ugly text | Text is rendered 1-bit; the test asserts strip pixels are only black or white |
+| The panel's white is not paper white | Low. The placard strip reads slightly off-white | The image is pure `#FFFFFF`; the Spectra 6 white ink is the limit. Accepted 2026-11-15 |
 | Aquatint/mezzotint tones flatten (from the spike) | Low. A stylised look | Accepted; tonal works stylize more, and the user curates around it |
 | The sorted manifest ignores list order | Low. Unexpected order | Recorded as Q4 |
 | Running the album sync for the 13" without the override writes the live folder | Medium. Bypasses modes | Documented in `tools/icloud/README.md`. `set_mode.sh --status` shows the drift. Revisit if it happens |
