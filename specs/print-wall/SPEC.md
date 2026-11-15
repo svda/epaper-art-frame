@@ -152,7 +152,7 @@ The object-number lookup accepts the real formats, including dots and hyphens
 | `museum-source` | Read the curated list; resolve object number → object → VisualItem → DigitalObject; check rights; download the IIIF image; cache | — |
 | `placard` | Turn a source image plus metadata into a palette-only 1600×1200 PNG with a placard strip | — (takes metadata as plain values) |
 | `art-sync` | Orchestrate source → placard → staging → `www/epaper13-modes/art/` → manifest; deploy if art is active | `museum-source`, `placard`, `mode-switch` (only its publish entry point) |
-| `mode-switch` | `set_mode.sh art\|photos`: publish a mode folder into `www/epaper13/`, record the mode, deploy; one-time migration of today's 13" photos | — |
+| `mode-switch` | `set_mode.sh art\|photos\|--refresh`: publish a mode folder into `www/epaper13/`, record the mode, deploy; one-time migration of today's 13" photos | — |
 
 Build order: `museum-source`, `placard`, `mode-switch` (independent) → `art-sync`.
 
@@ -285,11 +285,13 @@ The art folder's name (`art`) does not match the HA folder's name (`epaper13`), 
 `push_to_ha.sh`'s mismatch guard **refuses to deploy the art folder directly**. That is
 deliberate. Only `set_mode.sh` deploys, and it does so from `www/epaper13/`.
 
-**Choosing `pre_filter`.** Render the six spike samples (one each of colour lithograph,
-lithograph, woodcut, wood engraving, mezzotint, aquatint) with (a) empty, (b) the photo
-filter `-modulate 95,160 -sigmoidal-contrast 4,50%`, and (c) one milder candidate. The
-user picks one. The choice is recorded in the profile row's description and in this
-spec's Open Questions.
+Adding the row also updates `tools/epaper/tests/test_profile.py`, whose known-profile set
+currently asserts exactly two profiles.
+
+**Choosing `pre_filter`.** Render eight samples (2 prints, 2 paintings, 2 drawings, 2
+photographs; PD and landscape) with (a) empty, (b) the photo filter `-modulate 95,160
+-sigmoidal-contrast 4,50%`, and (c) one milder candidate. The user picks one. The choice
+is recorded in the profile row's description and in this spec's Open Questions.
 
 **Exit criteria:** for any input, the output is 1600×1200. Its unique colours are a subset
 of `palette-spectra6.png`. Strip pixels are only black or white. The print is never
@@ -314,7 +316,9 @@ cropped. Title, artist and date read correctly on the panel from 1 m away.
    holding only the active mode.
 
 Options: `-n/--dry-run` prints the publish delta and the deploy plan and changes nothing.
-`--no-deploy` publishes and records the mode but skips the push.
+`--no-deploy` publishes and records the mode but skips the push. `--refresh` republishes
+and deploys whichever mode `ACTIVE` names, without changing the mode; it refuses if
+`ACTIVE` is missing or names an empty mode.
 
 **`set_mode.sh --status`** prints the active mode and the PNG count of each mode folder.
 
@@ -322,9 +326,12 @@ Options: `-n/--dry-run` prints the publish delta and the deploy plan and changes
 exist, move today's `www/epaper13/*.png` and its `.managed.json` there, write
 `ACTIVE=photos`, and publish without deploying. This must be idempotent: a second run is
 a no-op. From then on, refreshing 13" photos means
-`EPAPER_IMAGES=www/epaper13-modes/photos sync_album.py --profile spectra6-133`, using the
-override that already exists. The album sync's code does not change. Its README gets a
-note.
+`EPAPER_IMAGES=www/epaper13-modes/photos sync_album.py --profile spectra6-133 --dest
+"$EPAPER13_DEST"`, then `set_mode.sh --refresh`. The `--dest` is required because
+`tools/icloud/.env` points `EPAPER_DEST` at the 5.65" folder, and the deploy script's
+folder-name check would reject it. The album sync's own push re-sends the live folder,
+which is harmless; `--refresh` then republishes the photos folder. The album sync's code
+does not change. Its README gets a note.
 
 **Rotation position across a switch (accepted, 2026-11-15).** The device keeps **one**
 persisted counter (`art_index` in `common/art-frame.yaml`) for every manifest and shows
@@ -357,9 +364,9 @@ new mode on its next wake, and the prev/next buttons work within it.
    adopt the folder on the first run. Copy staged files in, then delete the stale ones.
 4. Regenerate that folder's manifest last
    (`generate_manifest.py --profile spectra6-133-art`).
-5. If `www/epaper13-modes/ACTIVE` reads `art`, call `set_mode.sh art`, which publishes and
-   deploys. Otherwise print `art staged (N objects); active mode is photos — run
-   set_mode.sh art to show them` and exit 0.
+5. If `www/epaper13-modes/ACTIVE` reads `art`, call `set_mode.sh --refresh`, which
+   republishes and deploys the active mode. Otherwise print `art staged (N objects); active
+   mode is photos — run set_mode.sh art to show them` and exit 0.
 
 **Filenames:** `<object number>.png`, sanitised to `[A-Za-z0-9._-]` (other characters
 become `_`). Object numbers are stable, so re-runs are idempotent, and the names contain
@@ -391,18 +398,21 @@ uv run --directory tools/museum python sync_prints.py --dry-run
 # The one command: fetch, render, mirror; deploy if art mode is active
 uv run --directory tools/museum python sync_prints.py
 
-# Switch the 13" frame (publish + deploy); preview; status
+# Switch the 13" frame (publish + deploy); preview; status; republish the active mode
 EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ tools/museum/set_mode.sh art
 tools/museum/set_mode.sh photos
 tools/museum/set_mode.sh --dry-run art
 tools/museum/set_mode.sh --status
+tools/museum/set_mode.sh --refresh
 
 # One-time: move today's 13" photos into their mode folder
 tools/museum/set_mode.sh --migrate
 
 # Refresh 13" photos after the migration (existing tool, existing override)
 EPAPER_IMAGES=www/epaper13-modes/photos \
-  tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133
+  tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133 \
+  --dest "$EPAPER13_DEST"
+tools/museum/set_mode.sh --refresh
 
 # Render one placard by hand (debugging)
 uv run --directory tools/museum python -m placard <image.jpg> "<title>" "<artist>" "<date>" out.png
@@ -424,7 +434,7 @@ tools/museum/                     → New: this spec
   rijks.py                        →   museum-source: resolve, rights, IIIF, cache
   placard.py                      →   placard: compose → prepare_image.sh → letter
   sync_prints.py                  →   art-sync: orchestration + mirror + deploy-if-active
-  set_mode.sh                     →   mode-switch: publish, record, deploy, migrate, status
+  set_mode.sh                     →   mode-switch: publish, record, deploy, refresh, migrate, status
   tests/                          →   pytest; fixtures/ holds recorded Linked Art JSON
   README.md                       →   curation, commands, modes, troubleshooting
   .cache/                         →   git-ignored API + image cache

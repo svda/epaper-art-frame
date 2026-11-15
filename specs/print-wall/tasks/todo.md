@@ -23,13 +23,13 @@ pre_filter" sample set to 2 prints, 2 paintings, 2 drawings and 2 photographs. N
 non-goal and the matching Risks row.
 
 **Acceptance criteria:**
-- [ ] `--refresh` is specified (behaviour, and refusal when `ACTIVE` is missing or names an empty mode) and is used by art-sync and the photo refresh.
-- [ ] No type allowlist remains; a print resolves like any other object.
-- [ ] The pre_filter review lists print, painting, drawing and photograph samples.
-- [ ] Revision line bumped to 7 with a one-line summary.
+- [x] `--refresh` is specified (behaviour, and refusal when `ACTIVE` is missing or names an empty mode) and is used by art-sync and the photo refresh.
+- [x] No type allowlist remains; a print resolves like any other object.
+- [x] The pre_filter review lists print, painting, drawing and photograph samples.
+- [x] Revision line bumped to 7 with a one-line summary.
 
 **Verification:**
-- [ ] `rg -q -- '--refresh' specs/print-wall/SPEC.md` and `! rg -q 'mezzotint, aquatint\) with' specs/print-wall/SPEC.md`
+- [x] `rg -q -- '--refresh' specs/print-wall/SPEC.md` and `! rg -q 'mezzotint, aquatint\) with' specs/print-wall/SPEC.md`
 
 **Dependencies:** None · **Scope:** XS
 **Tier:** light · **Risk:** normal · **Verify:** `rg -q -- 'set_mode.sh --refresh' specs/print-wall/SPEC.md`

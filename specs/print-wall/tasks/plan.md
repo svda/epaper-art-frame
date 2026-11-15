@@ -79,7 +79,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 ## Task list
 
 ### Phase 0: Spec sync
-- [ ] T-01: Bring the spec in line with the plan
+- [x] T-01: Bring the spec in line with the plan
 
 ### Phase 1: Source
 - [ ] T-02: Scaffold `tools/museum` and the pure resolver
