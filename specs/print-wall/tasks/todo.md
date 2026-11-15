@@ -261,11 +261,11 @@ and troubleshooting (rights, portrait, cache, `EPAPER13_DEST`). Add a section to
 why running it without the override writes the live folder.
 
 **Acceptance criteria:**
-- [ ] Every command in SPEC.md §Commands appears in `tools/museum/README.md`.
-- [ ] `tools/icloud/README.md` documents the 13" photo refresh with `--dest` and `--refresh`.
+- [x] Every command in SPEC.md §Commands appears in `tools/museum/README.md`.
+- [x] `tools/icloud/README.md` documents the 13" photo refresh with `--dest` and `--refresh`.
 
 **Verification:**
-- [ ] `rg -q 'set_mode.sh --refresh' tools/icloud/README.md tools/museum/README.md`
+- [x] `rg -q 'set_mode.sh --refresh' tools/icloud/README.md tools/museum/README.md`
 
 **Dependencies:** T-07, T-08 · **Scope:** S
 **Tier:** light · **Risk:** normal · **Verify:** `rg -q 'set_mode.sh --refresh' tools/icloud/README.md && rg -q 'set_mode.sh --refresh' tools/museum/README.md`

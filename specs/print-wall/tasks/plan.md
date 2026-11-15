@@ -105,7 +105,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 
 ### Phase 4: Art sync and ship
 - [x] T-08: Full `sync_prints.py` run
-- [ ] T-09: READMEs
+- [x] T-09: READMEs
 - [ ] T-10: Hardware end-to-end
 
 ### Checkpoint D: Complete
