@@ -67,6 +67,18 @@ def live_names(tree: Path) -> list[str]:
     return sorted(p.name for p in (tree / "www" / "epaper13").iterdir())
 
 
+def make_migration_tree(tmp_path: Path) -> Path:
+    """A tree where the live folder holds today's photos and the photos mode is empty."""
+    tree = make_tree(tmp_path)
+    for png in (tree / "www" / "epaper13-modes" / "photos").glob("*.png"):
+        png.unlink()
+    live = tree / "www" / "epaper13"
+    make_png(live / "photo1.png")
+    make_png(live / "photo2.png")
+    (live / ".managed.json").write_text('["photo1.png", "photo2.png"]\n')
+    return tree
+
+
 def test_switch_to_art_publishes_and_deploys(tmp_path):
     tree = make_tree(tmp_path)
     result = run_script(tree, "art")
@@ -150,3 +162,49 @@ def test_the_5_65_frame_is_untouched(tmp_path):
     before = (tree / "www" / "epaper" / "keep.png").read_bytes()
     assert run_script(tree, "art").returncode == 0
     assert (tree / "www" / "epaper" / "keep.png").read_bytes() == before
+
+
+def test_migrate_moves_photos_and_records_active(tmp_path):
+    tree = make_migration_tree(tmp_path)
+    live = tree / "www" / "epaper13"
+    photos = tree / "www" / "epaper13-modes" / "photos"
+    before = {p.name: p.read_bytes() for p in live.glob("*.png")}
+    managed = (live / ".managed.json").read_bytes()
+
+    result = run_script(tree, "--migrate")
+
+    assert result.returncode == 0, result.stderr
+    assert {p.name: p.read_bytes() for p in photos.glob("*.png")} == before
+    assert (photos / ".managed.json").read_bytes() == managed
+    assert (tree / "www" / "epaper13-modes" / "ACTIVE").read_text().strip() == "photos"
+    assert (live / "manifest.json").is_file()
+    assert not (tree / "push.log").exists()
+
+
+def test_migrate_is_idempotent(tmp_path):
+    tree = make_migration_tree(tmp_path)
+    assert run_script(tree, "--migrate").returncode == 0
+    before = live_names(tree)
+    result = run_script(tree, "--migrate")
+    assert result.returncode == 0
+    assert live_names(tree) == before
+
+
+def test_migrate_dry_run_changes_nothing(tmp_path):
+    tree = make_migration_tree(tmp_path)
+    before = live_names(tree)
+    result = run_script(tree, "--migrate", "--dry-run")
+    assert result.returncode == 0
+    assert live_names(tree) == before
+    assert not (tree / "www" / "epaper13-modes" / "ACTIVE").exists()
+    assert not (tree / "www" / "epaper13-modes" / "photos" / "photo1.png").exists()
+
+
+def test_migrate_with_empty_live_folder_refuses(tmp_path):
+    tree = make_tree(tmp_path)
+    for png in (tree / "www" / "epaper13-modes" / "photos").glob("*.png"):
+        png.unlink()
+    result = run_script(tree, "--migrate")
+    assert result.returncode != 0
+    assert "no PNGs" in result.stderr
+    assert not (tree / "www" / "epaper13-modes" / "ACTIVE").exists()

@@ -20,6 +20,7 @@ usage() {
   cat <<'EOF'
 usage: set_mode.sh [options] art|photos
        set_mode.sh [options] --refresh
+       set_mode.sh [options] --migrate
        set_mode.sh --status
 
 options:
@@ -82,11 +83,44 @@ status() {
   done
 }
 
+migrate() {
+  photos="$MODES/photos"
+  if [ "$(count_pngs "$photos")" -gt 0 ]; then
+    echo "already migrated: $photos has PNGs"
+    return 0
+  fi
+
+  n=0
+  for f in "$LIVE"/*.png; do
+    if [ -f "$f" ]; then n=$((n + 1)); fi
+  done
+  [ "$n" -gt 0 ] || die "no PNGs in $LIVE to migrate"
+
+  if [ "$dry_run" -eq 1 ]; then
+    echo "would move $n PNG(s) from $LIVE to $photos"
+    for f in "$LIVE"/*.png; do
+      if [ -f "$f" ]; then echo "  $(basename "$f")"; fi
+    done
+    if [ -f "$LIVE/.managed.json" ]; then echo "  .managed.json"; fi
+    echo "would write ACTIVE=photos"
+    return 0
+  fi
+
+  mkdir -p "$photos"
+  for f in "$LIVE"/*.png; do
+    if [ -f "$f" ]; then mv "$f" "$photos/"; fi
+  done
+  if [ -f "$LIVE/.managed.json" ]; then mv "$LIVE/.managed.json" "$photos/"; fi
+  deploy=0
+  publish photos
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     -n|--dry-run) dry_run=1; shift ;;
     --no-deploy) deploy=0; shift ;;
     --refresh) action=refresh; shift ;;
+    --migrate) action=migrate; shift ;;
     --status) action=status; shift ;;
     -h|--help) usage; exit 0 ;;
     art|photos) mode=$1; shift ;;
@@ -101,6 +135,7 @@ case "$action" in
     [ -n "$active" ] || die "no ACTIVE mode recorded; run set_mode.sh art|photos first"
     publish "$active"
     ;;
+  migrate) migrate ;;
   *)
     [ -n "$mode" ] || { usage >&2; exit 2; }
     publish "$mode"

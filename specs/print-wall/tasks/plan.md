@@ -98,7 +98,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 
 ### Phase 3: Modes
 - [x] T-06: `set_mode.sh` publish, record, deploy, refresh, status
-- [ ] T-07: `set_mode.sh --migrate`
+- [x] T-07: `set_mode.sh --migrate`
 
 ### Checkpoint C: Modes
 - [ ] Mode switching proven on temp trees; `shellcheck` clean

@@ -203,12 +203,12 @@ so. `--migrate --dry-run` lists what would move. Tests run on temp trees only. *
 run `--migrate` on the real tree; T-10 does that with the user.**
 
 **Acceptance criteria:**
-- [ ] After a migration, the photos folder holds the original PNGs (byte-identical checksums) and `.managed.json`, the live folder holds the same PNGs plus a manifest, and the push stub was not called.
-- [ ] A second `--migrate` changes nothing and exits 0; `--migrate --dry-run` changes nothing.
-- [ ] Migrating with an empty live folder exits non-zero without writing `ACTIVE`.
+- [x] After a migration, the photos folder holds the original PNGs (byte-identical checksums) and `.managed.json`, the live folder holds the same PNGs plus a manifest, and the push stub was not called.
+- [x] A second `--migrate` changes nothing and exits 0; `--migrate --dry-run` changes nothing.
+- [x] Migrating with an empty live folder exits non-zero without writing `ACTIVE`.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
+- [x] `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
 
 **Dependencies:** T-06 · **Scope:** S
 **Tier:** standard · **Risk:** high · **Verify:** `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
