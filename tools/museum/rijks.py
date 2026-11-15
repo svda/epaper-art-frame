@@ -5,8 +5,14 @@ recorded fixtures with no network. The HTTP fetcher lives in ``sync_prints.py``.
 """
 from __future__ import annotations
 
+import hashlib
+import json
+import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable
 
 SEARCH_URL = "https://data.rijksmuseum.nl/search/collection"
@@ -194,3 +200,80 @@ def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
         height=height,
         image_url=f"{base}/full/!1600,1600/0/default.jpg",
     )
+
+
+HEADERS = {
+    "User-Agent": "epaper-art-frame/print-wall",
+    "Accept": "application/json",
+}
+
+
+class Fetcher:
+    """HTTP with a disk cache, polite spacing, and retry on 429/5xx."""
+
+    def __init__(
+        self,
+        cache_dir: Path,
+        *,
+        refresh: bool = False,
+        opener=urllib.request.urlopen,
+        sleep=time.sleep,
+        clock=time.monotonic,
+        min_interval: float = 0.25,
+        retries: int = 3,
+    ) -> None:
+        self.cache_dir = Path(cache_dir)
+        self.refresh = refresh
+        self.opener = opener
+        self.sleep = sleep
+        self.clock = clock
+        self.min_interval = min_interval
+        self.retries = retries
+        self._last: float | None = None
+
+    def _cache_path(self, url: str, kind: str, suffix: str) -> Path:
+        digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        return self.cache_dir / kind / f"{digest}.{suffix}"
+
+    def _throttle(self) -> None:
+        if self._last is not None:
+            wait = self.min_interval - (self.clock() - self._last)
+            if wait > 0:
+                self.sleep(wait)
+        self._last = self.clock()
+
+    def _request(self, url: str) -> bytes:
+        request = urllib.request.Request(url, headers=HEADERS)
+        for attempt in range(self.retries + 1):
+            self._throttle()
+            try:
+                with self.opener(request) as response:
+                    return response.read()
+            except urllib.error.HTTPError as exc:
+                retryable = exc.code == 429 or 500 <= exc.code < 600
+                if not retryable or attempt >= self.retries:
+                    raise
+                self.sleep(0.5 * (2**attempt))
+        raise RuntimeError("unreachable")
+
+    def get_json(self, url: str) -> dict:
+        path = self._cache_path(url, "json", "json")
+        if path.exists() and not self.refresh:
+            return json.loads(path.read_text())
+        data = json.loads(self._request(url))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data))
+        return data
+
+    def download(self, url: str, dest: Path) -> Path:
+        path = self._cache_path(url, "images", "bin")
+        if path.exists() and not self.refresh:
+            body = path.read_bytes()
+        else:
+            body = self._request(url)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(body)
+        dest = Path(dest)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(body)
+        return dest

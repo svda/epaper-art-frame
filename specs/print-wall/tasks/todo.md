@@ -76,13 +76,13 @@ rights, orientation, and ok or the skip reason. Seed `prints.toml` with the veri
 examples from T-02.
 
 **Acceptance criteria:**
-- [ ] A cache hit makes zero fetch calls; `--refresh` makes them again.
-- [ ] Retry and backoff on 429 and 5xx are covered by tests with a fake clock; a 404 is not retried.
-- [ ] `--dry-run` writes nothing outside `.cache/`, and exits 0 even when entries are skipped.
+- [x] A cache hit makes zero fetch calls; `--refresh` makes them again.
+- [x] Retry and backoff on 429 and 5xx are covered by tests with a fake clock; a 404 is not retried.
+- [x] `--dry-run` writes nothing outside `.cache/`, and exits 0 even when entries are skipped.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest`
-- [ ] Manual: `uv run --directory tools/museum python sync_prints.py --dry-run` against the live API shows both ok and skip lines.
+- [x] `uv run --directory tools/museum pytest`
+- [x] Manual: `uv run --directory tools/museum python sync_prints.py --dry-run` against the live API shows `RP-P-1956-733  print  PD  5706x3896  ok`.
 
 **Dependencies:** T-02 · **Scope:** M
 **Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest`
