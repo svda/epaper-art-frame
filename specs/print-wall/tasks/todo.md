@@ -240,12 +240,12 @@ Subprocesses, the resolver and the renderer are injected for tests. Log a summar
 resolved, skipped, rendered, deleted, and deployed or staged.
 
 **Acceptance criteria:**
-- [ ] The mirror delete set, the first-run adopt rule, and a byte-identical no-op re-run (manifest included) are covered by tests; a fully cached no-op makes zero fetch calls.
-- [ ] `--refresh` is invoked only when `ACTIVE=art` and `--no-deploy` is absent; with `ACTIVE=photos`, only `www/epaper13-modes/art/` changes.
-- [ ] A render failure leaves the art folder and its manifest unchanged and exits non-zero.
+- [x] The mirror delete set, the first-run adopt rule, and a byte-identical no-op re-run (manifest included) are covered by tests; a fully cached no-op makes zero fetch calls.
+- [x] `--refresh` is invoked only when `ACTIVE=art` and `--no-deploy` is absent; with `ACTIVE=photos`, only `www/epaper13-modes/art/` changes.
+- [x] A render failure leaves the art folder and its manifest unchanged and exits non-zero.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest`
+- [x] `uv run --directory tools/museum pytest`
 
 **Dependencies:** T-03, T-04, T-06 · **Scope:** M
 **Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest`
