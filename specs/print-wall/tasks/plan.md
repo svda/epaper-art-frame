@@ -97,7 +97,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 - [ ] Both test suites pass; Q1 and Q2 resolved in the spec
 
 ### Phase 3: Modes
-- [ ] T-06: `set_mode.sh` publish, record, deploy, refresh, status
+- [x] T-06: `set_mode.sh` publish, record, deploy, refresh, status
 - [ ] T-07: `set_mode.sh --migrate`
 
 ### Checkpoint C: Modes

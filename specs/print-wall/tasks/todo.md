@@ -183,12 +183,12 @@ that copies the script into a temp tree mirroring the repo layout. Use the real
 `www/` tree.**
 
 **Acceptance criteria:**
-- [ ] After `art` or `photos`, the live folder holds exactly that mode's PNGs, the manifest matches, `ACTIVE` is written, and the stub received `--profile spectra6-133` and the destination.
-- [ ] An empty or missing mode exits non-zero and leaves the live folder byte-identical; `--dry-run` changes nothing; `--refresh` with no `ACTIVE` exits non-zero.
-- [ ] `www/epaper/` in the temp tree is untouched; `shellcheck tools/museum/set_mode.sh` is clean.
+- [x] After `art` or `photos`, the live folder holds exactly that mode's PNGs, the manifest matches, `ACTIVE` is written, and the stub received `--profile spectra6-133` and the destination.
+- [x] An empty or missing mode exits non-zero and leaves the live folder byte-identical; `--dry-run` changes nothing; `--refresh` with no `ACTIVE` exits non-zero.
+- [x] `www/epaper/` in the temp tree is untouched; `shellcheck tools/museum/set_mode.sh` is clean.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
+- [x] `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
 
 **Dependencies:** T-01 · **Scope:** M
 **Tier:** heavy · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest tests/test_set_mode.py && shellcheck tools/museum/set_mode.sh`
