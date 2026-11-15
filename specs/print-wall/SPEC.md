@@ -1,6 +1,6 @@
 # Spec: Print Wall
 
-Status: **draft — awaiting review** · Revision 1 (2026-11-15)
+Status: **draft — awaiting review** · Revision 2 (2026-11-15: rotation position across a mode switch documented, Q8)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
@@ -254,6 +254,18 @@ a no-op. From then on, refreshing 13" photos means
 override that already exists. The album sync's code does not change. Its README gets a
 note.
 
+**Rotation position across a switch (accepted, 2026-11-15).** The device keeps **one**
+persisted counter (`art_index` in `common/art-frame.yaml`) for every manifest and shows
+image `art_index mod count`. A switch swaps the manifest, not the counter. So after a switch
+the rotation starts wherever the shared counter lands and then continues normally. It does
+**not** reset to the first image, and it does **not** resume the position the mode had
+before. Example: on photo 12 of 37, switch to art. After some days the counter reaches 19.
+Switching back to photos then shows photo 19, not 12. The mod keeps it in range, so it never
+breaks, and the prev/next buttons work from wherever it lands. The device is asleep when
+`set_mode.sh` runs, so the Mac cannot set the counter. Per-mode resume was considered and
+rejected for this spec (Q8). `set_mode.sh` prints a one-line note about this after a switch,
+and `tools/museum/README.md` documents it.
+
 **Exit criteria:** `set_mode.sh art` and then `set_mode.sh photos` each leave
 `www/epaper13/` and the HA folder holding exactly that mode's images, with a matching
 manifest. The 5.65" `www/epaper/` is byte-identical before and after. The device shows the
@@ -466,7 +478,8 @@ def rights_of(visual_item: dict) -> str | None:
    (title, then "artist, date") readable at 1 m, and shows the whole print uncropped.
 4. `set_mode.sh art` and `set_mode.sh photos` each leave the live folder, the manifest and
    the HA folder holding exactly that mode's images. The device needs no change, and the
-   prev/next buttons keep working.
+   prev/next buttons keep working. The rotation continues from the shared counter (it is
+   not reset and not resumed per mode), as documented in Module 3.
 5. A no-op `sync_prints.py` re-run is byte-identical and, when fully cached, makes no
    network calls.
 6. `www/epaper/` (5.65") and its launchd job are unaffected.
@@ -486,6 +499,7 @@ def rights_of(visual_item: dict) -> str | None:
 | Q5 | Should `ACTIVE` be visible in Home Assistant (e.g. a sensor)? | No. `--status` only | Later spec |
 | Q6 | Scheduled art sync (launchd) | Not in this spec | Later spec |
 | Q7 | A second museum (the Met) | Not in this spec | Later spec |
+| Q8 | Should each mode resume its own rotation position after a switch? | **Resolved: no.** The shared counter continues; documented in Module 3. Options for later: Mac-side resume via HA's "Last image" sensor plus a non-sorted manifest, or a per-mode counter in firmware | User, 2026-11-15 |
 
 ---
 
@@ -498,6 +512,7 @@ def rights_of(visual_item: dict) -> str | None:
 - Captions in the manifest, or text rendered on the device.
 - Mixing art and photos in one rotation.
 - Showing mode state in Home Assistant.
+- Resuming each mode's rotation position after a switch (Q8).
 
 ---
 
