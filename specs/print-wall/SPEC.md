@@ -1,6 +1,6 @@
 # Spec: Print Wall
 
-Status: **draft — awaiting review** · Revision 2 (2026-11-15: rotation position across a mode switch documented, Q8)
+Status: **approved** (2026-11-15) · Revision 2 (2026-11-15: rotation position across a mode switch documented, Q8)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
