@@ -52,12 +52,12 @@ from the live API once, and commit them. Handle **both** record shapes (plan fin
 `part[].carried_out_by`, with `_label` or `notation[].@value`.
 
 **Acceptance criteria:**
-- [ ] Fixtures resolve as expected. Accepted: print `RP-P-1956-733` (The Great Wave), painting `SK-A-3089`, PD photograph `RP-F-00-630`, and a PD landscape drawing. Skipped: In Copyright photograph (object `200100902`) → `rights`; a portrait object → `portrait`; unknown number → `not-found`.
-- [ ] A portrait object never requests the image URL (the fake fetch records its calls).
-- [ ] Metadata fallbacks follow the spec table (`Untitled`, `Anonymous`, empty date), and the image URL ends in `/full/!1600,1600/0/default.jpg`.
+- [x] Fixtures resolve as expected. Accepted: print `RP-P-1956-733` (The Great Wave), painting `SK-A-3089`, photograph `RP-F-00-630`, drawing `RP-T-1921-120`. Skipped: In Copyright `RP-F-F02993` → `rights`; portrait `RP-P-RMA1442` → `portrait`; ambiguous `RP-F-2019-299-6-6` → `ambiguous`; unknown `XX-000-000` → `not-found`.
+- [x] A portrait object never requests the image URL (the fake fetch records its calls).
+- [x] Metadata fallbacks follow the spec table (`Untitled`, `Anonymous`, empty date), and the image URL ends in `/full/!1600,1600/0/default.jpg`.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest tests/test_rijks.py`
+- [x] `uv run --directory tools/museum pytest tests/test_rijks.py`
 
 **Dependencies:** T-01 · **Scope:** M
 **Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest tests/test_rijks.py`

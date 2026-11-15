@@ -1,0 +1,1874 @@
+{
+  "object_number": "RP-P-1956-733",
+  "search": {
+    "@context": "https://linked.art/ns/v1/search.json",
+    "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=RP-P-1956-733",
+    "type": "OrderedCollectionPage",
+    "partOf": {
+      "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=RP-P-1956-733",
+      "type": "OrderedCollection",
+      "totalItems": 1,
+      "first": {
+        "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=RP-P-1956-733",
+        "type": "OrderedCollectionPage"
+      },
+      "last": {
+        "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=RP-P-1956-733",
+        "type": "OrderedCollectionPage"
+      }
+    },
+    "orderedItems": [
+      {
+        "id": "https://id.rijksmuseum.nl/200134564",
+        "type": "HumanMadeObject"
+      }
+    ]
+  },
+  "object": {
+    "@context": "https://linked.art/ns/v1/linked-art.json",
+    "id": "https://id.rijksmuseum.nl/200134564",
+    "type": "HumanMadeObject",
+    "assigned_by": [
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300404620",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "62"
+                  },
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300445022",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "44"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/30166144",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300404620",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 292"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301343425",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ],
+        "referred_to_by": [
+          {
+            "type": "LinguisticObject",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300435416",
+                "type": "Type"
+              }
+            ],
+            "content": "2025, vol. 73, no. 3"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300404620",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 388"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301329184",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ],
+        "referred_to_by": [
+          {
+            "type": "LinguisticObject",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300435416",
+                "type": "Type"
+              }
+            ],
+            "content": "2023, vol. 71, no. 4"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300445022",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 25, afb. 5"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301258217",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300445022",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 25, afb. 5"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301259630",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300445022",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 40, afb."
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301251899",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "part": [
+                  {
+                    "type": "Identifier",
+                    "classified_as": [
+                      {
+                        "id": "http://vocab.getty.edu/aat/300445022",
+                        "type": "Type"
+                      }
+                    ],
+                    "content": "p. 8, afb. 6"
+                  }
+                ]
+              }
+            ],
+            "part_of": [
+              {
+                "id": "https://id.rijksmuseum.nl/301154573",
+                "type": "http://id.loc.gov/ontologies/bibframe/Instance"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "content": "Jap Cat III 62"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ],
+        "used_specific_object": [
+          {
+            "id": "https://id.rijksmuseum.nl/2208320",
+            "type": [
+              "LinguisticObject",
+              "skos:Concept"
+            ],
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300026061",
+                "type": "Type"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "AttributeAssignment",
+        "assigned": [
+          {
+            "type": "LinguisticObject",
+            "identified_by": [
+              {
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300311705",
+                    "type": "Type"
+                  }
+                ],
+                "content": "Marije Jansen, \u2018Hokusai en Hiroshige - Meesters van het Japanse landschap\u2019, in Kunstschrift, nr. 3 (2019), p. 20, afb. 24"
+              }
+            ]
+          }
+        ],
+        "assigned_property": "referred_to_by",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300311954",
+            "type": "Type"
+          }
+        ],
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ]
+      }
+    ],
+    "classified_as": [
+      {
+        "id": "https://id.rijksmuseum.nl/22040",
+        "type": "Type",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435443",
+            "type": "Type",
+            "_label": "Type of Work"
+          }
+        ],
+        "equivalent": [
+          {
+            "id": "http://vocab.getty.edu/aat/300041273",
+            "type": "Type"
+          }
+        ],
+        "notation": [
+          {
+            "@language": "en",
+            "@value": "print"
+          },
+          {
+            "@language": "nl",
+            "@value": "prent"
+          }
+        ]
+      }
+    ],
+    "dimension": [
+      {
+        "type": "Dimension",
+        "classified_as": [
+          {
+            "id": "https://id.rijksmuseum.nl/22011",
+            "type": "Type",
+            "equivalent": [
+              {
+                "id": "http://vocab.getty.edu/aat/300055644",
+                "type": "Type"
+              }
+            ],
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "height"
+              },
+              {
+                "@language": "nl",
+                "@value": "hoogte"
+              }
+            ]
+          }
+        ],
+        "identified_by": [
+          {
+            "type": "Name",
+            "content": "blad",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388256",
+                "type": "Language"
+              }
+            ]
+          }
+        ],
+        "unit": {
+          "id": "http://vocab.getty.edu/aat/300379097",
+          "type": "MeasurementUnit"
+        },
+        "value": "254"
+      },
+      {
+        "type": "Dimension",
+        "classified_as": [
+          {
+            "id": "https://id.rijksmuseum.nl/22012",
+            "type": "Type",
+            "equivalent": [
+              {
+                "id": "http://vocab.getty.edu/aat/300055647",
+                "type": "Type"
+              }
+            ],
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "width"
+              },
+              {
+                "@language": "nl",
+                "@value": "breedte"
+              }
+            ]
+          }
+        ],
+        "identified_by": [
+          {
+            "type": "Name",
+            "content": "blad",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388256",
+                "type": "Language"
+              }
+            ]
+          }
+        ],
+        "unit": {
+          "id": "http://vocab.getty.edu/aat/300379097",
+          "type": "MeasurementUnit"
+        },
+        "value": "375"
+      }
+    ],
+    "equivalent": [
+      {
+        "id": "http://hdl.handle.net/10934/RM0001.COLLECT.45735",
+        "type": "HumanMadeObject"
+      }
+    ],
+    "identified_by": [
+      {
+        "type": "Identifier",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300312355",
+            "type": "Type"
+          },
+          {
+            "id": "https://id.rijksmuseum.nl/22015218",
+            "type": "Type",
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "object number"
+              },
+              {
+                "@language": "nl",
+                "@value": "objectnummer"
+              }
+            ]
+          }
+        ],
+        "content": "RP-P-1956-733"
+      },
+      {
+        "id": "_:bnode0",
+        "type": "Name",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300404670",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          },
+          {
+            "id": "http://vocab.getty.edu/aat/300417200",
+            "type": "Type"
+          }
+        ],
+        "content": "De grote golf bij Kanagawa",
+        "identified_by": [
+          {
+            "id": "_:bnode1",
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "Name",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300404670",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          },
+          {
+            "id": "http://vocab.getty.edu/aat/300417200",
+            "type": "Type"
+          }
+        ],
+        "content": "Under the Wave off Kanagawa",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388277",
+            "type": "Language"
+          }
+        ],
+        "translation_of": [
+          {
+            "id": "_:bnode0",
+            "type": "Name",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300404670",
+                "type": "Type",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300418049",
+                    "type": "Type",
+                    "_label": "brief text"
+                  }
+                ]
+              },
+              {
+                "id": "http://vocab.getty.edu/aat/300417200",
+                "type": "Type"
+              }
+            ],
+            "content": "De grote golf bij Kanagawa",
+            "identified_by": [
+              {
+                "id": "_:bnode1",
+                "type": "Identifier",
+                "classified_as": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300456575",
+                    "type": "Type"
+                  }
+                ],
+                "content": "1"
+              }
+            ],
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388256",
+                "type": "Language"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Name",
+        "carried_by": [
+          "https://id.rijksmuseum.nl/200134564"
+        ],
+        "classified_as": [
+          {
+            "id": "https://id.rijksmuseum.nl/22015525",
+            "type": "Type",
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "title on object"
+              },
+              {
+                "@language": "nl",
+                "@value": "titel op object"
+              }
+            ]
+          }
+        ],
+        "content": "Kanagawa oki namiura",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "2"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "Name",
+        "carried_by": [
+          "https://id.rijksmuseum.nl/200134564"
+        ],
+        "classified_as": [
+          {
+            "id": "https://id.rijksmuseum.nl/22015531",
+            "type": "Type",
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "series title on object"
+              },
+              {
+                "@language": "nl",
+                "@value": "serietitel op object"
+              }
+            ]
+          }
+        ],
+        "content": "Fugaku sanjurokkei",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "4"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "Name",
+        "classified_as": [
+          {
+            "id": "https://id.rijksmuseum.nl/22015527",
+            "type": "Type",
+            "notation": [
+              {
+                "@language": "en",
+                "@value": "series title"
+              },
+              {
+                "@language": "nl",
+                "@value": "serietitel"
+              }
+            ]
+          }
+        ],
+        "content": "36 gezichten op de berg Fuji",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "3"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      }
+    ],
+    "made_of": [
+      {
+        "id": "https://id.rijksmuseum.nl/22020",
+        "type": "Material",
+        "equivalent": [
+          {
+            "id": "http://vocab.getty.edu/aat/300014109",
+            "type": "Material"
+          },
+          {
+            "id": "http://www.wikidata.org/entity/Q11472",
+            "type": "Material"
+          }
+        ],
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "assigned_by": [
+              {
+                "type": "AttributeAssignment",
+                "assigned": [
+                  "https://id.rijksmuseum.nl/200134564"
+                ],
+                "assigned_property": "influenced_by"
+              }
+            ],
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ],
+        "notation": [
+          {
+            "@language": "en",
+            "@value": "paper"
+          },
+          {
+            "@language": "nl",
+            "@value": "papier (materiaal)"
+          }
+        ]
+      }
+    ],
+    "member_of": [
+      {
+        "id": "https://id.rijksmuseum.nl/260238",
+        "type": "Set"
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/260239",
+        "type": "Set"
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/260251",
+        "type": "Set"
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/26134",
+        "type": "Set"
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/26151",
+        "type": "Set"
+      }
+    ],
+    "produced_by": {
+      "type": "Production",
+      "part": [
+        {
+          "type": "Production",
+          "assigned_by": [
+            {
+              "type": "AttributeAssignment",
+              "assigned": [
+                {
+                  "id": "https://id.rijksmuseum.nl/210872",
+                  "type": "Person"
+                }
+              ],
+              "assigned_property": "carried_out_by",
+              "motivated_by": [
+                {
+                  "type": "LinguisticObject",
+                  "carried_by": [
+                    "https://id.rijksmuseum.nl/200134564"
+                  ],
+                  "classified_as": [
+                    {
+                      "id": "http://vocab.getty.edu/aat/300028702",
+                      "type": "Type"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300404450",
+              "type": "Type"
+            }
+          ],
+          "identified_by": [
+            {
+              "type": "Identifier",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300456575",
+                  "type": "Type"
+                }
+              ],
+              "content": "1"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435416",
+                  "type": "Type"
+                }
+              ],
+              "content": "prentmaker: Katsushika Hokusai (vermeld op object), Japan",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388256",
+                  "type": "Language"
+                }
+              ]
+            },
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435416",
+                  "type": "Type"
+                }
+              ],
+              "content": "printmaker: Katsushika Hokusai (mentioned on object), Japan",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388277",
+                  "type": "Language"
+                }
+              ]
+            },
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435417",
+                  "type": "Type"
+                }
+              ],
+              "content": "Katsushika Hokusai (mentioned on object)",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388277",
+                  "type": "Language"
+                }
+              ]
+            },
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435417",
+                  "type": "Type"
+                }
+              ],
+              "content": "Katsushika Hokusai (vermeld op object)",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388256",
+                  "type": "Language"
+                }
+              ]
+            }
+          ],
+          "technique": [
+            {
+              "id": "https://id.rijksmuseum.nl/2202348",
+              "type": "Type",
+              "equivalent": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300025164",
+                  "type": "Type"
+                }
+              ],
+              "notation": [
+                {
+                  "@language": "en",
+                  "@value": "printmaker"
+                },
+                {
+                  "@language": "nl",
+                  "@value": "prentmaker"
+                }
+              ]
+            }
+          ],
+          "took_place_at": [
+            {
+              "id": "https://id.rijksmuseum.nl/23027",
+              "type": "Place",
+              "equivalent": [
+                {
+                  "id": "http://vocab.getty.edu/tgn/1000120",
+                  "type": "Place"
+                },
+                {
+                  "id": "http://www.wikidata.org/entity/Q17",
+                  "type": "Place"
+                }
+              ],
+              "notation": [
+                {
+                  "@language": "en",
+                  "@value": "Japan"
+                },
+                {
+                  "@language": "nl",
+                  "@value": "Japan"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Production",
+          "carried_out_by": [
+            {
+              "id": "https://id.rijksmuseum.nl/2107040",
+              "type": "Group",
+              "equivalent": [
+                {
+                  "id": "http://viaf.org/viaf/309815627",
+                  "type": "Group"
+                },
+                {
+                  "id": "http://www.wikidata.org/entity/Q27920924",
+                  "type": "Group"
+                }
+              ],
+              "notation": {
+                "@language": "nl",
+                "@value": "Nishimura Yohachi"
+              }
+            }
+          ],
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300379012",
+              "type": "Type"
+            }
+          ],
+          "identified_by": [
+            {
+              "type": "Identifier",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300456575",
+                  "type": "Type"
+                }
+              ],
+              "content": "2"
+            }
+          ],
+          "referred_to_by": [
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435416",
+                  "type": "Type"
+                }
+              ],
+              "content": "publisher: Nishimura Yohachi, Tokyo",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388277",
+                  "type": "Language"
+                }
+              ]
+            },
+            {
+              "type": "LinguisticObject",
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300435416",
+                  "type": "Type"
+                }
+              ],
+              "content": "uitgever: Nishimura Yohachi, Tokyo",
+              "language": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300388256",
+                  "type": "Language"
+                }
+              ]
+            }
+          ],
+          "technique": [
+            {
+              "id": "https://id.rijksmuseum.nl/2205148",
+              "type": "Type",
+              "equivalent": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300025574",
+                  "type": "Type"
+                }
+              ],
+              "notation": [
+                {
+                  "@language": "en",
+                  "@value": "publisher"
+                },
+                {
+                  "@language": "nl",
+                  "@value": "uitgever"
+                }
+              ]
+            }
+          ],
+          "took_place_at": [
+            {
+              "id": "https://id.rijksmuseum.nl/2304002",
+              "type": "Place",
+              "equivalent": [
+                {
+                  "id": "http://vocab.getty.edu/tgn/1001032",
+                  "type": "Place"
+                },
+                {
+                  "id": "http://www.wikidata.org/entity/Q1490",
+                  "type": "Place"
+                }
+              ],
+              "notation": {
+                "@language": "nl",
+                "@value": "Tokyo"
+              }
+            }
+          ]
+        }
+      ],
+      "referred_to_by": [
+        {
+          "type": "LinguisticObject",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300435416",
+              "type": "Type"
+            }
+          ],
+          "content": "Katsushika Hokusai (mentioned on object)",
+          "language": [
+            {
+              "id": "http://vocab.getty.edu/aat/300388277",
+              "type": "Language"
+            }
+          ]
+        },
+        {
+          "type": "LinguisticObject",
+          "classified_as": [
+            {
+              "id": "http://vocab.getty.edu/aat/300435416",
+              "type": "Type"
+            }
+          ],
+          "content": "Katsushika Hokusai (vermeld op object)",
+          "language": [
+            {
+              "id": "http://vocab.getty.edu/aat/300388256",
+              "type": "Language"
+            }
+          ]
+        }
+      ],
+      "technique": [
+        {
+          "id": "https://id.rijksmuseum.nl/2202319",
+          "type": "Type",
+          "equivalent": [
+            {
+              "id": "http://vocab.getty.edu/aat/300041412",
+              "type": "Type"
+            }
+          ],
+          "identified_by": [
+            {
+              "type": "Identifier",
+              "assigned_by": [
+                {
+                  "type": "AttributeAssignment",
+                  "assigned": [
+                    "https://id.rijksmuseum.nl/200134564"
+                  ],
+                  "assigned_property": "influenced_by"
+                }
+              ],
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300456575",
+                  "type": "Type"
+                }
+              ],
+              "content": "2"
+            }
+          ],
+          "notation": [
+            {
+              "@language": "en",
+              "@value": "color woodcut"
+            },
+            {
+              "@language": "nl",
+              "@value": "kleurenhoutsnede"
+            }
+          ]
+        },
+        {
+          "id": "https://id.rijksmuseum.nl/2202454",
+          "type": "Type",
+          "equivalent": [
+            {
+              "id": "http://vocab.getty.edu/aat/300041507",
+              "type": "Type"
+            }
+          ],
+          "identified_by": [
+            {
+              "type": "Identifier",
+              "assigned_by": [
+                {
+                  "type": "AttributeAssignment",
+                  "assigned": [
+                    "https://id.rijksmuseum.nl/200134564"
+                  ],
+                  "assigned_property": "influenced_by"
+                }
+              ],
+              "classified_as": [
+                {
+                  "id": "http://vocab.getty.edu/aat/300456575",
+                  "type": "Type"
+                }
+              ],
+              "content": "1"
+            }
+          ],
+          "notation": [
+            {
+              "@language": "en",
+              "@value": "nishiki-e"
+            },
+            {
+              "@language": "nl",
+              "@value": "nishiki-e"
+            }
+          ]
+        }
+      ],
+      "timespan": {
+        "type": "TimeSpan",
+        "begin_of_the_begin": "1829-01-01T00:00:00Z",
+        "end_of_the_end": "1833-12-31T23:59:59Z",
+        "identified_by": [
+          {
+            "type": "Name",
+            "content": "1829 - 1833",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388256",
+                "type": "Language"
+              }
+            ]
+          },
+          {
+            "type": "Name",
+            "content": "1829 - 1833",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388277",
+                "type": "Language"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "referred_to_by": [
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300026687",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "Aankoop met steun van de Vereniging Rembrandt en het Ministerie van Onderwijs, Kunsten en Wetenschappen",
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300026687",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "Purchased with the support of the Vereniging Rembrandt and the Ministerie van Onderwijs, Kunsten en Wetenschappen",
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388277",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300404670",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          },
+          {
+            "id": "http://vocab.getty.edu/aat/300435452",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "Een hoge golf, op het punt van omslaan, in een woelige zee met drie roeibootjes, de golven trotserend; op de achtergrond de berg Fuji.",
+        "created_by": {
+          "type": "Creation",
+          "timespan": {
+            "type": "TimeSpan",
+            "begin_of_the_begin": "2008-11-24T00:00:00Z",
+            "end_of_the_end": "2008-11-24T23:59:59Z",
+            "identified_by": [
+              {
+                "type": "Name",
+                "content": "2008-11-24",
+                "language": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300388256",
+                    "type": "Language"
+                  }
+                ]
+              },
+              {
+                "type": "Name",
+                "content": "2008-11-24",
+                "language": [
+                  {
+                    "id": "http://vocab.getty.edu/aat/300388277",
+                    "type": "Language"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435429",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "kleurenhoutsnede; lijnblok in blauw met kleurblokken",
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435430",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "blad: hoogte 254 mm x breedte 375 mm",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435430",
+            "type": "Type",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300418049",
+                "type": "Type",
+                "_label": "brief text"
+              }
+            ]
+          }
+        ],
+        "content": "height 254 mm x width 375 mm",
+        "identified_by": [
+          {
+            "type": "Identifier",
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300456575",
+                "type": "Type"
+              }
+            ],
+            "content": "1"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388277",
+            "type": "Language"
+          }
+        ]
+      }
+    ],
+    "shows": [
+      {
+        "id": "https://id.rijksmuseum.nl/202134564",
+        "type": "VisualItem"
+      }
+    ],
+    "subject_of": [
+      {
+        "type": "LinguisticObject",
+        "digitally_carried_by": [
+          {
+            "type": "DigitalObject",
+            "access_point": [
+              {
+                "id": "https://iiif.micr.io/MFiyA/full/max/0/default.jpg",
+                "type": "DigitalObject"
+              }
+            ],
+            "referred_to_by": [
+              {
+                "type": "LinguisticObject",
+                "_label": "Public Domain",
+                "classified_as": [
+                  {
+                    "id": "https://vocab.getty.edu/aat/300460240",
+                    "type": "Type"
+                  }
+                ],
+                "content": "https://creativecommons.org/publicdomain/mark/1.0/"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "LinguisticObject",
+        "digitally_carried_by": [
+          {
+            "type": "DigitalObject",
+            "access_point": [
+              {
+                "id": "https://www.rijksmuseum.nl/nl/collectie/object/RP-P-1956-733--8bd0ca806fd677ede90d092ed16e0370",
+                "type": "DigitalObject"
+              }
+            ],
+            "classified_as": [
+              {
+                "id": "http://vocab.getty.edu/aat/300264578",
+                "type": "Type"
+              }
+            ],
+            "format": "text/html"
+          }
+        ],
+        "language": [
+          {
+            "id": "http://vocab.getty.edu/aat/300388256",
+            "type": "Language"
+          }
+        ]
+      },
+      {
+        "id": "https://data.rijksmuseum.nl/200134564",
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300379475",
+            "type": "Type"
+          }
+        ],
+        "subject_to": [
+          {
+            "type": "Right",
+            "classified_as": [
+              {
+                "id": "https://creativecommons.org/publicdomain/zero/1.0/",
+                "type": "Type"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "visual": {
+    "@context": "https://linked.art/ns/v1/linked-art.json",
+    "id": "https://id.rijksmuseum.nl/202134564",
+    "type": "VisualItem",
+    "digitally_shown_by": [
+      {
+        "id": "https://id.rijksmuseum.nl/50070878182110110114103",
+        "type": "DigitalObject"
+      }
+    ],
+    "represents": [
+      {
+        "id": "https://id.rijksmuseum.nl/23010145",
+        "type": "Place",
+        "equivalent": [
+          {
+            "id": "http://vocab.getty.edu/tgn/1107685",
+            "type": "Place"
+          },
+          {
+            "id": "http://www.wikidata.org/entity/Q39231",
+            "type": "Place"
+          }
+        ]
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/2303511",
+        "type": "Place",
+        "equivalent": [
+          {
+            "id": "http://vocab.getty.edu/tgn/7004836",
+            "type": "Place"
+          },
+          {
+            "id": "http://www.wikidata.org/entity/Q38283",
+            "type": "Place"
+          }
+        ]
+      }
+    ],
+    "represents_instance_of_type": [
+      {
+        "id": "https://id.rijksmuseum.nl/22118591",
+        "type": "Type",
+        "equivalent": [
+          {
+            "id": "https://iconclass.org/25H23124",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/221313",
+        "type": "Type",
+        "equivalent": [
+          {
+            "id": "https://iconclass.org/46C232",
+            "type": "Type"
+          }
+        ]
+      },
+      {
+        "id": "https://id.rijksmuseum.nl/22199",
+        "type": "Type",
+        "equivalent": [
+          {
+            "id": "https://iconclass.org/25H11",
+            "type": "Type"
+          }
+        ]
+      }
+    ],
+    "shown_by": [
+      {
+        "id": "https://id.rijksmuseum.nl/200134564",
+        "type": "HumanMadeObject",
+        "equivalent": [
+          {
+            "id": "http://hdl.handle.net/10934/RM0001.COLLECT.45735",
+            "type": "HumanMadeObject"
+          }
+        ]
+      }
+    ],
+    "subject_of": [
+      {
+        "id": "https://data.rijksmuseum.nl/202134564",
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300379475",
+            "type": "Type"
+          }
+        ],
+        "subject_to": [
+          {
+            "type": "Right",
+            "classified_as": [
+              {
+                "id": "https://creativecommons.org/publicdomain/zero/1.0/",
+                "type": "Type"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "subject_to": [
+      {
+        "type": "Right",
+        "classified_as": [
+          {
+            "id": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "type": "Type",
+            "_label": "Public Domain"
+          }
+        ],
+        "identified_by": [
+          {
+            "type": "Name",
+            "content": "Public Domain",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388277",
+                "type": "Language",
+                "_label": "English"
+              }
+            ]
+          },
+          {
+            "type": "Name",
+            "content": "Publieke domein",
+            "language": [
+              {
+                "id": "http://vocab.getty.edu/aat/300388256",
+                "type": "Language",
+                "_label": "Dutch"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "digital": {
+    "@context": "https://linked.art/ns/v1/linked-art.json",
+    "id": "https://id.rijksmuseum.nl/50070878182110110114103",
+    "type": "DigitalObject",
+    "access_point": [
+      {
+        "id": "https://iiif.micr.io/MFiyA/full/max/0/default.jpg",
+        "type": "DigitalObject"
+      }
+    ],
+    "digitally_shows": [
+      {
+        "id": "https://id.rijksmuseum.nl/202134564",
+        "type": "VisualItem"
+      }
+    ],
+    "referred_to_by": [
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435434",
+            "type": "Type"
+          }
+        ],
+        "content": "downloadbaar"
+      },
+      {
+        "type": "LinguisticObject",
+        "classified_as": [
+          {
+            "id": "http://vocab.getty.edu/aat/300435434",
+            "type": "Type"
+          }
+        ],
+        "content": "zichtbaar"
+      }
+    ]
+  },
+  "info": {
+    "@context": "http://iiif.io/api/image/3/context.json",
+    "id": "https://iiif.micr.io/MFiyA",
+    "type": "ImageService3",
+    "protocol": "http://iiif.io/api/image",
+    "profile": "level2",
+    "qualities": [
+      "default",
+      "gray",
+      "color"
+    ],
+    "formats": [
+      "jpg",
+      "png",
+      "webp"
+    ],
+    "tiles": [
+      {
+        "scaleFactors": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "width": 1024,
+        "height": 1024
+      }
+    ],
+    "created": 1593446079569,
+    "width": 5706,
+    "height": 3896,
+    "title": "RP-P-1956-733-Original-Cropped.jpg",
+    "tileSize": 1024,
+    "version": "3.1",
+    "viewsWH": false,
+    "organisation": {
+      "name": "Rijks Collectie",
+      "slug": "rijks-collectie",
+      "logo": null,
+      "baseUrl": "https://micrio.rijksmuseum.nl/"
+    },
+    "tileBasePath": "https://micrio.rijksmuseum.nl/",
+    "maxArea": 17550000,
+    "extraFeatures": [
+      "baseUriRedirect",
+      "cors",
+      "jsonldMediaType",
+      "regionByPct",
+      "regionByPx",
+      "regionSquare",
+      "rotationBy90s",
+      "sizeByConfinedWh",
+      "sizeByH",
+      "sizeByPct",
+      "sizeByW",
+      "sizeByWh",
+      "sizeUpscaling"
+    ]
+  }
+}

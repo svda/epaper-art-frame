@@ -210,7 +210,7 @@ margins.
 |---|---|---|
 | `object_number` | the curated entry | — |
 | `title` | English `identified_by` Name | `_label`, then `"Untitled"` |
-| `artist` | `produced_by` → `carried_out_by[]._label`, joined with `", "` (including `part[]`) | `"Anonymous"` |
+| `artist` | `produced_by` → `referred_to_by` with AAT `300435417` (the name field), stripping " (mentioned on object)"; fallback `carried_out_by[]._label` / `notation` | `"Anonymous"` |
 | `date` | `produced_by.timespan.identified_by[0].content` (display date) | year of `begin_of_the_begin`, then `""` |
 | `rights` | `"PD"` or `"CC0"` | — (skipped) |
 | `type` | `classified_as` | — (informational; not a filter) |

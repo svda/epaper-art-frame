@@ -1,0 +1,22 @@
+{
+  "object_number": "XX-000-000",
+  "search": {
+    "@context": "https://linked.art/ns/v1/search.json",
+    "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=XX-000-000",
+    "type": "OrderedCollectionPage",
+    "partOf": {
+      "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=XX-000-000",
+      "type": "OrderedCollection",
+      "totalItems": 0,
+      "first": {
+        "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=XX-000-000",
+        "type": "OrderedCollectionPage"
+      },
+      "last": {
+        "id": "https://data.rijksmuseum.nl/search/collection?objectNumber=XX-000-000",
+        "type": "OrderedCollectionPage"
+      }
+    },
+    "orderedItems": []
+  }
+}

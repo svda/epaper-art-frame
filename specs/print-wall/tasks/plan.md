@@ -82,7 +82,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 - [x] T-01: Bring the spec in line with the plan
 
 ### Phase 1: Source
-- [ ] T-02: Scaffold `tools/museum` and the pure resolver
+- [x] T-02: Scaffold `tools/museum` and the pure resolver
 - [ ] T-03: Live fetcher, cache, and `sync_prints.py --dry-run`
 
 ### Checkpoint A: Source
