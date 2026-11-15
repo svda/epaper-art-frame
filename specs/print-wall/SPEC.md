@@ -1,6 +1,6 @@
 # Spec: Print Wall
 
-Status: **approved** (2026-11-15) · Revision 5 (2026-11-15: type allowlist — painting, drawing, photograph only)
+Status: **approved** (2026-11-15) · Revision 6 (2026-11-15: photographs kept in the allowlist, accepting the halftone look)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
@@ -72,6 +72,8 @@ nothing about the 5.65" frame changes.
   `220363`, `220951`. Prints, sculpture, furniture and other physical items are excluded.
   The API's type is the medium, so a photograph *of* a sculpture is still a photograph;
   curation handles those.
+- **Photographs stay in the allowlist** (2026-11-15), accepting the coarse-halftone look
+  from the Revision 5 spike. Curate them sparingly.
 - **Landscape and square only** (2026-11-15). Portrait images are skipped, not letterboxed.
   Orientation comes from the IIIF `info.json`, so a portrait object costs one small request
   and no image download.
