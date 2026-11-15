@@ -126,6 +126,24 @@ drop them from the allowlist if the first real sync disappoints.
 
 ---
 
+## Curation workflow
+
+The loop is manual by design. There is no search helper; query-driven discovery is a
+non-goal.
+
+1. **Find the object number** on rijksmuseum.nl — the last segment of the collection URL
+   (e.g. `.../collection/SK-A-3089`), also printed on the object page.
+2. **Add it** to `tools/museum/prints.toml`.
+3. **Validate:** `sync_prints.py --dry-run` prints one line per entry with type, rights,
+   orientation, and any skip reason. Read-only outside `.cache/`.
+4. **Sync:** `sync_prints.py` fetches, renders, mirrors, and deploys if art is active.
+5. **Show:** `set_mode.sh art` if the frame is not already in art mode.
+
+The object-number lookup accepts the real formats, including dots and hyphens
+(`SK-A-3089`, `RP-P-OB-205.689`, `RP-F-00-630`).
+
+---
+
 ## Capability map
 
 | Module id | Responsibility | Depends on |
