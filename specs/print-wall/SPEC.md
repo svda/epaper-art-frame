@@ -1,6 +1,6 @@
 # Spec: Print Wall
 
-Status: **approved** (2026-11-15) · Revision 6 (2026-11-15: photographs kept in the allowlist, accepting the halftone look)
+Status: **approved** (2026-11-15) · Revision 7 (2026-11-15: no type allowlist — the hand-picked list is the scope)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
@@ -24,10 +24,9 @@ placard below it, and, when art mode is active, deploys them to Home Assistant. 
 picks them up on its next daily wake. A second command switches the frame between **art**
 and **photos**.
 
-**The list is the scope, within a type allowlist.** Whatever object numbers are in
-`prints.toml` is what gets fetched, provided the object is a **painting, drawing, or
-photograph**. Prints, sculpture, furniture and other physical items are excluded. The name
-"Print Wall" is historical.
+**The list is the scope.** Whatever object numbers are in `prints.toml` is what gets
+fetched. There is no type allowlist: the hand-picked list is the filter, so prints,
+paintings, drawings and photographs are all eligible. The name "Print Wall" is historical.
 
 **Landscape only.** The panel is 1600×1200 landscape, so only images that are landscape or
 square (`width ≥ height`) are used. Portrait images are skipped with a logged reason rather
@@ -46,7 +45,7 @@ nothing about the 5.65" frame changes.
 |---|---|
 | Source | Rijksmuseum Linked Art Search API, `https://data.rijksmuseum.nl/search/collection`, no API key |
 | Curation | Hand-picked **object numbers** (e.g. `RP-P-OB-12.345`) in `tools/museum/prints.toml` |
-| Scope | **Painting, drawing, or photograph only** (concepts `2208`, `220363`, `220951`). Other types are skipped |
+| Scope | **No type filter.** The hand-picked list is the scope; any object type the Rijksmuseum serves |
 | Orientation | **Landscape or square only** (`width ≥ height`). Portrait images are skipped |
 | Rights | Only objects whose own VisualItem rights are **Public Domain Mark** or **CC0** |
 | Image | IIIF via `iiif.micr.io`, requested as `/full/!1600,1600/0/default.jpg` |
@@ -68,12 +67,9 @@ nothing about the 5.65" frame changes.
 - **Done means a manual sync.** One command, then the frame shows art on its next wake.
   Scheduling is a later spec.
 - **Curation by object number**, resolved through the API's `objectNumber` parameter.
-- **Type allowlist: painting, drawing, photograph** (2026-11-15). Concepts `2208`,
-  `220363`, `220951`. Prints, sculpture, furniture and other physical items are excluded.
-  The API's type is the medium, so a photograph *of* a sculpture is still a photograph;
-  curation handles those.
-- **Photographs stay in the allowlist** (2026-11-15), accepting the coarse-halftone look
-  from the Revision 5 spike. Curate them sparingly.
+- **No type allowlist** (2026-11-15). The hand-picked list is the scope. Prints, paintings,
+  drawings and photographs are all eligible; the user curates out physical items and
+  anything else they do not want. This supersedes the Revision 5 allowlist.
 - **Landscape and square only** (2026-11-15). Portrait images are skipped, not letterboxed.
   Orientation comes from the IIIF `info.json`, so a portrait object costs one small request
   and no image download.
@@ -108,10 +104,15 @@ Each has a default. Correct any at review.
 
 ---
 
-## Dithering evidence (Revision 5 spike, 2026-11-15)
+## Dithering evidence (spikes, 2026-11-14 and 2026-11-15)
 
-Six landscape, public-domain samples — two paintings, two drawings, two photographs —
-rendered through `prepare_image.sh --profile spectra6-133 --fit`.
+Two spikes, both rendered through `prepare_image.sh --profile spectra6-133 --fit`.
+
+**Prints (2026-11-14):** six techniques, from colour lithograph to aquatint. Flat-colour
+prints and woodcuts look good; tonal aquatint flattens. Prints are back in scope under
+Revision 7.
+
+**Paintings, drawings, photographs (2026-11-15):** six landscape, public-domain samples.
 
 | Type | Result |
 |---|---|
@@ -120,9 +121,9 @@ rendered through `prepare_image.sh --profile spectra6-133 --fit`.
 | Painting (tonal) | **Fair.** Form holds; subtle modelling flattens. |
 | Photograph | **Weakest.** Coarse halftone; faces and fine detail muddy at 1:1, acceptable at wall distance. |
 
-**Verdict:** the allowlist is viable, but photographs are the risk. They are the most tonal
-medium and the one most likely to look like a newspaper halftone. Curate them sparingly, or
-drop them from the allowlist if the first real sync disappoints.
+**Verdict:** the panel is kindest to line and flat-colour work (prints, drawings,
+colour-field paintings) and harshest to tonal work (photographs, tonal paintings). The
+hand-picked list is the filter, so curate accordingly.
 
 ---
 
@@ -181,14 +182,11 @@ prints = [
    several matches is an error for that entry. Log it and skip the entry.
 2. `GET <object id>` (with `Accept: application/json`) → title, creator, date,
    `classified_as`, and the `shows[0]` VisualItem.
-3. **Type check.** Accept only objects whose `classified_as` includes one of the
-   allowlisted concepts: painting `2208`, drawing `220363`, photograph `220951`. Anything
-   else (print, sculpture, furniture, ...) is skipped with reason `type`.
-4. `GET <VisualItem>` → rights from `subject_to[].classified_as[].id`, and
+3. `GET <VisualItem>` → rights from `subject_to[].classified_as[].id`, and
    `digitally_shown_by[0]`.
-5. `GET <DigitalObject>` → `access_point[0].id`. Keep the base (everything before
+4. `GET <DigitalObject>` → `access_point[0].id`. Keep the base (everything before
    `/full/`).
-6. `GET <base>/info.json` → `width`, `height`. If `height > width`, skip the entry with
+5. `GET <base>/info.json` → `width`, `height`. If `height > width`, skip the entry with
    reason `portrait`. Otherwise build the image URL as
    `<base>/full/!1600,1600/0/default.jpg`.
 
@@ -215,7 +213,7 @@ margins.
 | `artist` | `produced_by` → `carried_out_by[]._label`, joined with `", "` (including `part[]`) | `"Anonymous"` |
 | `date` | `produced_by.timespan.identified_by[0].content` (display date) | year of `begin_of_the_begin`, then `""` |
 | `rights` | `"PD"` or `"CC0"` | — (skipped) |
-| `type` | `classified_as` ∩ allowlist | — (skipped if not allowlisted) |
+| `type` | `classified_as` | — (informational; not a filter) |
 | `width`, `height` | IIIF `info.json` | — (skipped if portrait) |
 | `image_path` | cached JPEG | — |
 
@@ -230,8 +228,8 @@ a single page.
 
 **Exit criteria:** `sync_prints.py --dry-run` prints one line per curated entry: object
 number, title, artist, date, type, rights, orientation, and *ok* or a *skip reason*. It
-writes nothing outside `.cache/`. A non-PD entry, an unknown object number, a non-allowlisted
-type, and a portrait image each show up as a skip with a reason.
+writes nothing outside `.cache/`. A non-PD entry, an unknown object number, and a portrait
+image each show up as a skip with a reason.
 
 ---
 
@@ -489,8 +487,8 @@ def rights_of(visual_item: dict) -> str | None:
     with two matches, one with no English title, one anonymous, one undated). The fetcher
     is injected, so the cache hit path makes **zero** fetch calls. Covers the IIIF URL
     rewrite and retry/backoff on 429 (fake clock).
-  - `museum-source` type allowlist: painting, drawing, and photograph fixtures resolve;
-    print, sculpture, and furniture fixtures are skipped with reason `type`.
+  - `museum-source` type: the type is reported for the dry-run but is **not** a filter;
+    a print fixture resolves like any other.
   - `museum-source` orientation: landscape, square, and portrait `info.json` fixtures. The
     first two resolve; portrait is skipped with reason `portrait` and **no image download**.
     A missing or malformed `info.json` is skipped with a reason, not a crash.
@@ -551,9 +549,9 @@ def rights_of(visual_item: dict) -> str | None:
 1. With `ACTIVE=art`, a single `sync_prints.py` run takes `prints.toml` to the HA host's
    `/local/epaper13/`, and the frame shows those objects with placards on its next wake.
    No other command is needed.
-2. Every deployed image is PD or CC0, is a painting, drawing, or photograph, and is
-   landscape or square (`width ≥ height`). Non-PD, unresolvable, non-allowlisted, and
-   portrait entries are skipped with a logged reason, and the run still succeeds.
+2. Every deployed image is PD or CC0 and is landscape or square (`width ≥ height`).
+   Non-PD, unresolvable, and portrait entries are skipped with a logged reason, and the
+   run still succeeds.
 3. Every art PNG is 1600×1200, uses only palette colours, has a black-on-white placard
    (title, then "artist, date") readable at 1 m, and shows the whole print uncropped.
 4. `set_mode.sh art` and `set_mode.sh photos` each leave the live folder, the manifest and
@@ -580,7 +578,7 @@ def rights_of(visual_item: dict) -> str | None:
 | Q6 | Scheduled art sync (launchd) | Not in this spec | Later spec |
 | Q7 | A second museum (the Met) | Not in this spec | Later spec |
 | Q8 | Should each mode resume its own rotation position after a switch? | **Resolved: no.** The shared counter continues; documented in Module 3. Options for later: Mac-side resume via HA's "Last image" sensor plus a non-sorted manifest, or a per-mode counter in firmware | User, 2026-11-15 |
-| Q9 | Should subject metadata (Iconclass) also exclude photos of physical objects? | **Resolved: no.** Type allowlist only; curation handles the rest | User, 2026-11-15 |
+| Q9 | Should subject metadata (Iconclass) also exclude photos of physical objects? | **Resolved: no allowlist.** The hand-picked list is the scope; curation handles it | User, 2026-11-15 |
 
 ---
 
@@ -588,8 +586,7 @@ def rights_of(visual_item: dict) -> str | None:
 
 - Scheduling or launchd for the art sync.
 - Query-driven discovery, random picks, or "print of the day". Curation is the list.
-- Prints, sculpture, furniture, and other physical object types.
-- The dithering evidence covers prints, which are now excluded; re-run it on the new types.
+- Physical items (sculpture, furniture, ceramics) — excluded by curation, not by a filter.
 - Portrait images (skipped by design; the panel is landscape).
 - Firmware, pin, or driver changes, and any change to the 5.65" frame.
 - Captions in the manifest, or text rendered on the device.
@@ -604,9 +601,8 @@ def rights_of(visual_item: dict) -> str | None:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Rijksmuseum changes the Linked Art shape again (the old API is already gone) | **High.** The sync resolves nothing | Fixtures pin the expected shape. Fail loudly per entry. The cache keeps the last good set deployable |
-| A photograph of a physical object is still `type=photograph` | Low. It can slip through the allowlist | The API's type is the medium, not the subject. Curation is the filter; `--dry-run` shows the type |
 | A curated object is portrait | Low. It is missing from the wall | Skipped with reason `portrait`; `--dry-run` shows it before anything renders |
-| A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spike covered prints; re-run it on a sample before adding a new medium. The user curates, so this is a choice, not a surprise |
+| A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spikes cover prints, drawings, paintings and photographs; tonal works stylize more. The user curates, so this is a choice, not a surprise |
 | A curated object is not PD/CC0 | Medium. It is missing from the wall | Skipped with a reason; `--dry-run` shows it before anything renders |
 | `push_to_ha.sh` mirrors the remote, so the last deploy owns the frame | **High.** One mode could wipe the other on HA | Only `set_mode.sh` deploys the 13" frame. The art profile's folder fails the destination guard on purpose |
 | The migration moves the live 13" photos | Medium. A mistake would empty the frame | `--migrate` is idempotent and has `--dry-run`. It moves files, never deletes them. It publishes without deploying until verified |

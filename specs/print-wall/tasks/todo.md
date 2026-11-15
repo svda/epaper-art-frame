@@ -16,13 +16,16 @@ Module 3, Commands and the capability map. Change Module 4 step 5 to call
 `set_mode.sh --refresh` when `ACTIVE=art`. Replace the 13" photo-refresh command with
 `EPAPER_IMAGES=www/epaper13-modes/photos sync_album.py --profile spectra6-133 --dest
 "$EPAPER13_DEST"` followed by `set_mode.sh --refresh`, and explain why `--dest` is needed
-(plan finding 1). Change the "Choosing pre_filter" sample set to 2 paintings, 2 drawings
-and 2 photographs. Note that `test_profile.py` gets updated for the new profile row.
-Remove the stale "re-run the spike" non-goal and the matching Risks row.
+(plan finding 1). Remove the type allowlist (Revision 7): the hand-picked list is the
+scope, and the resolver reports the type but does not filter on it. Change the "Choosing
+pre_filter" sample set to 2 prints, 2 paintings, 2 drawings and 2 photographs. Note that
+`test_profile.py` gets updated for the new profile row. Remove the stale "re-run the spike"
+non-goal and the matching Risks row.
 
 **Acceptance criteria:**
 - [ ] `--refresh` is specified (behaviour, and refusal when `ACTIVE` is missing or names an empty mode) and is used by art-sync and the photo refresh.
-- [ ] The pre_filter review lists painting, drawing and photograph samples; no print techniques remain.
+- [ ] No type allowlist remains; a print resolves like any other object.
+- [ ] The pre_filter review lists print, painting, drawing and photograph samples.
 - [ ] Revision line bumped to 7 with a one-line summary.
 
 **Verification:**
@@ -41,15 +44,15 @@ Remove the stale "re-run the spike" non-goal and the matching Risks row.
 **Description:** Create the `tools/museum` uv project (Python ≥3.11, no runtime
 dependencies, pytest as a dev dependency) and `rijks.py`'s pure layer. Given a `fetch(url)
 -> dict` callable, `resolve(object_number, fetch)` returns either a `Print` dataclass or a
-`Skip(object_number, reason)`. It follows the spec's six steps: search, object, type
-check, VisualItem rights, DigitalObject, IIIF `info.json` orientation. Skip reasons are
-`not-found`, `ambiguous`, `type`, `rights`, `portrait` and `no-image`. Record JSON fixtures
+`Skip(object_number, reason)`. It follows the spec's five steps: search, object, VisualItem
+rights, DigitalObject, IIIF `info.json` orientation. Skip reasons are `not-found`,
+`ambiguous`, `rights`, `portrait` and `no-image`. Record JSON fixtures
 from the live API once, and commit them. Handle **both** record shapes (plan finding 7):
 `timespan` as an object or a list, and creators under `carried_out_by` or
 `part[].carried_out_by`, with `_label` or `notation[].@value`.
 
 **Acceptance criteria:**
-- [ ] Fixtures resolve as expected. Accepted: painting `SK-A-3089`, PD photograph `RP-F-00-630`, and a PD landscape drawing. Skipped: print `RP-P-OB-205.689` → `type`; In Copyright photograph (object `200100902`) → `rights`; portrait poster `RP-P-RMA1442` → `type` (it is a poster); a portrait allowlisted object → `portrait`; unknown number → `not-found`.
+- [ ] Fixtures resolve as expected. Accepted: print `RP-P-1956-733` (The Great Wave), painting `SK-A-3089`, PD photograph `RP-F-00-630`, and a PD landscape drawing. Skipped: In Copyright photograph (object `200100902`) → `rights`; a portrait object → `portrait`; unknown number → `not-found`.
 - [ ] A portrait object never requests the image URL (the fake fetch records its calls).
 - [ ] Metadata fallbacks follow the spec table (`Untitled`, `Anonymous`, empty date), and the image URL ends in `/full/!1600,1600/0/default.jpg`.
 
@@ -126,7 +129,7 @@ sanitises object numbers to `[A-Za-z0-9._-]`.
 **Context:** SPEC.md §Module 2 — placard; plan.md §Findings 3, 6
 
 ### T-05: Render review: pre_filter, font, sizes
-**Description:** Resolve 2 paintings, 2 drawings and 2 photographs (PD, landscape) through
+**Description:** Resolve 2 prints, 2 paintings, 2 drawings and 2 photographs (PD, landscape) through
 `sync_prints.py --dry-run` and the cache, then render each through `placard` with three
 pre_filter candidates: (a) empty, (b) the photo filter `-modulate 95,160
 -sigmoidal-contrast 4,50%`, (c) a milder one such as `-modulate 100,120
@@ -137,7 +140,7 @@ Q3 (sizes) stays open until the panel check in T-10. Change the strip or type si
 if the user asks.
 
 **Acceptance criteria:**
-- [ ] The contact sheet covers 6 objects × 3 candidates, each labelled.
+- [ ] The contact sheet covers 8 objects × 3 candidates, each labelled.
 - [ ] The user's choice is written into `profiles.json`, and Q1 and Q2 in the spec are marked resolved with the date.
 - [ ] Review images live outside the repo (the session temp dir).
 

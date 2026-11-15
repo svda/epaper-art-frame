@@ -6,8 +6,8 @@ Status: **approved** 2026-11-15
 ## Overview
 
 Add an art mode to the 13.3" Spectra 6 frame. A new tool, `tools/museum/`, resolves a
-hand-curated list of Rijksmuseum object numbers. It keeps only paintings, drawings and
-photographs that are public domain (PD/CC0) and landscape or square. Each one is rendered
+hand-curated list of Rijksmuseum object numbers. It keeps only objects that are public
+domain (PD/CC0) and landscape or square. Each one is rendered
 as a 1600×1200 palette-only PNG with a placard strip, and the results are mirrored into
 `www/epaper13-modes/art/`. `set_mode.sh` publishes either mode into the live folder
 `www/epaper13/` and deploys it. Nothing changes on the device or on the 5.65" frame.
@@ -31,9 +31,10 @@ These came up while reading the code. T-01 records them in the spec.
    which does the same thing as `set_mode.sh art` but states the intent.
 3. **`test_profile.py::test_both_panels_are_known`** asserts that exactly two profiles
    exist. T-04 updates it to include `spectra6-133-art`.
-4. **The pre_filter review samples were out of date.** The spec still listed the six
-   print-technique samples, but prints are now excluded. T-05 uses 2 paintings, 2 drawings
-   and 2 photographs, resolved through the real `museum-source`.
+4. **The pre_filter review samples were out of date.** The spec listed the six
+   print-technique samples, then the scope moved to paintings/drawings/photographs, then
+   back to no allowlist. T-05 uses 2 prints, 2 paintings, 2 drawings and 2 photographs,
+   resolved through the real `museum-source`.
 5. **`shellcheck` is not installed.** T-06 installs it (`brew install shellcheck`). It is
    a dev tool only, not a runtime dependency.
 6. **The palette contains exact `#000000` and `#FFFFFF`**, so 1-bit placard lettering
@@ -42,6 +43,8 @@ These came up while reading the code. T-01 records them in the spec.
    photographs, `produced_by.timespan` is a **list**, and creators sit under
    `produced_by.part[].carried_out_by[]` with `notation[].@value` instead of `_label`.
    The resolver and its fixtures must cover both shapes.
+8. **The type allowlist was removed (Revision 7).** The user hand-picks, so the list is the
+   filter. The resolver reports the type for the dry-run but does not filter on it.
 
 ## Architecture decisions
 
