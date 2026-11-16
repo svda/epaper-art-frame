@@ -109,7 +109,7 @@ the modes track (T-06 → T-07). T-05 needs T-03 and T-04. T-08 needs T-03, T-04
 - [x] T-10: Hardware end-to-end
 
 ### Phase 5: Rijksstudio set source
-- [ ] T-11: Replace the local list with a Rijksstudio set
+- [x] T-11: Replace the local list with a Rijksstudio set
 
 ### Checkpoint D: Complete
 - [ ] All 7 spec success criteria met; Q3 resolved on the panel

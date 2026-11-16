@@ -320,14 +320,14 @@ follows the set order. Add `--set` to override the configured set. A missing key
 401/403, or an empty set is fatal.
 
 **Acceptance criteria:**
-- [ ] A recorded userset fixture yields the object numbers in order; a missing key and a 401 are fatal; an empty set is fatal.
-- [ ] Filenames are `001-<object>.png`, `002-<object>.png`, ... and the manifest follows the set order.
-- [ ] `--set` overrides the configured set; `--dry-run` reports the set's entries.
-- [ ] `tools/museum/.env` is git-ignored; `.env.example` documents `RIJKSMUSEUM_API_KEY`.
+- [x] A recorded set-page fixture yields the object numbers in order; an empty page is fatal.
+- [x] Filenames are `001-<object>.png`, `002-<object>.png`, ... and the manifest follows the set order.
+- [x] `--set` overrides the configured set; `--dry-run` reports the set's entries.
+- [x] No API key is needed; the set is read from the public page.
 
 **Verification:**
-- [ ] `uv run --directory tools/museum pytest`
-- [ ] Manual: with the key in `.env`, `sync_prints.py --dry-run` lists the set's objects.
+- [x] `uv run --directory tools/museum pytest`
+- [x] Manual: `sync_prints.py --dry-run` lists the set's objects.
 
 **Dependencies:** T-08 · **Scope:** M
 **Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest`
