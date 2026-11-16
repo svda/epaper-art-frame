@@ -43,7 +43,7 @@ def all_fixtures_fetch():
     def fetch(url: str) -> dict:
         if "/search/collection?" in url:
             number = parse_qs(urlparse(url).query)["objectNumber"][0]
-            return by_search[number]
+            return by_search.get(number, {"orderedItems": []})
         if url in by_id:
             return by_id[url]
         if url in by_info:
@@ -55,13 +55,14 @@ def all_fixtures_fetch():
 
 def set_fetch(numbers):
     base = all_fixtures_fetch()
+    html = "".join(f'"{n}"' for n in numbers)
 
-    def fetch(url: str) -> dict:
-        if "/usersets/" in url:
-            return {"userSet": {"setItems": [{"objectNumber": n} for n in numbers]}}
-        return base(url)
+    def fetch_text(url: str) -> str:
+        if "/collectie/verzameling/" in url:
+            return html
+        raise AssertionError(f"unexpected url: {url}")
 
-    return fetch
+    return base, fetch_text
 
 
 def write_config(tmp_path: Path) -> Path:
@@ -76,8 +77,7 @@ def test_dry_run_reports_ok_and_skips(tmp_path):
 
     results = run(
         config,
-        set_fetch(["RP-P-1956-733", "RP-P-RMA1442", "XX-000-000"]),
-        "key",
+        *set_fetch(["RP-P-1956-733", "RP-P-RMA1442", "SK-000-000"]),
         out=lines.append,
     )
 
@@ -96,8 +96,7 @@ def test_dry_run_keeps_going_after_a_skip(tmp_path):
 
     results = run(
         config,
-        set_fetch(["XX-000-000", "SK-A-3089"]),
-        "key",
+        *set_fetch(["SK-000-000", "SK-A-3089"]),
         out=lines.append,
     )
 
@@ -193,8 +192,7 @@ def test_sync_deploys_when_art_is_active(tmp_path):
 
     sync(
         config,
-        set_fetch(["RP-P-1956-733"]),
-        "key",
+        *set_fetch(["RP-P-1956-733"]),
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -215,8 +213,7 @@ def test_sync_stages_when_photos_is_active(tmp_path):
 
     sync(
         config,
-        set_fetch(["RP-P-1956-733"]),
-        "key",
+        *set_fetch(["RP-P-1956-733"]),
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -237,8 +234,7 @@ def test_sync_does_not_deploy_with_no_deploy(tmp_path):
 
     sync(
         config,
-        set_fetch(["RP-P-1956-733"]),
-        "key",
+        *set_fetch(["RP-P-1956-733"]),
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -260,8 +256,7 @@ def test_sync_returns_nonzero_when_a_render_fails(tmp_path):
 
     code = sync(
         config,
-        set_fetch(["RP-P-1956-733"]),
-        "key",
+        *set_fetch(["RP-P-1956-733"]),
         tmp_path / "art",
         render,
         lambda d: None,

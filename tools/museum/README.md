@@ -17,20 +17,12 @@ tool fetches whatever is in the set, in the set's order.
    ```toml
    # https://www.rijksmuseum.nl/nl/collectie/verzameling/epaper--aa3048ce-... -> epaper--aa3048ce-...
    set_id = "epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6"
-   culture = "en"
+   culture = "nl"
    ```
 
-2. Put your Rijksstudio API key in `tools/museum/.env` (git-ignored):
-
-   ```
-   RIJKSMUSEUM_API_KEY=...
-   ```
-
-   The key is free, from the account's advanced settings.
-
-3. Validate: `uv run --directory tools/museum python sync_prints.py --dry-run`
-4. Sync: `uv run --directory tools/museum python sync_prints.py`
-5. Show: `tools/museum/set_mode.sh art` if the frame is not already in art mode.
+2. Validate: `uv run --directory tools/museum python sync_prints.py --dry-run`
+3. Sync: `uv run --directory tools/museum python sync_prints.py`
+4. Show: `tools/museum/set_mode.sh art` if the frame is not already in art mode.
 
 The set's order is preserved: filenames are prefixed with the set index (`001-...`,
 `002-...`), so the sorted manifest follows the folder.
@@ -38,9 +30,6 @@ The set's order is preserved: filenames are prefixed with the set index (`001-..
 ## Commands
 
 ```
-# One-time: put the Rijksstudio API key in a git-ignored file
-printf 'RIJKSMUSEUM_API_KEY=%s\n' '<key>' > tools/museum/.env
-
 # Preview: resolve the set and show rights, type and skips
 uv run --directory tools/museum python sync_prints.py --dry-run
 
@@ -117,7 +106,6 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 | Symptom | Cause / fix |
 |---|---|
 | `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path tools/museum/set_mode.sh art` |
-| `RIJKSMUSEUM_API_KEY is not set` | Put the key in `tools/museum/.env` |
 | `Rijksstudio set '...' is empty or not found` | Check the set ID and that the set has items |
 | `mode 'art' has no PNGs` | Run `sync_prints.py` first; the art folder is empty |
 | `no ACTIVE mode recorded` | Run `set_mode.sh art` or `set_mode.sh photos` once |
@@ -132,7 +120,6 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 
 - `pyproject.toml` / `uv.lock` — environment (no runtime dependencies)
 - `prints.toml` — the Rijksstudio set id and culture
-- `.env.example` — the `RIJKSMUSEUM_API_KEY` template (`.env` is git-ignored)
 - `rijks.py` — resolve, rights, orientation, metadata, HTTP fetcher and cache
 - `placard.py` — compose, dither through `prepare_image.sh`, letter the placard
 - `sync_prints.py` — resolve → render → mirror → manifest → deploy-if-active

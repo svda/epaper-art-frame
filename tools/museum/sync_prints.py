@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -18,7 +17,6 @@ import rijks
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 DEFAULT_CONFIG = HERE / "prints.toml"
-DEFAULT_ENV = HERE / ".env"
 DEFAULT_CACHE = HERE / ".cache"
 ART_DIR = REPO / "www" / "epaper13-modes" / "art"
 MODES_DIR = REPO / "www" / "epaper13-modes"
@@ -35,29 +33,10 @@ class SyncResult:
     failures: list[tuple[str, str]] = field(default_factory=list)
 
 
-def load_env(path: Path) -> dict[str, str]:
-    if not path.is_file():
-        return {}
-    values: dict[str, str] = {}
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        values[key.strip()] = value.strip().strip('"').strip("'")
-    return values
-
-
-def api_key() -> str:
-    return os.environ.get("RIJKSMUSEUM_API_KEY") or load_env(DEFAULT_ENV).get(
-        "RIJKSMUSEUM_API_KEY", ""
-    )
-
-
 def load_config(path: Path) -> tuple[str, str]:
     data = tomllib.loads(Path(path).read_text())
     set_id = data.get("set_id", "")
-    culture = data.get("culture", "en")
+    culture = data.get("culture", "nl")
     if not set_id:
         raise ValueError(f"no set_id in {path}")
     return set_id, culture
@@ -65,17 +44,17 @@ def load_config(path: Path) -> tuple[str, str]:
 
 def run(
     config_path: Path,
-    fetch,
-    key: str,
+    fetch_json,
+    fetch_text,
     out=print,
     set_id: str | None = None,
 ) -> list[tuple[int, rijks.Print | rijks.Skip]]:
     configured, culture = load_config(config_path)
     set_id = set_id or configured
-    numbers = rijks.set_members(set_id, culture, key, fetch)
+    numbers = rijks.set_members(set_id, culture, fetch_text)
     results: list[tuple[int, rijks.Print | rijks.Skip]] = []
     for index, number in enumerate(numbers, start=1):
-        result = rijks.resolve(number, fetch)
+        result = rijks.resolve(number, fetch_json)
         results.append((index, result))
         if isinstance(result, rijks.Skip):
             out(f"{index:03d}  {number}  skip: {result.reason}")
@@ -174,8 +153,8 @@ def _refresh() -> None:
 
 def sync(
     config_path: Path,
-    fetch,
-    key: str,
+    fetch_json,
+    fetch_text,
     art_dir: Path,
     render,
     regenerate_manifest,
@@ -185,7 +164,7 @@ def sync(
     deploy_fn=None,
     out=print,
 ) -> int:
-    results = run(config_path, fetch, key, out=out, set_id=set_id)
+    results = run(config_path, fetch_json, fetch_text, out=out, set_id=set_id)
     prints = [(index, r) for index, r in results if isinstance(r, rijks.Print)]
     skipped = len(results) - len(prints)
     if not prints:
@@ -218,18 +197,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-deploy", action="store_true")
     args = parser.parse_args(argv)
 
-    key = api_key()
-    if not key:
-        print(
-            "error: RIJKSMUSEUM_API_KEY is not set (put it in tools/museum/.env)",
-            file=sys.stderr,
-        )
-        return 2
-
     fetcher = rijks.Fetcher(DEFAULT_CACHE, refresh=args.refresh)
     try:
         if args.dry_run:
-            run(args.config, fetcher.get_json, key, set_id=args.set_id)
+            run(
+                args.config,
+                fetcher.get_json,
+                fetcher.get_text,
+                set_id=args.set_id,
+            )
             return 0
 
         def render(item, dest):
@@ -241,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
         return sync(
             args.config,
             fetcher.get_json,
-            key,
+            fetcher.get_text,
             ART_DIR,
             render,
             regenerate_manifest,

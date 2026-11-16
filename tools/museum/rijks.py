@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -202,19 +203,24 @@ def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
     )
 
 
-SET_URL = "https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}"
+SET_PAGE = "https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}"
+OBJECT_NUMBER = re.compile(r'"((?:SK|RP|BK|AK|NG|KOG)-[A-Z0-9.-]+)"')
 
 
-def set_members(set_id: str, culture: str, key: str, fetch: Fetch) -> list[str]:
-    """Object numbers in a Rijksstudio set, in the set's order."""
-    if not key:
-        raise ValueError("RIJKSMUSEUM_API_KEY is not set")
-    url = SET_URL.format(culture=culture, set_id=set_id)
-    query = urllib.parse.urlencode({"key": key, "format": "json"})
-    data = fetch(f"{url}?{query}")
-    user_set = data.get("userSet") or {}
-    items = user_set.get("setItems") or []
-    numbers = [item["objectNumber"] for item in items if item.get("objectNumber")]
+def set_members(set_id: str, culture: str, fetch_text) -> list[str]:
+    """Object numbers in a Rijksstudio set, in the set's order.
+
+    The set page is public; its Nuxt payload embeds the items. No API key is needed.
+    """
+    url = SET_PAGE.format(culture=culture, set_id=set_id)
+    html = fetch_text(url)
+    numbers: list[str] = []
+    seen: set[str] = set()
+    for match in OBJECT_NUMBER.finditer(html):
+        number = match.group(1)
+        if number not in seen:
+            seen.add(number)
+            numbers.append(number)
     if not numbers:
         raise ValueError(f"Rijksstudio set '{set_id}' is empty or not found")
     return numbers
@@ -282,6 +288,15 @@ class Fetcher:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data))
         return data
+
+    def get_text(self, url: str) -> str:
+        path = self._cache_path(url, "text", "html")
+        if path.exists() and not self.refresh:
+            return path.read_text()
+        body = self._request(url).decode("utf-8", errors="replace")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body)
+        return body
 
     def download(self, url: str, dest: Path) -> Path:
         path = self._cache_path(url, "images", "bin")

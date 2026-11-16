@@ -44,9 +44,8 @@ nothing about the 5.65" frame changes.
 | Property | Value |
 |---|---|
 | Source | Rijksmuseum Linked Art Search API, `https://data.rijksmuseum.nl/search/collection`, no API key |
-| Curation | A **Rijksstudio set** (`set_id` in `tools/museum/prints.toml`), fetched via the usersets API |
-| Set API | `https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}?key=...&format=json` |
-| API key | `RIJKSMUSEUM_API_KEY` from `tools/museum/.env` (git-ignored) or the environment |
+| Curation | A **Rijksstudio set** (`set_id` in `tools/museum/prints.toml`), read from its public page |
+| Set page | `https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}` (no API key) |
 | Scope | **No type filter.** The hand-picked list is the scope; any object type the Rijksmuseum serves |
 | Orientation | **Landscape or square only** (`width ≥ height`). Portrait images are skipped |
 | Rights | Only objects whose own VisualItem rights are **Public Domain Mark** or **CC0** |
@@ -177,12 +176,10 @@ set_id = "epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6"
 culture = "en"
 ```
 
-The API key comes from `RIJKSMUSEUM_API_KEY` in `tools/museum/.env` (git-ignored) or the
-environment.
-
-**Set fetch:** `GET https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}?key={key}&format=json`
-→ `userSet.setItems[].objectNumber`, in the set's order. A missing key, a 401/403, or a
-missing set is a fatal error, not a per-entry skip.
+**Set fetch:** `GET https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}`
+(the public set page). Its Nuxt payload embeds the items; extract the object-number-like
+strings in page order. No API key is needed. A missing or empty set is a fatal error, not
+a per-entry skip.
 
 **Resolution, for each object number (in set order):**
 
@@ -404,9 +401,6 @@ shows them on its next wake. With `ACTIVE=photos`, the same run changes only
 ## Commands
 
 ```
-# One-time: put the Rijksstudio API key in a git-ignored file
-printf 'RIJKSMUSEUM_API_KEY=%s\n' '<key>' > tools/museum/.env
-
 # Preview: resolve the set and show rights and skips. No writes outside .cache/
 uv run --directory tools/museum python sync_prints.py --dry-run
 
@@ -515,8 +509,8 @@ def rights_of(visual_item: dict) -> str | None:
     with two matches, one with no English title, one anonymous, one undated). The fetcher
     is injected, so the cache hit path makes **zero** fetch calls. Covers the IIIF URL
     rewrite and retry/backoff on 429 (fake clock).
-  - `museum-source` set fetch: a recorded userset fixture yields the object numbers in
-    order; a missing key and a 401 are fatal; an empty set is fatal.
+  - `museum-source` set fetch: a recorded set-page fixture yields the object numbers in
+    order; an empty page is fatal.
   - `art-sync` order: filenames are prefixed with the set index, so the manifest follows
     the set order.
   - `museum-source` type: the type is reported for the dry-run but is **not** a filter;
@@ -633,7 +627,7 @@ def rights_of(visual_item: dict) -> str | None:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Rijksmuseum changes the Linked Art shape again (the old API is already gone) | **High.** The sync resolves nothing | Fixtures pin the expected shape. Fail loudly per entry. The cache keeps the last good set deployable |
-| The Rijksstudio API key is missing or invalid | **High.** The set cannot be fetched | Fatal error with a clear message; the key lives in a git-ignored `.env` |
+| The Rijksmuseum set page changes its payload | Medium. The set cannot be read | The extraction is a regex over the page; a fixture pins the shape and the dry-run shows the result |
 | The set is empty or not found | Medium. Nothing to render | Fatal error; the live folder is untouched |
 | A curated object is portrait | Low. It is missing from the wall | Skipped with reason `portrait`; `--dry-run` shows it before anything renders |
 | A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spikes cover prints, drawings, paintings and photographs; tonal works stylize more. The user curates, so this is a choice, not a surprise |
