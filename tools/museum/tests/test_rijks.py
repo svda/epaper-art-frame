@@ -151,14 +151,62 @@ def test_metadata_falls_back_when_fields_are_missing():
 
 
 def test_set_members_returns_object_numbers_in_order():
-    html = '"UserSetObjectApiModel","RP-P-1912-609","SK-A-3089"'
+    html = (
+        '"UserSetObjectApiModel","id","node","De Yodo rivier in maanlicht",'
+        '"RP-P-1912-609","SK-A-3089"'
+    )
 
     assert set_members("epaper--abc", "nl", lambda url: html) == [
-        "RP-P-1912-609",
-        "SK-A-3089",
+        ("RP-P-1912-609", "De Yodo rivier in maanlicht"),
+        ("SK-A-3089", ""),
     ]
 
 
 def test_set_members_empty_set_is_fatal():
     with pytest.raises(ValueError):
         set_members("epaper--abc", "nl", lambda url: "<html></html>")
+
+
+def test_resolve_disambiguates_by_title():
+    def fetch(url: str) -> dict:
+        if "/search/collection?" in url:
+            return {"orderedItems": [{"id": "obj1"}, {"id": "obj2"}]}
+        if url == "obj1":
+            return {
+                "id": "obj1",
+                "identified_by": [{"type": "Name", "content": "Wrong"}],
+                "shows": [{"id": "vis1"}],
+            }
+        if url == "obj2":
+            return {
+                "id": "obj2",
+                "identified_by": [{"type": "Name", "content": "Right"}],
+                "shows": [{"id": "vis2"}],
+            }
+        if url == "vis2":
+            return {
+                "subject_to": [
+                    {
+                        "classified_as": [
+                            {
+                                "id": "https://creativecommons.org/publicdomain/mark/1.0/"
+                            }
+                        ]
+                    }
+                ],
+                "digitally_shown_by": [{"id": "dig2"}],
+            }
+        if url == "dig2":
+            return {
+                "access_point": [
+                    {"id": "https://iiif.micr.io/x/full/max/0/default.jpg"}
+                ]
+            }
+        if url.endswith("/info.json"):
+            return {"width": 100, "height": 50}
+        raise AssertionError(f"unexpected url: {url}")
+
+    result = resolve("RP-P-1980-4", fetch, expected_title="Right")
+
+    assert isinstance(result, Print)
+    assert result.title == "Right"

@@ -55,7 +55,10 @@ def all_fixtures_fetch():
 
 def set_fetch(numbers):
     base = all_fixtures_fetch()
-    html = "".join(f'"{n}"' for n in numbers)
+    html = (
+        '"UserSetObjectApiModel","id","node","Title",'
+        + "".join(f'"{n}"' for n in numbers)
+    )
 
     def fetch_text(url: str) -> str:
         if "/collectie/verzameling/" in url:

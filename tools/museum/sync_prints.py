@@ -53,8 +53,8 @@ def run(
     set_id = set_id or configured
     numbers = rijks.set_members(set_id, culture, fetch_text)
     results: list[tuple[int, rijks.Print | rijks.Skip]] = []
-    for index, number in enumerate(numbers, start=1):
-        result = rijks.resolve(number, fetch_json)
+    for index, (number, title) in enumerate(numbers, start=1):
+        result = rijks.resolve(number, fetch_json, expected_title=title)
         results.append((index, result))
         if isinstance(result, rijks.Skip):
             out(f"{index:03d}  {number}  skip: {result.reason}")

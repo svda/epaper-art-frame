@@ -155,16 +155,7 @@ def rights_of(visual_item: dict) -> str | None:
     return None
 
 
-def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
-    query = urllib.parse.urlencode({"objectNumber": object_number})
-    search = fetch(f"{SEARCH_URL}?{query}")
-    ids = [item["id"] for item in _as_list(search.get("orderedItems"))]
-    if not ids:
-        return Skip(object_number, "not-found")
-    if len(ids) > 1:
-        return Skip(object_number, "ambiguous")
-
-    obj = fetch(ids[0])
+def _resolve_object(object_number: str, obj: dict, fetch: Fetch) -> Print | Skip:
     shows = _as_list(obj.get("shows"))
     if not shows:
         return Skip(object_number, "no-image")
@@ -203,27 +194,58 @@ def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
     )
 
 
+def resolve(
+    object_number: str, fetch: Fetch, expected_title: str | None = None
+) -> Print | Skip:
+    query = urllib.parse.urlencode({"objectNumber": object_number})
+    search = fetch(f"{SEARCH_URL}?{query}")
+    ids = [item["id"] for item in _as_list(search.get("orderedItems"))]
+    if not ids:
+        return Skip(object_number, "not-found")
+    if len(ids) > 1:
+        if expected_title:
+            for object_id in ids:
+                obj = fetch(object_id)
+                if expected_title in [n["content"] for n in _names(obj)]:
+                    return _resolve_object(object_number, obj, fetch)
+        return Skip(object_number, "ambiguous")
+    return _resolve_object(object_number, fetch(ids[0]), fetch)
+
+
 SET_PAGE = "https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}"
 OBJECT_NUMBER = re.compile(r'"((?:SK|RP|BK|AK|NG|KOG)-[A-Z0-9.-]+)"')
 
 
-def set_members(set_id: str, culture: str, fetch_text) -> list[str]:
-    """Object numbers in a Rijksstudio set, in the set's order.
+def _title_before(html: str, position: int) -> str:
+    start = html.rfind('"UserSetObjectApiModel"', 0, position)
+    if start < 0:
+        return ""
+    block = html[start:position]
+    match = re.search(r'"UserSetObjectApiModel","[^"]*","[^"]*","([^"]*)"', block)
+    return match.group(1) if match else ""
+
+
+def set_members(set_id: str, culture: str, fetch_text) -> list[tuple[str, str]]:
+    """Object numbers and titles in a Rijksstudio set, in the set's order.
 
     The set page is public; its Nuxt payload embeds the items. No API key is needed.
     """
     url = SET_PAGE.format(culture=culture, set_id=set_id)
     html = fetch_text(url)
-    numbers: list[str] = []
+    members: list[tuple[str, str]] = []
     seen: set[str] = set()
+    first = True
     for match in OBJECT_NUMBER.finditer(html):
         number = match.group(1)
-        if number not in seen:
-            seen.add(number)
-            numbers.append(number)
-    if not numbers:
+        if number in seen:
+            continue
+        seen.add(number)
+        title = _title_before(html, match.start()) if first else ""
+        first = False
+        members.append((number, title))
+    if not members:
         raise ValueError(f"Rijksstudio set '{set_id}' is empty or not found")
-    return numbers
+    return members
 
 
 HEADERS = {
