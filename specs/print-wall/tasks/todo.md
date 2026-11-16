@@ -303,3 +303,33 @@ Record results and the Q3 resolution in the spec.
 - [ ] All 7 spec success criteria met
 - [ ] `uv run --directory tools/museum pytest`, `uv run --directory tools/epaper pytest`, `shellcheck tools/museum/*.sh`
 - [ ] Ready for review
+
+---
+
+## Phase 5 — Rijksstudio set source
+
+### T-11: Replace the local list with a Rijksstudio set
+**Description:** Change the curation source from `prints.toml`'s object-number list to a
+Rijksstudio set. Add `set_members(set_id, culture, key, fetch)` to `rijks.py` (GET
+`https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}?key=...&format=json` →
+`userSet.setItems[].objectNumber`, in order). Load `RIJKSMUSEUM_API_KEY` from
+`tools/museum/.env` (git-ignored) or the environment. Change `prints.toml` to `set_id` and
+`culture`. `sync_prints.py` fetches the set, resolves each object number in order, and
+prefixes filenames with the 1-based set index (`001-<object>.png`) so the sorted manifest
+follows the set order. Add `--set` to override the configured set. A missing key, a
+401/403, or an empty set is fatal.
+
+**Acceptance criteria:**
+- [ ] A recorded userset fixture yields the object numbers in order; a missing key and a 401 are fatal; an empty set is fatal.
+- [ ] Filenames are `001-<object>.png`, `002-<object>.png`, ... and the manifest follows the set order.
+- [ ] `--set` overrides the configured set; `--dry-run` reports the set's entries.
+- [ ] `tools/museum/.env` is git-ignored; `.env.example` documents `RIJKSMUSEUM_API_KEY`.
+
+**Verification:**
+- [ ] `uv run --directory tools/museum pytest`
+- [ ] Manual: with the key in `.env`, `sync_prints.py --dry-run` lists the set's objects.
+
+**Dependencies:** T-08 · **Scope:** M
+**Tier:** standard · **Risk:** normal · **Verify:** `uv run --directory tools/museum pytest`
+**Files:** tools/museum/rijks.py, tools/museum/sync_prints.py, tools/museum/prints.toml, tools/museum/.env.example, tools/museum/.gitignore, tools/museum/tests/test_rijks.py, tools/museum/tests/test_sync_prints.py, tools/museum/README.md
+**Context:** SPEC.md §Module 1 (set fetch), §Module 4 (filenames, rotation order), §Commands

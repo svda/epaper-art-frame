@@ -202,6 +202,24 @@ def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
     )
 
 
+SET_URL = "https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}"
+
+
+def set_members(set_id: str, culture: str, key: str, fetch: Fetch) -> list[str]:
+    """Object numbers in a Rijksstudio set, in the set's order."""
+    if not key:
+        raise ValueError("RIJKSMUSEUM_API_KEY is not set")
+    url = SET_URL.format(culture=culture, set_id=set_id)
+    query = urllib.parse.urlencode({"key": key, "format": "json"})
+    data = fetch(f"{url}?{query}")
+    user_set = data.get("userSet") or {}
+    items = user_set.get("setItems") or []
+    numbers = [item["objectNumber"] for item in items if item.get("objectNumber")]
+    if not numbers:
+        raise ValueError(f"Rijksstudio set '{set_id}' is empty or not found")
+    return numbers
+
+
 HEADERS = {
     "User-Agent": "epaper-art-frame/print-wall",
     "Accept": "application/json",

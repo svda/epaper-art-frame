@@ -1,8 +1,9 @@
-"""Resolve the curated list, render it, mirror the art folder, and deploy if active."""
+"""Resolve a Rijksstudio set, render it, mirror the art folder, and deploy if active."""
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -16,7 +17,8 @@ import rijks
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-DEFAULT_LIST = HERE / "prints.toml"
+DEFAULT_CONFIG = HERE / "prints.toml"
+DEFAULT_ENV = HERE / ".env"
 DEFAULT_CACHE = HERE / ".cache"
 ART_DIR = REPO / "www" / "epaper13-modes" / "art"
 MODES_DIR = REPO / "www" / "epaper13-modes"
@@ -33,21 +35,53 @@ class SyncResult:
     failures: list[tuple[str, str]] = field(default_factory=list)
 
 
-def load_list(path: Path) -> list[str]:
+def load_env(path: Path) -> dict[str, str]:
+    if not path.is_file():
+        return {}
+    values: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def api_key() -> str:
+    return os.environ.get("RIJKSMUSEUM_API_KEY") or load_env(DEFAULT_ENV).get(
+        "RIJKSMUSEUM_API_KEY", ""
+    )
+
+
+def load_config(path: Path) -> tuple[str, str]:
     data = tomllib.loads(Path(path).read_text())
-    return list(data.get("prints", []))
+    set_id = data.get("set_id", "")
+    culture = data.get("culture", "en")
+    if not set_id:
+        raise ValueError(f"no set_id in {path}")
+    return set_id, culture
 
 
-def run(list_path: Path, fetch, out=print) -> list[rijks.Print | rijks.Skip]:
-    results: list[rijks.Print | rijks.Skip] = []
-    for number in load_list(list_path):
+def run(
+    config_path: Path,
+    fetch,
+    key: str,
+    out=print,
+    set_id: str | None = None,
+) -> list[tuple[int, rijks.Print | rijks.Skip]]:
+    configured, culture = load_config(config_path)
+    set_id = set_id or configured
+    numbers = rijks.set_members(set_id, culture, key, fetch)
+    results: list[tuple[int, rijks.Print | rijks.Skip]] = []
+    for index, number in enumerate(numbers, start=1):
         result = rijks.resolve(number, fetch)
-        results.append(result)
+        results.append((index, result))
         if isinstance(result, rijks.Skip):
-            out(f"{number}  skip: {result.reason}")
+            out(f"{index:03d}  {number}  skip: {result.reason}")
         else:
             out(
-                f"{number}  {result.type}  {result.rights}  "
+                f"{index:03d}  {number}  {result.type}  {result.rights}  "
                 f"{result.width}x{result.height}  ok"
             )
     return results
@@ -69,11 +103,7 @@ def write_managed(art_dir: Path, names: set[str]) -> None:
 def plan_deletions(
     existing: set[str], managed: set[str], current: set[str], first_run: bool
 ) -> set[str]:
-    """Files to delete: everything we own that is no longer selected.
-
-    On the first run (no managed state) the sync adopts the folder and owns every
-    PNG in it; afterwards it only ever deletes files it previously managed.
-    """
+    """Files to delete: everything we own that is no longer selected."""
     owned = set(existing) if first_run else (set(managed) & set(existing))
     return owned - set(current)
 
@@ -93,8 +123,8 @@ def apply_artwork(prints, art_dir: Path, render, regenerate_manifest) -> SyncRes
     failures: list[tuple[str, str]] = []
     rendered: list[str] = []
     try:
-        for item in prints:
-            name = f"{placard.sanitise(item.object_number)}.png"
+        for index, item in prints:
+            name = f"{index:03d}-{placard.sanitise(item.object_number)}.png"
             try:
                 render(item, stage / name)
                 rendered.append(name)
@@ -143,18 +173,20 @@ def _refresh() -> None:
 
 
 def sync(
-    list_path: Path,
+    config_path: Path,
     fetch,
+    key: str,
     art_dir: Path,
     render,
     regenerate_manifest,
     active: str | None,
     deploy: bool,
+    set_id: str | None = None,
     deploy_fn=None,
     out=print,
 ) -> int:
-    results = run(list_path, fetch, out=out)
-    prints = [r for r in results if isinstance(r, rijks.Print)]
+    results = run(config_path, fetch, key, out=out, set_id=set_id)
+    prints = [(index, r) for index, r in results if isinstance(r, rijks.Print)]
     skipped = len(results) - len(prints)
     if not prints:
         out("sync: no renderable objects; nothing changed")
@@ -179,32 +211,47 @@ def sync(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--list", type=Path, default=DEFAULT_LIST)
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument("--set", dest="set_id", help="override the configured set id")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--refresh", action="store_true")
     parser.add_argument("--no-deploy", action="store_true")
     args = parser.parse_args(argv)
 
+    key = api_key()
+    if not key:
+        print(
+            "error: RIJKSMUSEUM_API_KEY is not set (put it in tools/museum/.env)",
+            file=sys.stderr,
+        )
+        return 2
+
     fetcher = rijks.Fetcher(DEFAULT_CACHE, refresh=args.refresh)
-    if args.dry_run:
-        run(args.list, fetcher.get_json)
-        return 0
+    try:
+        if args.dry_run:
+            run(args.config, fetcher.get_json, key, set_id=args.set_id)
+            return 0
 
-    def render(item, dest):
-        with tempfile.TemporaryDirectory() as tmp:
-            src = Path(tmp) / "source.jpg"
-            fetcher.download(item.image_url, src)
-            placard.render(src, item.title, item.artist, item.date, dest)
+        def render(item, dest):
+            with tempfile.TemporaryDirectory() as tmp:
+                src = Path(tmp) / "source.jpg"
+                fetcher.download(item.image_url, src)
+                placard.render(src, item.title, item.artist, item.date, dest)
 
-    return sync(
-        args.list,
-        fetcher.get_json,
-        ART_DIR,
-        render,
-        regenerate_manifest,
-        active_mode(MODES_DIR),
-        not args.no_deploy,
-    )
+        return sync(
+            args.config,
+            fetcher.get_json,
+            key,
+            ART_DIR,
+            render,
+            regenerate_manifest,
+            active_mode(MODES_DIR),
+            not args.no_deploy,
+            set_id=args.set_id,
+        )
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

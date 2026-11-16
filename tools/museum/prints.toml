@@ -1,10 +1,4 @@
-# Objects for the 13" frame's art mode. Copy object numbers from rijksmuseum.nl.
-# The hand-picked list is the scope; there is no type filter.
-# The manifest writer sorts, so rotation follows object-number order, not this list.
-prints = [
-  "RP-P-1956-733",  # Hokusai, The Great Wave off Kanagawa
-  "KOG-ZG-1-19-90", # print
-  "SK-A-3089",      # Henriëtte Ronner, Cat at Play
-  "RP-T-1921-120",  # drawing
-  "RP-F-00-630",    # George Hendrik Breitner, photograph
-]
+# The Rijksstudio set to show. Copy the last segment of the set URL:
+# https://www.rijksmuseum.nl/nl/collectie/verzameling/epaper--aa3048ce-... -> epaper--aa3048ce-...
+set_id = "epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6"
+culture = "en"

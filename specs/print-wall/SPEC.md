@@ -1,6 +1,6 @@
 # Spec: Print Wall
 
-Status: **approved** (2026-11-15) · Revision 7 (2026-11-15: no type allowlist — the hand-picked list is the scope)
+Status: **approved** (2026-11-16) · Revision 8 (2026-11-16: curation is a Rijksstudio set, not a local list)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
@@ -19,23 +19,23 @@ Slug: `print-wall`
 ## Objective
 
 Let the household's 13" frame hang **curated art** as well as photos. One manual command
-fetches a hand-curated list of Rijksmuseum objects, renders each for the panel with a
-placard below it, and, when art mode is active, deploys them to Home Assistant. The device
-picks them up on its next daily wake. A second command switches the frame between **art**
-and **photos**.
+fetches the objects in a **Rijksstudio set**, renders each for the panel with a placard
+below it, and, when art mode is active, deploys them to Home Assistant. The device picks
+them up on its next daily wake. A second command switches the frame between **art** and
+**photos**.
 
-**The list is the scope.** Whatever object numbers are in `prints.toml` is what gets
-fetched. There is no type allowlist: the hand-picked list is the filter, so prints,
-paintings, drawings and photographs are all eligible. The name "Print Wall" is historical.
+**The set is the scope.** Whatever is in the Rijksstudio set is what gets fetched, in the
+set's order. There is no type allowlist: the set is the filter, so prints, paintings,
+drawings and photographs are all eligible. The name "Print Wall" is historical.
 
 **Landscape only.** The panel is 1600×1200 landscape, so only images that are landscape or
 square (`width ≥ height`) are used. Portrait images are skipped with a logged reason rather
 than letterboxed into a narrow strip.
 
-**The user** is the same household that runs the existing frames. They curate by copying
-object numbers from rijksmuseum.nl into a text file.
+**The user** is the same household that runs the existing frames. They curate by adding
+objects to a Rijksstudio set on rijksmuseum.nl.
 
-**Success:** after editing the list and running one command, the frame shows those objects
+**Success:** after editing the set and running one command, the frame shows those objects
 with readable placards. Switching modes is one command. Nothing on the device changes, and
 nothing about the 5.65" frame changes.
 
@@ -44,7 +44,9 @@ nothing about the 5.65" frame changes.
 | Property | Value |
 |---|---|
 | Source | Rijksmuseum Linked Art Search API, `https://data.rijksmuseum.nl/search/collection`, no API key |
-| Curation | Hand-picked **object numbers** (e.g. `RP-P-OB-12.345`) in `tools/museum/prints.toml` |
+| Curation | A **Rijksstudio set** (`set_id` in `tools/museum/prints.toml`), fetched via the usersets API |
+| Set API | `https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}?key=...&format=json` |
+| API key | `RIJKSMUSEUM_API_KEY` from `tools/museum/.env` (git-ignored) or the environment |
 | Scope | **No type filter.** The hand-picked list is the scope; any object type the Rijksmuseum serves |
 | Orientation | **Landscape or square only** (`width ≥ height`). Portrait images are skipped |
 | Rights | Only objects whose own VisualItem rights are **Public Domain Mark** or **CC0** |
@@ -66,7 +68,8 @@ nothing about the 5.65" frame changes.
   approved 2026-11-15 (below).
 - **Done means a manual sync.** One command, then the frame shows art on its next wake.
   Scheduling is a later spec.
-- **Curation by object number**, resolved through the API's `objectNumber` parameter.
+- **Curation is a Rijksstudio set** (2026-11-16), replacing the local object-number list.
+  The set's order is preserved by prefixing each filename with its set index.
 - **No type allowlist** (2026-11-15). The hand-picked list is the scope. Prints, paintings,
   drawings and photographs are all eligible; the user curates out physical items and
   anything else they do not want. This supersedes the Revision 5 allowlist.
@@ -168,15 +171,20 @@ moved.
 **Input:** `tools/museum/prints.toml`
 
 ```toml
-# Objects for the 13" frame's art mode. Copy object numbers from rijksmuseum.nl.
-# Order here is rotation order.
-prints = [
-  "RP-P-OB-12.345",
-  "RP-P-1904-1234",
-]
+# The Rijksstudio set to show. Copy the last segment of the set URL:
+# https://www.rijksmuseum.nl/nl/collectie/verzameling/epaper--aa3048ce-... -> epaper--aa3048ce-...
+set_id = "epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6"
+culture = "en"
 ```
 
-**Resolution, for each object number:**
+The API key comes from `RIJKSMUSEUM_API_KEY` in `tools/museum/.env` (git-ignored) or the
+environment.
+
+**Set fetch:** `GET https://www.rijksmuseum.nl/api/{culture}/usersets/{set_id}?key={key}&format=json`
+→ `userSet.setItems[].objectNumber`, in the set's order. A missing key, a 401/403, or a
+missing set is a fatal error, not a per-entry skip.
+
+**Resolution, for each object number (in set order):**
 
 1. `GET /search/collection?objectNumber=<n>` → exactly one `orderedItems[].id`. Zero or
    several matches is an error for that entry. Log it and skip the entry.
@@ -372,13 +380,13 @@ new mode on its next wake, and the prev/next buttons work within it.
    republishes and deploys the active mode. Otherwise print `art staged (N objects); active
    mode is photos — run set_mode.sh art to show them` and exit 0.
 
-**Filenames:** `<object number>.png`, sanitised to `[A-Za-z0-9._-]` (other characters
-become `_`). Object numbers are stable, so re-runs are idempotent, and the names contain
-no commas, quotes or `]` (the device's manifest parser needs that).
+**Filenames:** `<index>-<object number>.png`, where `<index>` is the 1-based position in
+the set (e.g. `001-RP-P-1912-609.png`), sanitised to `[A-Za-z0-9._-]`. The index prefix
+makes the sorted manifest follow the set's order. Names contain no commas, quotes or `]`
+(the device's manifest parser needs that).
 
-**Rotation order:** the order of `prints.toml`. *Known limit:* `generate_manifest.py`
-writes a **sorted** list, so the device rotates by object number, not by list order. This
-spec accepts that rather than changing the manifest writer. See Q4.
+**Rotation order:** the set's order, preserved by the index prefix. `generate_manifest.py`
+sorts, and the prefix makes that sort match the set order. Q4 is resolved.
 
 **Options:** `--dry-run` (resolve and report only), `--refresh` (bypass the cache),
 `--no-deploy` (stage even when art is active), `--list PATH` (another curation file).
@@ -396,8 +404,14 @@ shows them on its next wake. With `ACTIVE=photos`, the same run changes only
 ## Commands
 
 ```
-# Preview: resolve every curated print and show rights and skips. No writes outside .cache/
+# One-time: put the Rijksstudio API key in a git-ignored file
+printf 'RIJKSMUSEUM_API_KEY=%s\n' '<key>' > tools/museum/.env
+
+# Preview: resolve the set and show rights and skips. No writes outside .cache/
 uv run --directory tools/museum python sync_prints.py --dry-run
+
+# Override the configured set
+uv run --directory tools/museum python sync_prints.py --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
 
 # The one command: fetch, render, mirror; deploy if art mode is active
 uv run --directory tools/museum python sync_prints.py
@@ -501,6 +515,10 @@ def rights_of(visual_item: dict) -> str | None:
     with two matches, one with no English title, one anonymous, one undated). The fetcher
     is injected, so the cache hit path makes **zero** fetch calls. Covers the IIIF URL
     rewrite and retry/backoff on 429 (fake clock).
+  - `museum-source` set fetch: a recorded userset fixture yields the object numbers in
+    order; a missing key and a 401 are fatal; an empty set is fatal.
+  - `art-sync` order: filenames are prefixed with the set index, so the manifest follows
+    the set order.
   - `museum-source` type: the type is reported for the dry-run but is **not** a filter;
     a print fixture resolves like any other.
   - `museum-source` orientation: landscape, square, and portrait `info.json` fixtures. The
@@ -587,7 +605,7 @@ def rights_of(visual_item: dict) -> str | None:
 | Q1 | `pre_filter` for `spectra6-133-art` | **Resolved: empty (no boost).** The photo filter over-saturated and yellowed the paper | User, 2026-11-15 |
 | Q2 | Placard font | **Resolved: Georgia** (macOS system font, configurable) | User, 2026-11-15 |
 | Q3 | Strip height and type sizes | **Resolved: 24 px margin, 120 px strip, centred text, 40/30 px type** | User, 2026-11-15 |
-| Q4 | Rotation follows `prints.toml` order? The manifest writer sorts, so today it is object-number order | Accept sorted order | User. Changing it means touching `generate_manifest.py` (ask first) |
+| Q4 | Rotation follows the set order? | **Resolved: yes.** Filenames are prefixed with the set index, so the sorted manifest matches the set order | User, 2026-11-16 |
 | Q5 | Should `ACTIVE` be visible in Home Assistant (e.g. a sensor)? | No. `--status` only | Later spec |
 | Q6 | Scheduled art sync (launchd) | Not in this spec | Later spec |
 | Q7 | A second museum (the Met) | Not in this spec | Later spec |
@@ -615,6 +633,8 @@ def rights_of(visual_item: dict) -> str | None:
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Rijksmuseum changes the Linked Art shape again (the old API is already gone) | **High.** The sync resolves nothing | Fixtures pin the expected shape. Fail loudly per entry. The cache keeps the last good set deployable |
+| The Rijksstudio API key is missing or invalid | **High.** The set cannot be fetched | Fatal error with a clear message; the key lives in a git-ignored `.env` |
+| The set is empty or not found | Medium. Nothing to render | Fatal error; the live folder is untouched |
 | A curated object is portrait | Low. It is missing from the wall | Skipped with reason `portrait`; `--dry-run` shows it before anything renders |
 | A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spikes cover prints, drawings, paintings and photographs; tonal works stylize more. The user curates, so this is a choice, not a surprise |
 | A curated object is not PD/CC0 | Medium. It is missing from the wall | Skipped with a reason; `--dry-run` shows it before anything renders |

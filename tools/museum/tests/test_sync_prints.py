@@ -53,17 +53,36 @@ def all_fixtures_fetch():
     return fetch
 
 
+def set_fetch(numbers):
+    base = all_fixtures_fetch()
+
+    def fetch(url: str) -> dict:
+        if "/usersets/" in url:
+            return {"userSet": {"setItems": [{"objectNumber": n} for n in numbers]}}
+        return base(url)
+
+    return fetch
+
+
+def write_config(tmp_path: Path) -> Path:
+    config = tmp_path / "prints.toml"
+    config.write_text('set_id = "test"\nculture = "en"\n')
+    return config
+
+
 def test_dry_run_reports_ok_and_skips(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text(
-        'prints = ["RP-P-1956-733", "RP-P-RMA1442", "XX-000-000"]\n'
-    )
+    config = write_config(tmp_path)
     lines: list[str] = []
 
-    results = run(list_path, all_fixtures_fetch(), out=lines.append)
+    results = run(
+        config,
+        set_fetch(["RP-P-1956-733", "RP-P-RMA1442", "XX-000-000"]),
+        "key",
+        out=lines.append,
+    )
 
     assert len(results) == 3
-    assert "RP-P-1956-733" in lines[0]
+    assert "001" in lines[0]
     assert "print" in lines[0]
     assert "PD" in lines[0]
     assert "ok" in lines[0]
@@ -72,11 +91,15 @@ def test_dry_run_reports_ok_and_skips(tmp_path):
 
 
 def test_dry_run_keeps_going_after_a_skip(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text('prints = ["XX-000-000", "SK-A-3089"]\n')
+    config = write_config(tmp_path)
     lines: list[str] = []
 
-    results = run(list_path, all_fixtures_fetch(), out=lines.append)
+    results = run(
+        config,
+        set_fetch(["XX-000-000", "SK-A-3089"]),
+        "key",
+        out=lines.append,
+    )
 
     assert len(results) == 2
     assert "skip: not-found" in lines[0]
@@ -105,11 +128,11 @@ def test_apply_artwork_mirrors_and_writes_managed(tmp_path):
     def render(print, dest):
         dest.write_bytes(b"new")
 
-    result = apply_artwork([make_print("A")], art, render, manifests.append)
+    result = apply_artwork([(1, make_print("A"))], art, render, manifests.append)
 
-    assert (art / "A.png").read_bytes() == b"new"
+    assert (art / "001-A.png").read_bytes() == b"new"
     assert not (art / "stale.png").exists()
-    assert json.loads((art / ".managed.json").read_text()) == ["A.png"]
+    assert json.loads((art / ".managed.json").read_text()) == ["001-A.png"]
     assert manifests == [art]
     assert result.rendered == 1
     assert result.deleted == ["stale.png"]
@@ -122,7 +145,9 @@ def test_apply_artwork_keeps_unmanaged_files(tmp_path):
     (art / "old.png").write_bytes(b"old")
     (art / "keep.png").write_bytes(b"keep")
 
-    apply_artwork([make_print("A")], art, lambda p, d: d.write_bytes(b"x"), lambda d: None)
+    apply_artwork(
+        [(1, make_print("A"))], art, lambda p, d: d.write_bytes(b"x"), lambda d: None
+    )
 
     assert (art / "keep.png").exists()
     assert not (art / "old.png").exists()
@@ -138,7 +163,7 @@ def test_apply_artwork_render_failure_leaves_the_folder_unchanged(tmp_path):
     def render(print, dest):
         raise RuntimeError("boom")
 
-    result = apply_artwork([make_print("A")], art, render, manifests.append)
+    result = apply_artwork([(1, make_print("A"))], art, render, manifests.append)
 
     assert (art / "old.png").exists()
     assert result.rendered == 0
@@ -153,23 +178,23 @@ def test_apply_artwork_noop_rerun_is_byte_identical(tmp_path):
     def render(print, dest):
         dest.write_bytes(b"same")
 
-    apply_artwork([make_print("A")], art, render, manifests.append)
+    apply_artwork([(1, make_print("A"))], art, render, manifests.append)
     before = {p.name: p.read_bytes() for p in art.iterdir()}
-    apply_artwork([make_print("A")], art, render, manifests.append)
+    apply_artwork([(1, make_print("A"))], art, render, manifests.append)
     after = {p.name: p.read_bytes() for p in art.iterdir()}
 
     assert before == after
 
 
 def test_sync_deploys_when_art_is_active(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text('prints = ["RP-P-1956-733"]\n')
+    config = write_config(tmp_path)
     calls: list[str] = []
     lines: list[str] = []
 
     sync(
-        list_path,
-        all_fixtures_fetch(),
+        config,
+        set_fetch(["RP-P-1956-733"]),
+        "key",
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -184,14 +209,14 @@ def test_sync_deploys_when_art_is_active(tmp_path):
 
 
 def test_sync_stages_when_photos_is_active(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text('prints = ["RP-P-1956-733"]\n')
+    config = write_config(tmp_path)
     calls: list[str] = []
     lines: list[str] = []
 
     sync(
-        list_path,
-        all_fixtures_fetch(),
+        config,
+        set_fetch(["RP-P-1956-733"]),
+        "key",
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -206,14 +231,14 @@ def test_sync_stages_when_photos_is_active(tmp_path):
 
 
 def test_sync_does_not_deploy_with_no_deploy(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text('prints = ["RP-P-1956-733"]\n')
+    config = write_config(tmp_path)
     calls: list[str] = []
     lines: list[str] = []
 
     sync(
-        list_path,
-        all_fixtures_fetch(),
+        config,
+        set_fetch(["RP-P-1956-733"]),
+        "key",
         tmp_path / "art",
         lambda p, d: d.write_bytes(b"x"),
         lambda d: None,
@@ -228,15 +253,15 @@ def test_sync_does_not_deploy_with_no_deploy(tmp_path):
 
 
 def test_sync_returns_nonzero_when_a_render_fails(tmp_path):
-    list_path = tmp_path / "prints.toml"
-    list_path.write_text('prints = ["RP-P-1956-733"]\n')
+    config = write_config(tmp_path)
 
     def render(print, dest):
         raise RuntimeError("boom")
 
     code = sync(
-        list_path,
-        all_fixtures_fetch(),
+        config,
+        set_fetch(["RP-P-1956-733"]),
+        "key",
         tmp_path / "art",
         render,
         lambda d: None,

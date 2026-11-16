@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from rijks import Print, Skip, resolve
+from rijks import Print, Skip, resolve, set_members
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -148,3 +148,33 @@ def test_metadata_falls_back_when_fields_are_missing():
     assert result.artist == "Anonymous"
     assert result.date == ""
     assert result.type == "unknown"
+
+
+def test_set_members_returns_object_numbers_in_order():
+    def fetch(url: str) -> dict:
+        assert "/usersets/" in url
+        return {
+            "userSet": {
+                "setItems": [
+                    {"objectNumber": "RP-P-1912-609"},
+                    {"objectNumber": "SK-A-3089"},
+                ]
+            }
+        }
+
+    assert set_members("epaper--abc", "en", "key", fetch) == [
+        "RP-P-1912-609",
+        "SK-A-3089",
+    ]
+
+
+def test_set_members_requires_a_key():
+    with pytest.raises(ValueError):
+        set_members("epaper--abc", "en", "", lambda url: {})
+
+
+def test_set_members_empty_set_is_fatal():
+    with pytest.raises(ValueError):
+        set_members(
+            "epaper--abc", "en", "key", lambda url: {"userSet": {"setItems": []}}
+        )

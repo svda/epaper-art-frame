@@ -1,39 +1,51 @@
 # Museum art tooling
 
-Resolves a hand-curated list of Rijksmuseum object numbers, renders each as a 1600×1200
-palette-only PNG with a gallery placard, and mirrors the result into the 13.3" frame's art
-mode folder. `set_mode.sh` publishes either the art or the photo set into the live folder
-and deploys it. The device is unchanged.
+Resolves a **Rijksstudio set**, renders each object as a 1600×1200 palette-only PNG with a
+gallery placard, and mirrors the result into the 13.3" frame's art mode folder.
+`set_mode.sh` publishes either the art or the photo set into the live folder and deploys
+it. The device is unchanged.
 
 See [`../../specs/print-wall/SPEC.md`](../../specs/print-wall/SPEC.md).
 
 ## Curation
 
-The list is the scope. There is no type filter: whatever object numbers are in
-`prints.toml` is what gets fetched.
+The set is the scope. Add or remove objects in your Rijksstudio set on rijksmuseum.nl; the
+tool fetches whatever is in the set, in the set's order.
 
-1. Find the object number on rijksmuseum.nl — the last segment of the collection URL
-   (e.g. `.../collection/SK-A-3089`), also printed on the object page.
-2. Add it to `prints.toml`:
+1. Copy the last segment of the set URL into `prints.toml`:
 
    ```toml
-   prints = [
-     "RP-P-1956-733",  # Hokusai, The Great Wave off Kanagawa
-   ]
+   # https://www.rijksmuseum.nl/nl/collectie/verzameling/epaper--aa3048ce-... -> epaper--aa3048ce-...
+   set_id = "epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6"
+   culture = "en"
    ```
+
+2. Put your Rijksstudio API key in `tools/museum/.env` (git-ignored):
+
+   ```
+   RIJKSMUSEUM_API_KEY=...
+   ```
+
+   The key is free, from the account's advanced settings.
 
 3. Validate: `uv run --directory tools/museum python sync_prints.py --dry-run`
 4. Sync: `uv run --directory tools/museum python sync_prints.py`
 5. Show: `tools/museum/set_mode.sh art` if the frame is not already in art mode.
 
-The object-number lookup accepts the real formats, including dots and hyphens
-(`SK-A-3089`, `RP-P-OB-205.689`, `RP-F-00-630`).
+The set's order is preserved: filenames are prefixed with the set index (`001-...`,
+`002-...`), so the sorted manifest follows the folder.
 
 ## Commands
 
 ```
-# Preview: resolve every curated object and show rights, type and skips
+# One-time: put the Rijksstudio API key in a git-ignored file
+printf 'RIJKSMUSEUM_API_KEY=%s\n' '<key>' > tools/museum/.env
+
+# Preview: resolve the set and show rights, type and skips
 uv run --directory tools/museum python sync_prints.py --dry-run
+
+# Override the configured set
+uv run --directory tools/museum python sync_prints.py --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
 
 # The one command: fetch, render, mirror; deploy if art mode is active
 uv run --directory tools/museum python sync_prints.py
@@ -105,6 +117,8 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 | Symptom | Cause / fix |
 |---|---|
 | `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path tools/museum/set_mode.sh art` |
+| `RIJKSMUSEUM_API_KEY is not set` | Put the key in `tools/museum/.env` |
+| `Rijksstudio set '...' is empty or not found` | Check the set ID and that the set has items |
 | `mode 'art' has no PNGs` | Run `sync_prints.py` first; the art folder is empty |
 | `no ACTIVE mode recorded` | Run `set_mode.sh art` or `set_mode.sh photos` once |
 | An object is skipped as `rights` | The Rijksmuseum marks it In Copyright. The IIIF image is technically downloadable, but this tool only uses PD/CC0 |
@@ -117,7 +131,8 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 ## Files
 
 - `pyproject.toml` / `uv.lock` — environment (no runtime dependencies)
-- `prints.toml` — the curated object numbers
+- `prints.toml` — the Rijksstudio set id and culture
+- `.env.example` — the `RIJKSMUSEUM_API_KEY` template (`.env` is git-ignored)
 - `rijks.py` — resolve, rights, orientation, metadata, HTTP fetcher and cache
 - `placard.py` — compose, dither through `prepare_image.sh`, letter the placard
 - `sync_prints.py` — resolve → render → mirror → manifest → deploy-if-active
