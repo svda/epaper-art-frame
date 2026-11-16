@@ -45,6 +45,9 @@ publish() {
   src="$MODES/$m"
   [ -d "$src" ] || die "mode folder not found: $src"
   [ "$(count_pngs "$src")" -gt 0 ] || die "mode '$m' has no PNGs"
+  if [ "$deploy" -eq 1 ] && [ -z "$DEST" ]; then
+    die "EPAPER13_DEST is not set (e.g. EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/)"
+  fi
 
   if [ "$dry_run" -eq 1 ]; then
     echo "would publish $m -> $LIVE"
@@ -68,7 +71,6 @@ publish() {
   echo "published $m -> $LIVE"
 
   if [ "$deploy" -eq 1 ]; then
-    [ -n "$DEST" ] || die "EPAPER13_DEST is not set"
     "$PUSH" --profile "$PROFILE" "$DEST"
   fi
   echo "note: the frame keeps one rotation counter across modes; it continues from wherever it is."

@@ -50,9 +50,12 @@ def make_tree(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def run_script(tree: Path, *args: str) -> subprocess.CompletedProcess:
+def run_script(tree: Path, *args: str, dest: str | None = "stub:/srv/ha/config/www/epaper13/") -> subprocess.CompletedProcess:
     env = os.environ.copy()
-    env["EPAPER13_DEST"] = "stub:/srv/ha/config/www/epaper13/"
+    if dest is None:
+        env.pop("EPAPER13_DEST", None)
+    else:
+        env["EPAPER13_DEST"] = dest
     env["PUSH_LOG"] = str(tree / "push.log")
     return subprocess.run(
         ["sh", str(tree / "tools" / "museum" / "set_mode.sh"), *args],
@@ -155,6 +158,18 @@ def test_no_deploy_publishes_without_pushing(tmp_path):
     assert (tree / "www" / "epaper13" / "art.png").is_file()
     assert (tree / "www" / "epaper13-modes" / "ACTIVE").read_text().strip() == "art"
     assert not (tree / "push.log").exists()
+
+
+def test_missing_dest_fails_before_publishing(tmp_path):
+    tree = make_tree(tmp_path)
+    before = live_names(tree)
+
+    result = run_script(tree, "art", dest=None)
+
+    assert result.returncode != 0
+    assert "EPAPER13_DEST" in result.stderr
+    assert live_names(tree) == before
+    assert not (tree / "www" / "epaper13-modes" / "ACTIVE").exists()
 
 
 def test_the_5_65_frame_is_untouched(tmp_path):
