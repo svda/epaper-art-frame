@@ -53,8 +53,8 @@ def run(
     set_id = set_id or configured
     numbers = rijks.set_members(set_id, culture, fetch_text)
     results: list[tuple[int, rijks.Print | rijks.Skip]] = []
-    for index, (number, title) in enumerate(numbers, start=1):
-        result = rijks.resolve(number, fetch_json, expected_title=title)
+    for index, number in enumerate(numbers, start=1):
+        result = rijks.resolve(number, fetch_json)
         results.append((index, result))
         if isinstance(result, rijks.Skip):
             out(f"{index:03d}  {number}  skip: {result.reason}")
@@ -178,7 +178,15 @@ def sync(
     for number, error in result.failures:
         out(f"  failed {number}: {error}")
     if active == "art" and deploy:
-        (deploy_fn or _refresh)()
+        try:
+            (deploy_fn or _refresh)()
+        except subprocess.CalledProcessError as exc:
+            out(
+                f"deploy failed: {exc.cmd} exited {exc.returncode} "
+                f"(art is staged in {art_dir})"
+            )
+            out("fix the error above, then run tools/museum/set_mode.sh --refresh")
+            return 1
         out("deploy: refreshed art mode")
     else:
         out(

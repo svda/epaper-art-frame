@@ -33,6 +33,13 @@ TYPE_LABELS = {
 
 Fetch = Callable[[str], dict]
 
+# How many objects may share a number prefix before the ambiguity is given up
+# on instead of paged through one object at a time. Real collisions in the
+# curated sets reach 59 (NG-1986-5-5); a prefix shared by hundreds
+# (RP-F-2019-299-6-6 matches 166) is still not worth 166 requests. The measure
+# is the search's totalItems, not the size of the returned page.
+MAX_AMBIGUOUS_CANDIDATES = 100
+
 
 @dataclass(frozen=True)
 class Print:
@@ -144,15 +151,22 @@ def type_of(obj: dict) -> str:
     return "unknown"
 
 
-def rights_of(visual_item: dict) -> str | None:
-    """'PD' or 'CC0' from the VisualItem's own rights block; None means skip it."""
+def rights_of(visual_item: dict) -> str:
+    """The object's rights label: 'PD'/'CC0' when public domain, else its own term.
+
+    Nothing is skipped on rights: the Rijksmuseum's IIIF service serves every
+    object, and this frame is a private, non-commercial display. The label is
+    surfaced in the dry-run so the status stays visible.
+    """
+    labels: list[str] = []
     for subject in _as_list(visual_item.get("subject_to")):
         for cls in _as_list(subject.get("classified_as")):
             cid = cls.get("id", "")
             for prefix, label in ACCEPTED_RIGHTS.items():
                 if prefix in cid:
                     return label
-    return None
+            labels.append(cls.get("_label") or cid.rsplit("/", 1)[-1])
+    return labels[0] if labels and labels[0] else "unknown"
 
 
 def _resolve_object(object_number: str, obj: dict, fetch: Fetch) -> Print | Skip:
@@ -162,8 +176,6 @@ def _resolve_object(object_number: str, obj: dict, fetch: Fetch) -> Print | Skip
     visual = fetch(shows[0]["id"])
 
     rights = rights_of(visual)
-    if rights is None:
-        return Skip(object_number, "rights")
 
     digital_ids = _as_list(visual.get("digitally_shown_by"))
     if not digital_ids:
@@ -178,8 +190,6 @@ def _resolve_object(object_number: str, obj: dict, fetch: Fetch) -> Print | Skip
     width, height = info.get("width"), info.get("height")
     if not width or not height:
         return Skip(object_number, "no-image")
-    if height > width:
-        return Skip(object_number, "portrait")
 
     return Print(
         object_number=object_number,
@@ -194,55 +204,66 @@ def _resolve_object(object_number: str, obj: dict, fetch: Fetch) -> Print | Skip
     )
 
 
-def resolve(
-    object_number: str, fetch: Fetch, expected_title: str | None = None
-) -> Print | Skip:
+def _identifiers(obj: dict) -> list[str]:
+    """Every identifier the record carries (its object number among them)."""
+    return [
+        item["content"]
+        for item in _as_list(obj.get("identified_by"))
+        if item.get("type") == "Identifier" and item.get("content")
+    ]
+
+
+def _total_items(search: dict) -> int:
+    """How many objects the search matched, pages included."""
+    total = (search.get("partOf") or {}).get("totalItems")
+    if isinstance(total, int):
+        return total
+    return len(_as_list(search.get("orderedItems")))
+
+
+def resolve(object_number: str, fetch: Fetch) -> Print | Skip:
     query = urllib.parse.urlencode({"objectNumber": object_number})
     search = fetch(f"{SEARCH_URL}?{query}")
     ids = [item["id"] for item in _as_list(search.get("orderedItems"))]
     if not ids:
         return Skip(object_number, "not-found")
-    if len(ids) > 1:
-        if expected_title:
-            for object_id in ids:
-                obj = fetch(object_id)
-                if expected_title in [n["content"] for n in _names(obj)]:
-                    return _resolve_object(object_number, obj, fetch)
+    if len(ids) == 1:
+        return _resolve_object(object_number, fetch(ids[0]), fetch)
+    # The search matches prefixes as well as exact numbers (SK-A-4 also finds
+    # SK-A-400...), so with a few hits only the record whose own identifier
+    # equals the set member is the right one. A prefix shared by many objects
+    # is not worth paging through: it stays skipped rather than costing a
+    # request per candidate.
+    if _total_items(search) > MAX_AMBIGUOUS_CANDIDATES:
         return Skip(object_number, "ambiguous")
-    return _resolve_object(object_number, fetch(ids[0]), fetch)
+    for object_id in ids:
+        obj = fetch(object_id)
+        if object_number in _identifiers(obj):
+            return _resolve_object(object_number, obj, fetch)
+    return Skip(object_number, "ambiguous")
 
 
 SET_PAGE = "https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}"
 OBJECT_NUMBER = re.compile(r'"((?:SK|RP|BK|AK|NG|KOG)-[A-Z0-9.-]+)"')
 
 
-def _title_before(html: str, position: int) -> str:
-    start = html.rfind('"UserSetObjectApiModel"', 0, position)
-    if start < 0:
-        return ""
-    block = html[start:position]
-    match = re.search(r'"UserSetObjectApiModel","[^"]*","[^"]*","([^"]*)"', block)
-    return match.group(1) if match else ""
+def set_members(set_id: str, culture: str, fetch_text) -> list[str]:
+    """Object numbers in a Rijksstudio set, in the set's order.
 
-
-def set_members(set_id: str, culture: str, fetch_text) -> list[tuple[str, str]]:
-    """Object numbers and titles in a Rijksstudio set, in the set's order.
-
-    The set page is public; its Nuxt payload embeds the items. No API key is needed.
+    The set page is public; its Nuxt payload embeds the items. No API key is
+    needed. Only numbers are taken: the payload is a flat string table shared by
+    every item, so a positional "title" belongs to whichever item happens to own
+    it, not to the member. `resolve` disambiguates by identifier instead.
     """
     url = SET_PAGE.format(culture=culture, set_id=set_id)
     html = fetch_text(url)
-    members: list[tuple[str, str]] = []
+    members: list[str] = []
     seen: set[str] = set()
-    first = True
     for match in OBJECT_NUMBER.finditer(html):
         number = match.group(1)
-        if number in seen:
-            continue
-        seen.add(number)
-        title = _title_before(html, match.start()) if first else ""
-        first = False
-        members.append((number, title))
+        if number not in seen:
+            seen.add(number)
+            members.append(number)
     if not members:
         raise ValueError(f"Rijksstudio set '{set_id}' is empty or not found")
     return members
@@ -312,10 +333,12 @@ class Fetcher:
         return data
 
     def get_text(self, url: str) -> str:
-        path = self._cache_path(url, "text", "html")
-        if path.exists() and not self.refresh:
-            return path.read_text()
+        # Always live. The only text fetch is a Rijksstudio set page, and the
+        # point of running the sync is to pick up changes to the set — a cached
+        # page turns "add objects, run the sync" into a silent no-op. The body
+        # is still written to the cache for inspection.
         body = self._request(url).decode("utf-8", errors="replace")
+        path = self._cache_path(url, "text", "html")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(body)
         return body

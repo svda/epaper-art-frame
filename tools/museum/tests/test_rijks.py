@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from rijks import Print, Skip, resolve, set_members
+from rijks import Print, Skip, resolve, rights_of, set_members
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -79,29 +79,20 @@ def test_drawing_resolves():
     assert result.rights == "PD"
 
 
-def test_portrait_is_skipped_and_never_fetches_the_image():
-    fetch, calls = fixture_fetch("RP-P-RMA1442")
-    result = resolve("RP-P-RMA1442", fetch)
+def test_rights_label_reports_the_objects_own_term():
+    data = json.loads((FIXTURES / "RP-F-F02993.json").read_text())
 
-    assert isinstance(result, Skip)
-    assert result.reason == "portrait"
-    assert not any("/full/" in url for url in calls)
-
-
-def test_in_copyright_is_skipped():
-    fetch, _ = fixture_fetch("RP-F-F02993")
-    result = resolve("RP-F-F02993", fetch)
-
-    assert isinstance(result, Skip)
-    assert result.reason == "rights"
+    assert rights_of(data["visual"]) == "Copyright"
 
 
 def test_ambiguous_object_number_is_skipped():
-    fetch, _ = fixture_fetch("RP-F-2019-299-6-6")
+    fetch, calls = fixture_fetch("RP-F-2019-299-6-6")
     result = resolve("RP-F-2019-299-6-6", fetch)
 
     assert isinstance(result, Skip)
     assert result.reason == "ambiguous"
+    # 166 hits share the prefix: no candidate is fetched at all.
+    assert len(calls) == 1
 
 
 def test_unknown_object_number_is_skipped():
@@ -157,8 +148,8 @@ def test_set_members_returns_object_numbers_in_order():
     )
 
     assert set_members("epaper--abc", "nl", lambda url: html) == [
-        ("RP-P-1912-609", "De Yodo rivier in maanlicht"),
-        ("SK-A-3089", ""),
+        "RP-P-1912-609",
+        "SK-A-3089",
     ]
 
 
@@ -167,20 +158,26 @@ def test_set_members_empty_set_is_fatal():
         set_members("epaper--abc", "nl", lambda url: "<html></html>")
 
 
-def test_resolve_disambiguates_by_title():
+def test_resolve_disambiguates_by_object_number():
     def fetch(url: str) -> dict:
         if "/search/collection?" in url:
             return {"orderedItems": [{"id": "obj1"}, {"id": "obj2"}]}
         if url == "obj1":
             return {
                 "id": "obj1",
-                "identified_by": [{"type": "Name", "content": "Wrong"}],
+                "identified_by": [
+                    {"type": "Identifier", "content": "SK-A-400"},
+                    {"type": "Name", "content": "Wrong"},
+                ],
                 "shows": [{"id": "vis1"}],
             }
         if url == "obj2":
             return {
                 "id": "obj2",
-                "identified_by": [{"type": "Name", "content": "Right"}],
+                "identified_by": [
+                    {"type": "Identifier", "content": "SK-A-4"},
+                    {"type": "Name", "content": "Right"},
+                ],
                 "shows": [{"id": "vis2"}],
             }
         if url == "vis2":
@@ -206,7 +203,7 @@ def test_resolve_disambiguates_by_title():
             return {"width": 100, "height": 50}
         raise AssertionError(f"unexpected url: {url}")
 
-    result = resolve("RP-P-1980-4", fetch, expected_title="Right")
+    result = resolve("SK-A-4", fetch)
 
     assert isinstance(result, Print)
     assert result.title == "Right"

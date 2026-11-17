@@ -21,8 +21,12 @@ tool fetches whatever is in the set, in the set's order.
    ```
 
 2. Validate: `uv run --directory tools/museum python sync_prints.py --dry-run`
-3. Sync: `uv run --directory tools/museum python sync_prints.py`
+3. Sync: `EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ uv run --directory tools/museum python sync_prints.py`
 4. Show: `tools/museum/set_mode.sh art` if the frame is not already in art mode.
+
+The set page itself is fetched live on every run, so a newly added object appears on the
+next sync. Object metadata and images stay cached (they are immutable by URL);
+`--refresh` forces those too.
 
 The set's order is preserved: filenames are prefixed with the set index (`001-...`,
 `002-...`), so the sorted manifest follows the folder.
@@ -36,8 +40,10 @@ uv run --directory tools/museum python sync_prints.py --dry-run
 # Override the configured set
 uv run --directory tools/museum python sync_prints.py --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
 
-# The one command: fetch, render, mirror; deploy if art mode is active
-uv run --directory tools/museum python sync_prints.py
+# The one command: fetch, render, mirror; deploy if art mode is active.
+# The deploy needs EPAPER13_DEST, exactly as set_mode.sh does.
+EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ \
+  uv run --directory tools/museum python sync_prints.py
 
 # Switch the 13" frame (publish + deploy); preview; status; republish the active mode
 EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ tools/museum/set_mode.sh art
@@ -92,14 +98,20 @@ does not resume the position the mode had before.
 |---|---|
 | `not-found` | The object number matched nothing |
 | `ambiguous` | The object number matched more than one object (often a prefix collision) |
-| `rights` | The object's own rights are not Public Domain or CC0 |
-| `portrait` | The image is taller than it is wide; the panel is landscape |
 | `no-image` | No IIIF image, or a missing/malformed `info.json` |
+
+Rights and orientation are **not** skip reasons. Every object the museum serves is shown,
+whatever its rights statement, and a portrait work is fitted into the landscape art area
+with white margins (never cropped) — the dry-run prints the rights label (`PD`, `CC0`,
+`Copyright`, …) so the status stays visible. This is a private, non-commercial display; if
+you publish or resell the images, revisit the rights question.
 
 ## Rotation order
 
-`generate_manifest.py` writes a sorted list, so the device rotates by object number, not by
-the order in `prints.toml`. This is a known limit (spec Q4).
+`sync_prints.py` prefixes each file with its position in the set (`001-…`, `002-…`) and
+`generate_manifest.py` writes a sorted list, so the device rotates in the set's order.
+The prefix is three digits, so a set with more than 999 objects would sort wrongly after
+`999-`.
 
 ## Troubleshooting
 
@@ -109,8 +121,6 @@ the order in `prints.toml`. This is a known limit (spec Q4).
 | `Rijksstudio set '...' is empty or not found` | Check the set ID and that the set has items |
 | `mode 'art' has no PNGs` | Run `sync_prints.py` first; the art folder is empty |
 | `no ACTIVE mode recorded` | Run `set_mode.sh art` or `set_mode.sh photos` once |
-| An object is skipped as `rights` | The Rijksmuseum marks it In Copyright. The IIIF image is technically downloadable, but this tool only uses PD/CC0 |
-| An object is skipped as `portrait` | The panel is landscape; pick a landscape or square image |
 | A stale object stays on the wall | Remove it from `prints.toml` and re-run `sync_prints.py`; the mirror deletes it |
 | The API rate-limits | The fetcher retries 429/5xx with backoff and caches every response under `.cache/` |
 | `--refresh` shows the wrong set | Check `set_mode.sh --status`; `ACTIVE` names the mode being republished |

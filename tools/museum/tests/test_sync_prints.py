@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -80,17 +81,19 @@ def test_dry_run_reports_ok_and_skips(tmp_path):
 
     results = run(
         config,
-        *set_fetch(["RP-P-1956-733", "RP-P-RMA1442", "SK-000-000"]),
+        *set_fetch(["RP-P-1956-733", "SK-A-3089", "RP-F-2019-299-6-6", "SK-000-000"]),
         out=lines.append,
     )
 
-    assert len(results) == 3
+    assert len(results) == 4
     assert "001" in lines[0]
     assert "print" in lines[0]
     assert "PD" in lines[0]
     assert "ok" in lines[0]
-    assert "skip: portrait" in lines[1]
-    assert "skip: not-found" in lines[2]
+    assert "painting" in lines[1]
+    assert "ok" in lines[1]
+    assert "skip: ambiguous" in lines[2]
+    assert "skip: not-found" in lines[3]
 
 
 def test_dry_run_keeps_going_after_a_skip(tmp_path):
@@ -207,6 +210,30 @@ def test_sync_deploys_when_art_is_active(tmp_path):
 
     assert calls == ["refresh"]
     assert any("deploy" in line for line in lines)
+
+
+def test_sync_reports_deploy_failure_without_raising(tmp_path):
+    config = write_config(tmp_path)
+    lines: list[str] = []
+
+    def deploy():
+        raise subprocess.CalledProcessError(1, ["set_mode.sh", "--refresh"])
+
+    status = sync(
+        config,
+        *set_fetch(["RP-P-1956-733"]),
+        tmp_path / "art",
+        lambda p, d: d.write_bytes(b"x"),
+        lambda d: None,
+        "art",
+        True,
+        deploy_fn=deploy,
+        out=lines.append,
+    )
+
+    assert status == 1
+    assert any("deploy failed" in line for line in lines)
+    assert any("set_mode.sh --refresh" in line for line in lines)
 
 
 def test_sync_stages_when_photos_is_active(tmp_path):

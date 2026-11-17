@@ -1,14 +1,22 @@
 # Spec: Print Wall
 
-Status: **approved** (2026-11-16) · Revision 8 (2026-11-16: curation is a Rijksstudio set, not a local list)
+Status: **approved** (2026-11-16) · Revision 9 (2026-11-17: rights and orientation are no longer filters)
 Slug: `print-wall`
 
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
-> public-domain objects from the Rijksmuseum, each rendered with a gallery placard (title,
+> objects from the Rijksmuseum, each rendered with a gallery placard (title,
 > artist, date), switchable against the existing photo rotation with one command. It is a
 > new *source*, in the same shape as [`icloud-album-sync`](../icloud-album-sync/SPEC.md).
 > It does not change the device. The 13" frame is specified in
 > [`ee02-13in-spectra6`](../ee02-13in-spectra6/SPEC.md).
+>
+> **Revision 9 (2026-11-17) — the sync shows every object.** Two filters are gone. Rights:
+> in-copyright objects are rendered (the IIIF endpoint serves them at full resolution; this
+> is a private, non-commercial display) and the statement is only logged. Orientation:
+> portrait works are fitted whole into the landscape art area with white side margins
+> instead of being skipped. Alongside them, Revision 8's title-based disambiguation is
+> replaced by matching the object's own identifier, and the set page is fetched live on
+> every run so new set members are seen.
 >
 > **Source of intent:** the idea one-pager `docs/ideas/print-wall.md` (2026-11-14), which
 > includes a dithering spike on six print techniques, plus a confirmed interview on
@@ -28,9 +36,9 @@ them up on its next daily wake. A second command switches the frame between **ar
 set's order. There is no type allowlist: the set is the filter, so prints, paintings,
 drawings and photographs are all eligible. The name "Print Wall" is historical.
 
-**Landscape only.** The panel is 1600×1200 landscape, so only images that are landscape or
-square (`width ≥ height`) are used. Portrait images are skipped with a logged reason rather
-than letterboxed into a narrow strip.
+**Every orientation.** The panel is 1600×1200 landscape. A portrait work is fitted whole
+into the art area and centred on white, so it hangs with white side margins rather than a
+crop. Nothing is dropped for its shape.
 
 **The user** is the same household that runs the existing frames. They curate by adding
 objects to a Rijksstudio set on rijksmuseum.nl.
@@ -47,8 +55,8 @@ nothing about the 5.65" frame changes.
 | Curation | A **Rijksstudio set** (`set_id` in `tools/museum/prints.toml`), read from its public page |
 | Set page | `https://www.rijksmuseum.nl/{culture}/collectie/verzameling/{set_id}` (no API key) |
 | Scope | **No type filter.** The hand-picked list is the scope; any object type the Rijksmuseum serves |
-| Orientation | **Landscape or square only** (`width ≥ height`). Portrait images are skipped |
-| Rights | Only objects whose own VisualItem rights are **Public Domain Mark** or **CC0** |
+| Orientation | **Any.** A portrait work is fitted whole (letterboxed), never cropped |
+| Rights | **Not a filter.** The VisualItem's statement is logged (`PD`, `CC0`, `Copyright`, …) |
 | Image | IIIF via `iiif.micr.io`, requested as `/full/!1600,1600/0/default.jpg` |
 | Panel profile | New row `spectra6-133-art`: same panel, size and palette as `spectra6-133`, own `pre_filter` |
 | Placard | White strip below a fitted (never cropped) print; title / artist / date; no credit line |
@@ -72,9 +80,9 @@ nothing about the 5.65" frame changes.
 - **No type allowlist** (2026-11-15). The hand-picked list is the scope. Prints, paintings,
   drawings and photographs are all eligible; the user curates out physical items and
   anything else they do not want. This supersedes the Revision 5 allowlist.
-- **Landscape and square only** (2026-11-15). Portrait images are skipped, not letterboxed.
-  Orientation comes from the IIIF `info.json`, so a portrait object costs one small request
-  and no image download.
+- **Every orientation** (2026-11-17, supersedes Revision 5's landscape-only rule). A portrait
+  work is fitted whole and letterboxed; orientation still comes from the IIIF `info.json`,
+  which is one small request.
 - **Placard as a strip below a fitted print**, like a museum mat. No overlay, no crop.
 - **Art gets its own profile row** (`spectra6-133-art`). Its `pre_filter` is chosen by a
   before/after render during the build. The photo profile is not touched, and no script
@@ -84,8 +92,8 @@ nothing about the 5.65" frame changes.
   art and says so. It never switches the mode itself.
 - **No new runtime dependencies.** Python stdlib (`urllib`, `json`, `tomllib`) plus
   ImageMagick, which the pipeline already requires.
-- **No Rijksmuseum credit line** on the placard. PD/CC0 does not require one, and the strip
-  stays cleaner.
+- **No Rijksmuseum credit line** on the placard. Nothing in the pipeline requires one, and
+  the strip stays cleaner.
 
 ---
 
@@ -183,31 +191,31 @@ a per-entry skip.
 
 **Resolution, for each object number (in set order):**
 
-1. `GET /search/collection?objectNumber=<n>` → exactly one `orderedItems[].id`. Zero or
-   several matches is an error for that entry. Log it and skip the entry.
+1. `GET /search/collection?objectNumber=<n>`. Zero hits skips the entry (`not-found`).
+   Several hits are resolved by fetching the candidates and keeping the record whose own
+   `identified_by` identifier equals `<n>`; if none does — or more than 100 objects share
+   the prefix — the entry is skipped (`ambiguous`).
 2. `GET <object id>` (with `Accept: application/json`) → title, creator, date,
    `classified_as`, and the `shows[0]` VisualItem.
 3. `GET <VisualItem>` → rights from `subject_to[].classified_as[].id`, and
    `digitally_shown_by[0]`.
 4. `GET <DigitalObject>` → `access_point[0].id`. Keep the base (everything before
    `/full/`).
-5. `GET <base>/info.json` → `width`, `height`. If `height > width`, skip the entry with
-   reason `portrait`. Otherwise build the image URL as
-   `<base>/full/!1600,1600/0/default.jpg`.
+5. `GET <base>/info.json` → `width`, `height` (recorded, not filtered), then build the image
+   URL as `<base>/full/!1600,1600/0/default.jpg`.
 
-**Rights rule.** Accept only `creativecommons.org/publicdomain/mark/` or
-`creativecommons.org/publicdomain/zero/`. Anything else (CC BY, unknown, missing) means the
-entry is skipped, with a logged reason. Search results never decide rights.
-
-The IIIF endpoint also serves **In Copyright** (`InC/1.0`) images at full resolution, so
-this rule is a deliberate policy choice, not an API constraint. The DigitalObject's
+**Rights rule.** Nothing is filtered on rights. The VisualItem's statement is recorded for
+the dry-run: `PD`/`CC0` for Public Domain Mark or CC0, else the statement's own term such as
+`Copyright`. The IIIF endpoint also serves **In Copyright** (`InC/1.0`) images at full
+resolution; showing them on a private wall is the household's call. The DigitalObject's
 `referred_to_by` notes (`downloadbaar` / `niet downloadbaar`) are the museum's own flags;
-the rights statement is authoritative.
+the rights statement is authoritative. Revisit the policy if the images are ever published
+or resold.
 
-**Orientation rule.** Accept only landscape or square images (`width ≥ height`). The check
-uses the IIIF `info.json`, which is small and cached, so a portrait object costs one extra
-request and no image download. Square is included: it fills the art area with small side
-margins.
+**Orientation rule.** Any orientation is accepted. `placard.compose` fits the source into the
+art area above the placard strip and centres it on white, so a portrait work is letterboxed
+rather than cropped. `width`/`height` still come from the IIIF `info.json` and stay on the
+record.
 
 **Metadata returned** (a small dataclass):
 
@@ -217,24 +225,25 @@ margins.
 | `title` | English `identified_by` Name | `_label`, then `"Untitled"` |
 | `artist` | `produced_by` → `referred_to_by` with AAT `300435417` (the name field), stripping " (mentioned on object)"; fallback `carried_out_by[]._label` / `notation` | `"Anonymous"` |
 | `date` | `produced_by.timespan.identified_by[0].content` (display date) | year of `begin_of_the_begin`, then `""` |
-| `rights` | `"PD"` or `"CC0"` | — (skipped) |
+| `rights` | `PD`/`CC0` for Public Domain Mark or CC0, else the statement's own label (`Copyright`, …) | `"unknown"` |
 | `type` | `classified_as` | — (informational; not a filter) |
-| `width`, `height` | IIIF `info.json` | — (skipped if portrait) |
+| `width`, `height` | IIIF `info.json` | — (informational; not a filter) |
 | `image_path` | cached JPEG | — |
 
 **Cache.** `tools/museum/.cache/` (git-ignored). The three JSON hops and the IIIF
-`info.json` are stored by object number. Images are stored by IIIF id. A cached entry is
-reused without any network call. `--refresh` bypasses the cache.
+`info.json` are stored by object number. Images are stored by IIIF id. Those entries are
+reused without any network call; the **set page is fetched live on every run**, because
+membership is what changes. `--refresh` refetches the rest too.
 
 **Politeness.** Requests are sequential, at least 0.25 s apart, with a
 `User-Agent: epaper-art-frame/print-wall`. HTTP 429 and 5xx are retried up to 3 times with
-exponential backoff. Pagination is not needed, because each `objectNumber` lookup returns
-a single page.
+exponential backoff. Pagination is not followed: a search returns one page, and an
+ambiguity larger than 100 objects is skipped rather than paged through.
 
 **Exit criteria:** `sync_prints.py --dry-run` prints one line per curated entry: object
 number, title, artist, date, type, rights, orientation, and *ok* or a *skip reason*. It
-writes nothing outside `.cache/`. A non-PD entry, an unknown object number, and a portrait
-image each show up as a skip with a reason.
+writes nothing outside `.cache/`. An unknown object number and a prefix collision too large
+to resolve each show up as a skip with a reason; rights and orientation never do.
 
 ---
 
@@ -392,7 +401,7 @@ sorts, and the prefix makes that sort match the set order. Q4 is resolved.
 manifest byte-identical, and makes no network calls when everything is cached.
 
 **Exit criteria:** with `ACTIVE=art`, editing `prints.toml` and running `sync_prints.py`
-puts exactly the PD/CC0 objects from the list, with placards, on the HA host. The frame
+puts exactly the objects in the set, with placards, on the HA host. The frame
 shows them on its next wake. With `ACTIVE=photos`, the same run changes only
 `www/epaper13-modes/art/`.
 
@@ -489,8 +498,8 @@ class Print:
     image_url: str
 
 
-def rights_of(visual_item: dict) -> str | None:
-    """'PD' or 'CC0' from the VisualItem's own rights block; None means skip it."""
+def rights_of(visual_item: dict) -> str:
+    """'PD'/'CC0' for public domain, else the object's own rights term."""
     for subject in visual_item.get("subject_to") or []:
         for cls in subject.get("classified_as") or []:
             for prefix, label in ACCEPTED_RIGHTS.items():
@@ -515,9 +524,9 @@ def rights_of(visual_item: dict) -> str | None:
     the set order.
   - `museum-source` type: the type is reported for the dry-run but is **not** a filter;
     a print fixture resolves like any other.
-  - `museum-source` orientation: landscape, square, and portrait `info.json` fixtures. The
-    first two resolve; portrait is skipped with reason `portrait` and **no image download**.
-    A missing or malformed `info.json` is skipped with a reason, not a crash.
+  - `museum-source` orientation: landscape, square and portrait `info.json` fixtures all
+    resolve, because orientation is not a filter. A missing or malformed `info.json` is
+    skipped with a reason, not a crash.
   - `placard`: output size is 1600×1200. `magick identify -format %k` and the unique
     colours are a subset of the palette. Strip pixels are only black or white. A tall and
     a wide input are both fitted with no crop. Long titles are truncated with `…`.
@@ -543,8 +552,8 @@ def rights_of(visual_item: dict) -> str | None:
 ## Boundaries
 
 - **Always:**
-  - Check PD/CC0 on **each object's own VisualItem**. Skip anything else and log the
-    reason.
+  - Read the rights statement from **each object's own VisualItem** and log it. Never filter
+    on it.
   - Prepare into staging, then swap into the mode folder, and write the manifest last.
   - Each sync writes **only its own mode folder**. Only `set_mode.sh` writes
     `www/epaper13/` or deploys the 13" frame.
@@ -561,7 +570,7 @@ def rights_of(visual_item: dict) -> str | None:
   - Changes to the 5.65" frame, its folder, or its launchd job.
   - Adding scheduling.
 - **Never:**
-  - Deploy an image whose rights are not PD or CC0.
+  - Publish or resell the rendered images; this display is private.
   - Write to `www/epaper/`.
   - Delete files outside a mode folder's managed set (or outside the live folder's PNGs,
     for `set_mode.sh`).
@@ -575,9 +584,9 @@ def rights_of(visual_item: dict) -> str | None:
 1. With `ACTIVE=art`, a single `sync_prints.py` run takes `prints.toml` to the HA host's
    `/local/epaper13/`, and the frame shows those objects with placards on its next wake.
    No other command is needed.
-2. Every deployed image is PD or CC0 and is landscape or square (`width ≥ height`).
-   Non-PD, unresolvable, and portrait entries are skipped with a logged reason, and the
-   run still succeeds.
+2. Every resolved object is deployed whatever its rights or orientation. Only `not-found`,
+   `ambiguous` and `no-image` entries are skipped, each with a logged reason, and the run
+   still succeeds.
 3. Every art PNG is 1600×1200, uses only palette colours, has a black-on-white placard
    (title, then "artist, date") readable at 1 m, and shows the whole print uncropped.
 4. `set_mode.sh art` and `set_mode.sh photos` each leave the live folder, the manifest and
@@ -613,7 +622,6 @@ def rights_of(visual_item: dict) -> str | None:
 - Scheduling or launchd for the art sync.
 - Query-driven discovery, random picks, or "print of the day". Curation is the list.
 - Physical items (sculpture, furniture, ceramics) — excluded by curation, not by a filter.
-- Portrait images (skipped by design; the panel is landscape).
 - Firmware, pin, or driver changes, and any change to the 5.65" frame.
 - Captions in the manifest, or text rendered on the device.
 - Mixing art and photos in one rotation.
@@ -629,9 +637,8 @@ def rights_of(visual_item: dict) -> str | None:
 | Rijksmuseum changes the Linked Art shape again (the old API is already gone) | **High.** The sync resolves nothing | Fixtures pin the expected shape. Fail loudly per entry. The cache keeps the last good set deployable |
 | The Rijksmuseum set page changes its payload | Medium. The set cannot be read | The extraction is a regex over the page; a fixture pins the shape and the dry-run shows the result |
 | The set is empty or not found | Medium. Nothing to render | Fatal error; the live folder is untouched |
-| A curated object is portrait | Low. It is missing from the wall | Skipped with reason `portrait`; `--dry-run` shows it before anything renders |
 | A curated object is a tonal painting or photograph | Low. It stylizes heavily on 6 colours | The spikes cover prints, drawings, paintings and photographs; tonal works stylize more. The user curates, so this is a choice, not a surprise |
-| A curated object is not PD/CC0 | Medium. It is missing from the wall | Skipped with a reason; `--dry-run` shows it before anything renders |
+| A curated object is in copyright | Low. Legal, not technical | Shown anyway (Revision 9); the dry-run logs its rights term. Private, non-commercial display |
 | `push_to_ha.sh` mirrors the remote, so the last deploy owns the frame | **High.** One mode could wipe the other on HA | Only `set_mode.sh` deploys the 13" frame. The art profile's folder fails the destination guard on purpose |
 | The migration moves the live 13" photos | Medium. A mistake would empty the frame | `--migrate` is idempotent and has `--dry-run`. It moves files, never deletes them. It publishes without deploying until verified |
 | Anti-aliased placard text dithers into speckle | Low. Ugly text | Text is rendered 1-bit; the test asserts strip pixels are only black or white |

@@ -52,6 +52,19 @@ def test_cache_hit_makes_no_request(tmp_path):
     assert len(calls) == 1
 
 
+def test_text_is_always_fetched_live(tmp_path):
+    calls: list[str] = []
+
+    def opener(request):
+        calls.append(request.full_url)
+        return FakeResponse(b"<html></html>")
+
+    fetcher, _ = make_fetcher(tmp_path, opener)
+    fetcher.get_text("https://example.test/set")
+    fetcher.get_text("https://example.test/set")
+    assert len(calls) == 2
+
+
 def test_refresh_bypasses_cache(tmp_path):
     calls: list[str] = []
 
