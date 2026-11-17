@@ -4,7 +4,11 @@
 # Device-agnostic behaviour. Everything a particular panel cares about arrives
 # through substitutions defined in the device file:
 #   ${ha_url} ${image_dir} ${manifest_file} ${image_file}
-#   ${run_duration} ${sleep_duration}
+#   ${run_duration} ${sleep_duration} ${wake_hours} ${timezone}
+#
+# `wake_hours` is the refresh schedule: a comma-separated, ASCENDING list of
+# local hours (e.g. `"6, 12, 18"`) the frame should show the next image at.
+# Leave it empty (`""`) to keep the fixed `${sleep_duration}` cadence.
 #
 # CONTRACT: the device file must supply a `display:` block whose id is
 # `epaper_display`. The `display:` block stays in the device file because the
@@ -36,6 +40,18 @@ deep_sleep:
   id: deep_sleep_1
   run_duration: ${run_duration}
   sleep_duration: ${sleep_duration}
+
+# Wall clock, used to sleep to the next `${wake_hours}` slot instead of a fixed
+# duration. SNTP rather than Home Assistant's clock: HA's API client is not
+# reliably connected inside this ~1 min wake window, and `request_time()` is
+# answered by whichever client is connected first (an `esphome logs` session
+# wins over HA), so the schedule silently fell back to the fixed duration. SNTP
+# syncs within a second of WiFi coming up, before the render even starts.
+# Without a synced clock the pipeline falls back to `${sleep_duration}`.
+time:
+  - platform: sntp
+    id: wall_clock
+    timezone: ${timezone}
 
 http_request:
 
@@ -118,6 +134,38 @@ script:
           id(last_image).publish_state(id(art_list)[i]);
           id(art_index) = ((i + 1) % c + c) % c;
 
+  # Sleep until the next scheduled refresh, then the frame wakes and repeats.
+  # Schedule beats duration: if `${wake_hours}` lists hours and the clock has
+  # synced, sleep exactly to the next one. Otherwise (no schedule, or no synced
+  # clock) sleep the fixed `${sleep_duration}` — a retry sooner than a day, so
+  # one failed wake does not skip a whole day.
+  - id: go_to_sleep
+    then:
+      - if:
+          condition:
+            lambda: |-
+              const std::initializer_list<int> hours = {${wake_hours}};
+              return hours.size() > 0 && id(wall_clock).now().is_valid();
+          then:
+            - deep_sleep.enter:
+                id: deep_sleep_1
+                sleep_duration: !lambda |-
+                  // Hours are ascending: the next slot is the first one still
+                  // ahead of us; after today's last slot, tomorrow's first.
+                  const std::initializer_list<int> hours = {${wake_hours}};
+                  const auto now = id(wall_clock).now();
+                  const int now_s = now.hour * 3600 + now.minute * 60 + now.second;
+                  int first_h = -1, next_s = -1;
+                  for (int h : hours) {
+                    if (first_h < 0) first_h = h;
+                    if (next_s < 0 && h * 3600 > now_s) next_s = h * 3600;
+                  }
+                  if (next_s < 0) next_s = first_h * 3600 + 24 * 3600;
+                  ESP_LOGI("art", "next refresh in %d s", next_s - now_s);
+                  return (uint32_t) (next_s - now_s) * 1000;
+          else:
+            - deep_sleep.enter: deep_sleep_1
+
 image:
   - platform: online_image
     id: art_image
@@ -142,10 +190,10 @@ image:
             api.connected:
           timeout: 30s
       - delay: 5s
-      - deep_sleep.enter: deep_sleep_1
+      - script.execute: go_to_sleep
     on_error:
       - logger.log: "Image download failed; sleeping"
-      - deep_sleep.enter: deep_sleep_1
+      - script.execute: go_to_sleep
 
 sensor:
   - platform: wifi_signal

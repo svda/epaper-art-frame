@@ -35,8 +35,11 @@
 #   1600x1200 landscape the frame is mounted in (Q5). Artwork must therefore be
 #   1600x1200 — that is what the `spectra6-133` profile produces.
 #
-# NOTE: sleep_duration is 24h — the deployed cadence (the SPEC cadence). Shorten it
-#   to 1h on the bench to observe rotation without waiting a day between wakes.
+# NOTE: cadence is three refreshes a day, at fixed local times (06:00, 12:00,
+#   18:00) — `wake_hours` in the substitutions below. `sleep_duration` is only
+#   the FALLBACK used when the clock cannot sync. For bench work, set
+#   `wake_hours: ""` to fall back to a short fixed `sleep_duration` and observe
+#   rotation without waiting for a slot.
 #
 # Run from the repo root:
 #   ESPHOME_DATA_DIR="$PWD/config/esphome/.esphome" \
@@ -68,10 +71,16 @@ substitutions:
   battery_adc_pin: GPIO1
   battery_en_pin: GPIO6
 
-  # Wake cycle. 24h is the deployed cadence; shorten to 1h on the bench to observe
-  # rotation without waiting a day between wakes.
+  # Wake cycle. Refresh at fixed local times of day; see the header NOTE.
   run_duration: 180s
-  sleep_duration: 24h
+  # Hours are local, ascending, 24 h clock; the zone is ${timezone} below.
+  wake_hours: "6, 12, 18"
+  # IANA zone for the schedule. SNTP hands the clock UTC; this is what makes
+  # "6" mean 06:00 on this wall.
+  timezone: "Europe/Amsterdam"
+  # Fallback only: no synced clock -> retry in 6 h rather than lose a whole day
+  # to one failed wake.
+  sleep_duration: 6h
 
 packages:
   base: !include ../common/base.yaml

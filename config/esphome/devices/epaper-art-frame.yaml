@@ -59,9 +59,11 @@ substitutions:
   busy_pin: GPIO7
 
   # Wake cycle. Bench: 1h to observe rotation without hammering the AP.
-  # Deploy: 24h (the SPEC cadence).
+  # Deploy: 24h (the SPEC cadence). No fixed times of day on this frame.
   run_duration: 180s
   sleep_duration: 1h
+  wake_hours: ""
+  timezone: "Europe/Amsterdam"
 
 packages:
   base: !include ../common/base.yaml

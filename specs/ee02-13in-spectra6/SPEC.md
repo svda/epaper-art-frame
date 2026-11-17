@@ -18,6 +18,18 @@ Slug: `ee02-13in-spectra6`
 > (`rkaramandi/esphome-seeed-ee02`), pinned to a commit SHA, which is the only driver observed to
 > work on this board+panel. It implements the full `DisplayBuffer` API, so the art-frame pipeline is
 > unaffected. Bench-verified 2026-10-14: six correct Spectra 6 bands on the glass.
+>
+> **Revision 3 (2026-11-16) — the cadence is three refreshes a day, at fixed local times.** The
+> frame now shows a new image at **06:00, 12:00 and 18:00** instead of every ~24 h, so the wall
+> changes with breakfast, lunch and dinner. The pipeline sleeps to the next slot (`wake_hours` in
+> `common/art-frame.yaml`), using SNTP for the clock — Home Assistant's API clock was tried first
+> and abandoned: the device is only awake ~50 s, HA's client is not reliably connected inside that
+> window, and `request_time()` is answered by whichever client connected first (an `esphome logs`
+> session beats HA), so the schedule silently fell back to the fixed duration. SNTP syncs within a
+> second of WiFi coming up. `sleep_duration` survives only as the fallback when the clock cannot
+> sync. The 5.65" frame keeps its fixed cadence (`wake_hours: ""`). Cost: ~3× the awake
+> window per day (~51 s each, so ~2.5 min total), still small against the cell's self-discharge,
+> and 3× the panel refreshes.
 
 ---
 
@@ -41,7 +53,7 @@ a repo where "add a device" means adding one file plus one profile.
 | Firmware | ESPHome ≥ 2026.9.0 + the community **`ee02_epaper`** external component, pinned to a commit SHA |
 | Colours | black, white, red, yellow, green, blue (6) |
 | Power | Single-cell LiPo via the EE02's JST 2.0mm connector + onboard charger + slide switch |
-| Wake cycle | ~24 h sleep, ~1 min awake (drift tolerated) |
+| Wake cycle | 06:00 / 12:00 / 18:00 local, ~1 min awake (Rev 3; was ~24 h) |
 | Image source | Home Assistant `www/epaper13/` served at `/local/epaper13/` |
 | Selection | `manifest.json` round-robin, index persisted across deep-sleep reboots |
 | SoC memory | 16 MB flash, 8 MB octal PSRAM (`OPI PSRAM`) |
