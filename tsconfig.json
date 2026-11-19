@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "types": ["bun"],
     "strict": true,
+    "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "skipLibCheck": true,

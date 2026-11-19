@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs as nodeParseArgs, type ParseArgsConfig } from "node:util";
+import { parseArgs as nodeParseArgs, type ParseArgsOptionsConfig } from "node:util";
 
 export class UsageError extends Error {}
 
@@ -15,19 +15,21 @@ export function repoRoot(): string {
   return resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 }
 
-export interface ArgSpec {
+export interface ArgSpec<O extends ParseArgsOptionsConfig> {
   usage: string;
-  options?: NonNullable<ParseArgsConfig["options"]>;
-  allowPositionals?: boolean;
+  options: O;
 }
 
-export function parseArgs(spec: ArgSpec, argv: string[]) {
+export function parseArgs<const O extends ParseArgsOptionsConfig>(
+  spec: ArgSpec<O>,
+  argv: string[],
+) {
   if (argv.includes("-h") || argv.includes("--help")) throw new HelpRequested(spec.usage);
   try {
     return nodeParseArgs({
       args: argv,
-      options: spec.options ?? {},
-      allowPositionals: spec.allowPositionals ?? true,
+      options: spec.options,
+      allowPositionals: true,
       strict: true,
     });
   } catch (error) {

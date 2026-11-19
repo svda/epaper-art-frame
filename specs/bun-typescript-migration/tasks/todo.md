@@ -44,9 +44,9 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-04: `prepareImage` and `prepare` CLI (replaces prepare_image.sh)
 **Acceptance:**
-- [ ] Golden `magick` argv tests for each profile × cover/fit × rotate × dither override, matching the argv that `prepare_image.sh` builds
-- [ ] Unknown `backend` → `UsageError`. Flags and `$EPAPER_IMAGES` behave the same as today.
-- [ ] Integration test (skipped without `magick`): output has the profile's dimensions and only palette colours
+- [x] Golden `magick` argv tests for each profile × cover/fit × rotate × dither override, matching the argv that `prepare_image.sh` builds
+- [x] Unknown `backend` → `UsageError`. Flags and `$EPAPER_IMAGES` behave the same as today.
+- [x] Integration test (skipped without `magick`): output has the profile's dimensions and only palette colours
 
 **Verify:** `bun test tools/epaper`. Manual: run both versions on 3 sample photos (1 HEIC) and compare the output visually.
 **Files:** `src/prepare.ts`, `test/prepare.test.ts`, `test/fixtures/` · **Deps:** T-03 · **Size:** M
