@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   exec,
+  expandUser,
   HelpRequested,
   parseArgs,
   parseEnvFile,
@@ -171,5 +172,18 @@ describe("exec", () => {
 
   test("runOrThrow throws with stderr on a non-zero exit", async () => {
     await expect(runOrThrow(["sh", "-c", "echo bad >&2; exit 1"])).rejects.toThrow("bad");
+  });
+});
+
+describe("expandUser", () => {
+  test("expands ~ and ~/ to the home directory", () => {
+    expect(expandUser("~")).toBe(homedir());
+    expect(expandUser("~/Pictures/x")).toBe(join(homedir(), "Pictures/x"));
+  });
+
+  test("leaves every other path alone", () => {
+    expect(expandUser("/abs/path")).toBe("/abs/path");
+    expect(expandUser("rel/~/path")).toBe("rel/~/path");
+    expect(expandUser("~other/x")).toBe("~other/x");
   });
 });

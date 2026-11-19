@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs as nodeParseArgs, type ParseArgsOptionsConfig } from "node:util";
 
@@ -9,6 +10,11 @@ export class HelpRequested extends Error {
   constructor(readonly usage: string) {
     super(usage);
   }
+}
+
+export function expandUser(path: string): string {
+  if (path === "~") return homedir();
+  return path.startsWith("~/") ? join(homedir(), path.slice(2)) : path;
 }
 
 export function repoRoot(): string {

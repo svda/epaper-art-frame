@@ -107,8 +107,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-11: Mirror, sync and deploy via `@frame/epaper`
 **Acceptance:**
-- [ ] `test_mirror.py`, `test_sync.py`, `test_deploy.py` and `test_config.py` are ported
-- [ ] `sync-album` CLI flags match today's, and `--dry-run` writes nothing
+- [x] `test_mirror.py`, `test_sync.py`, `test_deploy.py` and `test_config.py` are ported
+- [x] `sync-album` CLI flags match today's, and `--dry-run` writes nothing
 
 **Verify:** `bun test tools/icloud`. Manual: `--dry-run` on the real library selects the same photos as the Python version.
 **Files:** `src/mirror.ts`, `src/sync-album.ts`, `test/{mirror,sync,deploy,config}.test.ts` · **Deps:** T-10, T-07 · **Size:** M

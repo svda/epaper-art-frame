@@ -6,9 +6,8 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { extname, join, resolve } from "node:path";
-import { type Exec, main, parseArgs, UsageError } from "@frame/cli";
+import { type Exec, expandUser, main, parseArgs, UsageError } from "@frame/cli";
 import { escapeNonAscii } from "./json.ts";
 import { prepareMain } from "./prepare.ts";
 import { defaultProfileId, loadProfile, resolveRaw } from "./profile.ts";
@@ -17,11 +16,6 @@ const IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg"]);
 export const MANIFEST_NAME = "manifest.json";
 
 type Env = Record<string, string | undefined>;
-
-function expandUser(path: string): string {
-  if (path === "~") return homedir();
-  return path.startsWith("~/") ? join(homedir(), path.slice(2)) : path;
-}
 
 function realResolve(path: string): string {
   const absolute = resolve(expandUser(path));
