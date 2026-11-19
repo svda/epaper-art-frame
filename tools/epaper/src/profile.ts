@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { main, parseArgs, repoRoot, UsageError } from "@frame/cli";
+import { escapeNonAscii } from "./json.ts";
 
 const EPAPER_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROFILES_PATH = resolve(EPAPER_DIR, "profiles.json");
@@ -112,13 +113,6 @@ export function loadProfile(
   };
 }
 
-function asciiJson(value: unknown): string {
-  return JSON.stringify(value, null, 2).replace(
-    /[\u0080-\uffff]/g,
-    (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`,
-  );
-}
-
 const USAGE = `usage: profile.ts [options] [profile] [field]
 
   profile.ts --default             print the default profile id
@@ -166,7 +160,7 @@ export async function profileMain(
     const sorted = Object.fromEntries(
       Object.entries({ id, ...raw }).sort(([a], [b]) => (a < b ? -1 : 1)),
     );
-    out(asciiJson(sorted));
+    out(escapeNonAscii(JSON.stringify(sorted, null, 2)));
   } else if (values.artwork) {
     out(loadProfile(id).artwork);
   } else if (values.palette) {

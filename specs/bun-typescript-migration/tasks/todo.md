@@ -53,8 +53,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-05: `generateManifest` and `manifest` CLI
 **Acceptance:**
-- [ ] `test_generate_manifest.py` is ported, including the HEIC-convert option (via `prepareImage`)
-- [ ] Golden test: the JSON is byte-identical to the Python output for the same folder
+- [x] `test_generate_manifest.py` is ported, including the HEIC-convert option (via `prepareImage`)
+- [x] Golden test: the JSON is byte-identical to the Python output for the same folder
 
 **Verify:** `bun test tools/epaper`, and diff both versions' output on `www/epaper13`
 **Files:** `src/manifest.ts`, `test/manifest.test.ts` · **Deps:** T-04 · **Size:** S
