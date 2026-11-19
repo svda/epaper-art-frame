@@ -223,7 +223,7 @@ export async function sync(args: SyncArgs): Promise<number> {
       out(
         `deploy failed: ${error.cmd.join(" ")} exited ${error.code} (art is staged in ${args.artDir})`,
       );
-      out("fix the error above, then run bun tools/museum/src/set-mode.ts --refresh");
+      out("fix the error above, then run bun apps/museum/src/set-mode.ts --refresh");
       return 1;
     }
     out("deploy: refreshed art mode");
@@ -241,7 +241,7 @@ const USAGE = `usage: sync-prints.ts [options]
 Resolve a Rijksstudio set, render it, mirror the art folder, and deploy if active.
 
 options:
-  --config PATH   config file (default: tools/museum/prints.toml)
+  --config PATH   config file (default: apps/museum/prints.toml)
   --set ID        override the configured set id
   --dry-run       resolve and report only; render nothing
   --refresh       bypass the local cache

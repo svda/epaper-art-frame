@@ -2,11 +2,12 @@
   "name": "epaper-art-frame",
   "private": true,
   "workspaces": [
-    "tools/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit -p .",
+    "typecheck": "tsc --noEmit -p . && bun run --filter '*' typecheck",
     "lint": "biome check .",
     "format": "biome check --write ."
   },

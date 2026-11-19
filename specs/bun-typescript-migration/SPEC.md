@@ -45,25 +45,29 @@ Dependencies point one way only. museum and icloud import epaper as a library
 ```
 Install:   bun install
 Test:      bun test
-Test one:  bun test tools/epaper
-Typecheck: bun run typecheck      # tsc --noEmit -p .
+Test one:  bun run --filter @frame/epaper test
+Typecheck: bun run typecheck      # root + every package
 Lint:      bun run lint           # biome check .
 Format:    bun run format         # biome check --write .
-Run CLI:   bun tools/epaper/src/prepare.ts --profile spectra6-133 photo.heic
+Run CLI:   bun packages/epaper/src/prepare.ts --profile spectra6-133 photo.heic
 ```
 
-## Project Structure (target)
+## Project Structure
+
+Restructured into `apps/` and `packages/` on 2026-11-19 (originally everything lived in `tools/`).
 
 ```
-package.json            → workspaces: ["tools/*"], scripts above
-tsconfig.json           → strict, shared by all tools
+package.json            → workspaces: ["apps/*", "packages/*"], scripts above
+tsconfig.base.json      → strict compiler options, extended by every package
+tsconfig.json           → root (the workspace test only)
 biome.json
-tools/cli/              → @frame/cli shared helpers (workspace module)
-tools/epaper/src/       → @frame/epaper library + CLI entry points
-tools/epaper/test/
-tools/museum/src/ test/ → fixtures/ moves under test/fixtures (same JSON)
-tools/icloud/src/ test/
+packages/cli/           → @frame/cli shared helpers (src/, test/, own tsconfig + scripts)
+packages/epaper/        → @frame/epaper library + CLI entry points (profiles.json, palettes)
+apps/icloud/            → @frame/icloud: Photos album sync + launchd agent
+apps/museum/            → @frame/museum: Rijksmuseum print wall, set-mode (fixtures in test/)
 ```
+
+Apps may import packages; packages never import apps (enforced by `test/workspace.test.ts`).
 
 `profiles.json`, the palette PNGs, `prints.toml`, `.env.example` and the plist
 template keep their names and formats.

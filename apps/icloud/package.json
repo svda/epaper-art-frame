@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p ."
+  },
   "dependencies": {
     "@frame/cli": "workspace:*",
     "@frame/epaper": "workspace:*"

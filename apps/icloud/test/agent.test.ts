@@ -27,10 +27,10 @@ const template = () => readFileSync(PLIST_TEMPLATE, "utf8");
 
 const vars = {
   bun: "/opt/homebrew/bin/bun",
-  script: "/repo/tools/icloud/src/sync-album.ts",
-  workdir: "/repo/tools/icloud",
-  stdout: "/repo/tools/icloud/sync.log",
-  stderr: "/repo/tools/icloud/sync.err.log",
+  script: "/repo/apps/icloud/src/sync-album.ts",
+  workdir: "/repo/apps/icloud",
+  stdout: "/repo/apps/icloud/sync.log",
+  stderr: "/repo/apps/icloud/sync.err.log",
   intervalH: 6,
 };
 
@@ -45,13 +45,13 @@ describe("renderPlist", () => {
     expect(data.Label).toBe("com.sander.epaper-album");
     expect(data.ProgramArguments).toEqual([
       "/opt/homebrew/bin/bun",
-      "/repo/tools/icloud/src/sync-album.ts",
+      "/repo/apps/icloud/src/sync-album.ts",
     ]);
-    expect(data.WorkingDirectory).toBe("/repo/tools/icloud");
+    expect(data.WorkingDirectory).toBe("/repo/apps/icloud");
     expect(data.StartInterval).toBe(6 * 3600);
     expect(data.RunAtLoad).toBe(true);
-    expect(data.StandardOutPath).toBe("/repo/tools/icloud/sync.log");
-    expect(data.StandardErrorPath).toBe("/repo/tools/icloud/sync.err.log");
+    expect(data.StandardOutPath).toBe("/repo/apps/icloud/sync.log");
+    expect(data.StandardErrorPath).toBe("/repo/apps/icloud/sync.err.log");
   });
 
   withPlutil("sets a PATH that finds magick, scp and osascript", async () => {
@@ -122,7 +122,7 @@ describe("sync-album --print-plist", () => {
     expect(code).toBe(0);
     expect(calls).toEqual([]);
     expect(text).toContain("<string>/opt/homebrew/bin/bun</string>");
-    expect(text).toContain("tools/icloud/src/sync-album.ts</string>");
+    expect(text).toContain("apps/icloud/src/sync-album.ts</string>");
     expect(text).toContain("<integer>21600</integer>");
     expect(text).not.toContain("__");
   });

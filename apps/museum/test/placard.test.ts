@@ -8,7 +8,7 @@ import golden from "./golden/placard.json";
 import { hasMagick, magick, size, trimSize, uniqueColours } from "./magick.ts";
 
 const FONT = "/System/Library/Fonts/Supplemental/Georgia.ttf";
-const PALETTE = join(repoRoot(), "tools", "epaper", "palette-spectra6.png");
+const PALETTE = join(repoRoot(), "packages", "epaper", "palette-spectra6.png");
 const real = hasMagick && existsSync(FONT) ? test : test.skip;
 
 function tempDir() {

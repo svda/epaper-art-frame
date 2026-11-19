@@ -69,7 +69,7 @@ class Switcher {
     private deploy: boolean,
   ) {
     const root = deps.root ?? repoRoot();
-    this.pushScript = join(root, "tools", "epaper", "src", "push.ts");
+    this.pushScript = join(root, "packages", "epaper", "src", "push.ts");
     this.modes = join(root, "www", "epaper13-modes");
     this.live = join(root, "www", "epaper13");
     this.dest = (deps.env ?? process.env).EPAPER13_DEST ?? "";

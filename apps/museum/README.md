@@ -20,9 +20,9 @@ tool fetches whatever is in the set, in the set's order.
    culture = "nl"
    ```
 
-2. Validate: `bun tools/museum/src/sync-prints.ts --dry-run`
-3. Sync: `EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun tools/museum/src/sync-prints.ts`
-4. Show: `bun tools/museum/src/set-mode.ts art` if the frame is not already in art mode.
+2. Validate: `bun apps/museum/src/sync-prints.ts --dry-run`
+3. Sync: `EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun apps/museum/src/sync-prints.ts`
+4. Show: `bun apps/museum/src/set-mode.ts art` if the frame is not already in art mode.
 
 The set page itself is fetched live on every run, so a newly added object appears on the
 next sync. Object metadata and images stay cached (they are immutable by URL);
@@ -35,42 +35,42 @@ The set's order is preserved: filenames are prefixed with the set index (`001-..
 
 ```
 # Preview: resolve the set and show rights, type and skips
-bun tools/museum/src/sync-prints.ts --dry-run
+bun apps/museum/src/sync-prints.ts --dry-run
 
 # Override the configured set
-bun tools/museum/src/sync-prints.ts --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
+bun apps/museum/src/sync-prints.ts --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
 
 # The one command: fetch, render, mirror; deploy if art mode is active.
 # The deploy needs EPAPER13_DEST, exactly as set-mode.ts does.
 EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ \
-  bun tools/museum/src/sync-prints.ts
+  bun apps/museum/src/sync-prints.ts
 
 # Switch the 13" frame (publish + deploy); preview; status; republish the active mode
-EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun tools/museum/src/set-mode.ts art
-bun tools/museum/src/set-mode.ts photos
-bun tools/museum/src/set-mode.ts --dry-run art
-bun tools/museum/src/set-mode.ts --status
-bun tools/museum/src/set-mode.ts --refresh
+EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun apps/museum/src/set-mode.ts art
+bun apps/museum/src/set-mode.ts photos
+bun apps/museum/src/set-mode.ts --dry-run art
+bun apps/museum/src/set-mode.ts --status
+bun apps/museum/src/set-mode.ts --refresh
 
 # One-time: move today's 13" photos into their mode folder
-bun tools/museum/src/set-mode.ts --migrate
+bun apps/museum/src/set-mode.ts --migrate
 
 # Refresh 13" photos after the migration (existing tool, existing override)
 EPAPER_IMAGES=www/epaper13-modes/photos \
-  bun tools/icloud/src/sync-album.ts --profile spectra6-133 \
+  bun apps/icloud/src/sync-album.ts --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
-bun tools/museum/src/set-mode.ts --refresh
+bun apps/museum/src/set-mode.ts --refresh
 
 # Render one placard by hand (debugging)
-bun tools/museum/src/placard.ts <image.jpg> "<title>" "<artist>" "<date>" out.png
+bun apps/museum/src/placard.ts <image.jpg> "<title>" "<artist>" "<date>" out.png
 
 # Tests, typecheck and lint (whole workspace)
-bun test tools/museum
+bun test apps/museum
 bun run typecheck
 bun run lint
 
 # Re-record the Linked Art fixtures (only when the API shape changes)
-bun tools/museum/test/record-fixtures.ts
+bun apps/museum/test/record-fixtures.ts
 ```
 
 ## Modes
@@ -120,7 +120,7 @@ The prefix is three digits, so a set with more than 999 objects would sort wrong
 
 | Symptom | Cause / fix |
 |---|---|
-| `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path bun tools/museum/src/set-mode.ts art` |
+| `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path bun apps/museum/src/set-mode.ts art` |
 | `Rijksstudio set '...' is empty or not found` | Check the set ID and that the set has items |
 | `mode 'art' has no PNGs` | Run `sync-prints.ts` first; the art folder is empty |
 | `no ACTIVE mode recorded` | Run `set-mode.ts art` or `set-mode.ts photos` once |

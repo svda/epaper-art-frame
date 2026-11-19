@@ -2,7 +2,7 @@
 //
 // Run from the repo root:
 //
-//   bun tools/museum/test/record-fixtures.ts [OUT_DIR]
+//   bun apps/museum/test/record-fixtures.ts [OUT_DIR]
 //
 // Writes one JSON file per object number (default: test/fixtures/). The tests never touch the
 // network; re-run this only when the API shape changes.

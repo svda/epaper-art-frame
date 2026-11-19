@@ -21,7 +21,7 @@ human action — the Mac syncs and deploys it automatically.
  ──────                    ───                                    ────────
  tap ♥  →  iCloud  →  Photos library
                        │
-                       ├─ tools/icloud/src/sync-album.ts
+                       ├─ apps/icloud/src/sync-album.ts
                        │     select 50 newest favorites
                        │     → prepare.ts (600×448, 7-colour dither)
                        │     → mirror into www/epaper/ + regenerate manifest.json
@@ -42,10 +42,10 @@ voltage, last image, WiFi). It never directs the device.
 | Path | Contents |
 |---|---|
 | `config/esphome/` | Device firmware (ESPHome YAML). `common/` holds the shared packages — `base.yaml` (api/ota/wifi/logger) and `art-frame.yaml` (the fetch→render→sleep pipeline); `devices/` holds one file per flashable config, the deployed frames plus the bring-up aids. `devices/secrets.yaml` is git-ignored. |
-| `tools/epaper/` | Image pipeline (Bun/TypeScript): `prepare.ts` (HEIC/JPEG → 600×448 7-colour dithered PNG), `manifest.ts` (manifest writer), `push.ts` (deploy to HA). See [`tools/epaper/README.md`](tools/epaper/README.md). |
-| `tools/icloud/` | Automatic sync of a Photos album (the shared album "epaper art frame") from the Mac's Photos library. See [`tools/icloud/README.md`](tools/icloud/README.md). |
-| `tools/museum/` | Rijksmuseum print wall for the 13" frame: Rijksstudio set → placarded PNGs, plus `set-mode` to switch between art and photos. See [`tools/museum/README.md`](tools/museum/README.md). |
-| `tools/cli/` | `@frame/cli`: shared helpers (argument parsing, subprocesses, env files, exit codes) used by the tools above. |
+| `packages/epaper/` | Image pipeline (Bun/TypeScript): `prepare.ts` (HEIC/JPEG → 600×448 7-colour dithered PNG), `manifest.ts` (manifest writer), `push.ts` (deploy to HA). See [`packages/epaper/README.md`](packages/epaper/README.md). |
+| `apps/icloud/` | Automatic sync of a Photos album (the shared album "epaper art frame") from the Mac's Photos library. See [`apps/icloud/README.md`](apps/icloud/README.md). |
+| `apps/museum/` | Rijksmuseum print wall for the 13" frame: Rijksstudio set → placarded PNGs, plus `set-mode` to switch between art and photos. See [`apps/museum/README.md`](apps/museum/README.md). |
+| `packages/cli/` | `@frame/cli`: shared helpers (argument parsing, subprocesses, env files, exit codes) used by the tools above. |
 | `www/epaper/` | Artwork folder: prepared images + generated `manifest.json`. Images and the manifest are git-ignored. |
 | `specs/` | Specs and task lists: [`epaper-art-frame`](specs/epaper-art-frame/SPEC.md) (device), [`icloud-album-sync`](specs/icloud-album-sync/SPEC.md) (source), [`wooden-frame`](specs/wooden-frame/SPEC.md) (enclosure), [`ee02-13in-spectra6`](specs/ee02-13in-spectra6/SPEC.md) (second frame + multi-device support). |
 
@@ -120,30 +120,32 @@ Pin map (single source of truth in the YAML header):
 
 ## Tooling (Bun / TypeScript)
 
-Everything under `tools/` is one Bun workspace. Prerequisites: [Bun](https://bun.sh) ≥ 1.3,
+This repo is a Bun monorepo: `apps/` holds the runnable tools (`icloud`, `museum`) and `packages/` the
+shared libraries (`cli`, `epaper`); apps may import packages, never the reverse. Prerequisites: [Bun](https://bun.sh) ≥ 1.3,
 ImageMagick 7 (`magick`, with HEIC support), `ssh`/`scp`, and `rsync` (for `set-mode`); the iCloud
 sync also needs macOS (Photos, `osascript`, `sips`).
 
 ```
 bun install            # once
 bun test               # whole workspace
-bun run typecheck      # tsc --noEmit
+bun run typecheck      # tsc --noEmit, root and every package
 bun run lint           # biome check
 bun run format         # biome check --write
 ```
 
 | Command | What it does |
 |---|---|
-| `bun tools/epaper/src/profile.ts --list` | Device profiles (panel size, palette, artwork folder) |
-| `bun tools/epaper/src/prepare.ts IMG.HEIC` | Photo → panel-ready dithered PNG |
-| `bun tools/epaper/src/manifest.ts` | Regenerate `manifest.json` (`--check`, `--prepare`) |
-| `bun tools/epaper/src/push.ts user@host:/path/` | Deploy manifest + images to Home Assistant |
-| `bun tools/icloud/src/sync-album.ts` | Mirror the Photos album, then deploy (`--dry-run`, `--print-plist`) |
-| `bun tools/museum/src/sync-prints.ts` | Rijksstudio set → art-mode PNGs (`--dry-run`) |
-| `bun tools/museum/src/set-mode.ts art\|photos` | Switch the 13" frame's mode (`--status`, `--refresh`, `--migrate`) |
-| `bun tools/museum/src/placard.ts IMG TITLE ARTIST DATE OUT` | Render one placarded print |
+| `bun packages/epaper/src/profile.ts --list` | Device profiles (panel size, palette, artwork folder) |
+| `bun packages/epaper/src/prepare.ts IMG.HEIC` | Photo → panel-ready dithered PNG |
+| `bun packages/epaper/src/manifest.ts` | Regenerate `manifest.json` (`--check`, `--prepare`) |
+| `bun packages/epaper/src/push.ts user@host:/path/` | Deploy manifest + images to Home Assistant |
+| `bun apps/icloud/src/sync-album.ts` | Mirror the Photos album, then deploy (`--dry-run`, `--print-plist`) |
+| `bun apps/museum/src/sync-prints.ts` | Rijksstudio set → art-mode PNGs (`--dry-run`) |
+| `bun apps/museum/src/set-mode.ts art\|photos` | Switch the 13" frame's mode (`--status`, `--refresh`, `--migrate`) |
+| `bun apps/museum/src/placard.ts IMG TITLE ARTIST DATE OUT` | Render one placarded print |
 
-Each command takes `-h`/`--help`. Per-tool details are in the READMEs under `tools/`.
+Each command takes `-h`/`--help`. Per-tool details are in the READMEs under `apps/` and `packages/`. Every package also has its own
+`bun test` and `bun run typecheck`; from the root, `bun run --filter @frame/icloud test` runs one.
 
 ## Image pipeline
 
@@ -152,17 +154,17 @@ The artwork folder defaults to `<repo>/www/epaper` and is served by HA at
 
 ```
 # Prepare one photo (HEIC/JPEG/...) to a 600×448 7-colour dithered PNG
-bun tools/epaper/src/prepare.ts ~/Downloads/IMG_1234.HEIC
+bun packages/epaper/src/prepare.ts ~/Downloads/IMG_1234.HEIC
 
 # Regenerate the manifest (its only writer)
-bun tools/epaper/src/manifest.ts
+bun packages/epaper/src/manifest.ts
 
 # Deploy manifest + images to the HA host
-bun tools/epaper/src/push.ts user@host:/path/to/config/www/epaper/
+bun packages/epaper/src/push.ts user@host:/path/to/config/www/epaper/
 ```
 
 On-device quantisation is not used: images are pre-dithered to the panel's exact 7-colour
-palette (`tools/epaper/palette-acep7.png`) because raw RGB bands badly on photos. The
+palette (`packages/epaper/palette-acep7.png`) because raw RGB bands badly on photos. The
 device cycles the manifest round-robin via an index persisted across deep-sleep reboots.
 
 ## iCloud album sync
@@ -170,14 +172,14 @@ device cycles the manifest round-robin via an index persisted across deep-sleep 
 Mirrors a Photos album (newest first by capture date) from the Mac's Photos
 library into the artwork folder, prepares the photos, and deploys — on a `launchd` schedule,
 with no manual steps. Requires Full Disk Access and Automation permission for Photos. See
-[`tools/icloud/README.md`](tools/icloud/README.md) for setup, configuration, and
+[`apps/icloud/README.md`](apps/icloud/README.md) for setup, configuration, and
 troubleshooting.
 
 ```
 bun install
-bun tools/icloud/src/sync-album.ts --dry-run   # preview, no writes
-bun tools/icloud/src/sync-album.ts             # sync + deploy
-bun test tools/icloud
+bun apps/icloud/src/sync-album.ts --dry-run   # preview, no writes
+bun apps/icloud/src/sync-album.ts             # sync + deploy
+bun test apps/icloud
 ```
 
 ## Enclosure

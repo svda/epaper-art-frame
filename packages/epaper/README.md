@@ -14,8 +14,8 @@ in that file — not an `if` in a script.
 | `spectra6-133-art` | Same panel, art mode (no pre-filter) | 1600×1200 | `palette-spectra6.png` (6) | `www/epaper13-modes/art/` | `/local/epaper13/` |
 
 ```
-bun tools/epaper/src/profile.ts --list                  # every profile
-bun tools/epaper/src/profile.ts spectra6-133 --json     # one profile's fields as JSON
+bun packages/epaper/src/profile.ts --list                  # every profile
+bun packages/epaper/src/profile.ts spectra6-133 --json     # one profile's fields as JSON
 ```
 
 `prepare` and `push` take `--profile ID` and fall back to `$EPAPER_PROFILE`, then to
@@ -29,13 +29,13 @@ so existing invocations and the launchd iCloud sync keep working unchanged.
    profile's artwork folder.
 2. Regenerate the manifest:
    ```
-   bun tools/epaper/src/manifest.ts                        # default profile
-   bun tools/epaper/src/manifest.ts --profile spectra6-133
+   bun packages/epaper/src/manifest.ts                        # default profile
+   bun packages/epaper/src/manifest.ts --profile spectra6-133
    ```
 3. Deploy:
    ```
-   bun tools/epaper/src/push.ts user@host:/path/to/config/www/epaper/
-   bun tools/epaper/src/push.ts --profile spectra6-133 user@host:/path/to/config/www/epaper13/
+   bun packages/epaper/src/push.ts user@host:/path/to/config/www/epaper/
+   bun packages/epaper/src/push.ts --profile spectra6-133 user@host:/path/to/config/www/epaper13/
    ```
 
 The device fetches `manifest.json` and shows the next image each wake, cycling
@@ -44,8 +44,8 @@ round-robin via a persisted index.
 ## Preparing a photo (e.g. an iPhone HEIC)
 
 ```
-bun tools/epaper/src/prepare.ts ~/Downloads/IMG_1234.HEIC                          # 5.65" frame
-bun tools/epaper/src/prepare.ts --profile spectra6-133 ~/Downloads/IMG_1234.HEIC   # 13.3" frame
+bun packages/epaper/src/prepare.ts ~/Downloads/IMG_1234.HEIC                          # 5.65" frame
+bun packages/epaper/src/prepare.ts --profile spectra6-133 ~/Downloads/IMG_1234.HEIC   # 13.3" frame
 ```
 
 Converts, crops to the profile's dimensions and dithers to its palette, writing
@@ -67,13 +67,13 @@ colour codes, so the prepared PNG renders exactly as intended.
 ## Bulk: convert HEICs already in an artwork folder
 
 ```
-bun tools/epaper/src/manifest.ts --prepare --profile spectra6-133
+bun packages/epaper/src/manifest.ts --prepare --profile spectra6-133
 ```
 
 ## Tests
 
 ```
-bun test tools/epaper
+bun test packages/epaper
 ```
 
 ## Library use
@@ -99,7 +99,7 @@ import { loadProfile, prepareImage, generateManifest, push } from "@frame/epaper
 
 - `manifest.json` is generated — do not edit it by hand, and it is not tracked in git.
 - Artwork images are not tracked in git (see each folder's `.gitignore`).
-- `bun tools/epaper/src/manifest.ts --check` exits non-zero if the manifest is stale.
+- `bun packages/epaper/src/manifest.ts --check` exits non-zero if the manifest is stale.
 - `manifest.ts --profile` is validated even when `--dir` overrides the folder, so a
   typo'd profile fails loudly rather than preparing for the wrong panel.
 - `push.ts` refuses a destination whose last folder name does not match the profile's

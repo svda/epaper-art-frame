@@ -115,7 +115,7 @@ describe("set-mode (ported from set_mode.sh)", () => {
     expect(result.out).toContain(`would publish art -> ${join(root, "www/epaper13")}`);
     expect(result.out).toContain("would write ACTIVE=art");
     expect(result.out).toContain(
-      `would deploy: bun ${join(root, "tools/epaper/src/push.ts")} --profile spectra6-133 ${DEST}`,
+      `would deploy: bun ${join(root, "packages/epaper/src/push.ts")} --profile spectra6-133 ${DEST}`,
     );
     expect(result.out).toContain("art.png");
   });

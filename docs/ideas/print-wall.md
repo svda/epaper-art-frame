@@ -16,7 +16,7 @@ rotation — without firmware changes or manual steps?
 
 ## Recommended Direction
 
-A new source tool, `tools/museum/`, mirroring the `icloud-album-sync` pattern: fetch from
+A new source tool, `apps/museum/`, mirroring the `icloud-album-sync` pattern: fetch from
 the Rijksmuseum Linked Art API → verify rights → render at the `spectra6-133` profile with a
 **baked-in placard** → write to a **per-mode staging folder** → regenerate the manifest →
 deploy.
@@ -57,7 +57,7 @@ collection's centre of gravity and the dithering spike (below) shows they hold u
 ## Dithering Evidence (spike, 2026-11-14)
 
 Six public-domain prints, one per technique class, fetched at 1600px and run through the
-real pipeline: `bun tools/epaper/src/prepare.ts --profile spectra6-133 --fit`.
+real pipeline: `bun packages/epaper/src/prepare.ts --profile spectra6-133 --fit`.
 
 | Sample | Technique | Result |
 |---|---|---|

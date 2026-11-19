@@ -13,7 +13,7 @@ Bun/TypeScript, in the repo's workspace. From the repo root:
 
 ```
 bun install
-bun test tools/icloud
+bun test apps/icloud
 ```
 
 The Photos database is read directly with `bun:sqlite` (from a throwaway copy, never in place),
@@ -23,11 +23,11 @@ and photos that are not on disk (every Shared Album photo) are exported through 
 ## Run
 
 ```
-bun tools/icloud/src/sync-album.ts            # sync + deploy
-bun tools/icloud/src/sync-album.ts --dry-run  # show what would happen; write nothing
+bun apps/icloud/src/sync-album.ts            # sync + deploy
+bun apps/icloud/src/sync-album.ts --dry-run  # show what would happen; write nothing
 ```
 
-Config comes from `tools/icloud/.env` (see `.env.example`), overridden by real environment
+Config comes from `apps/icloud/.env` (see `.env.example`), overridden by real environment
 variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `ALBUM`,
 `SYNC_INTERVAL_H`, `EPAPER_IMAGES`, `EPAPER_PROFILE`.
 
@@ -40,20 +40,20 @@ Spectra 6 frame and `www/epaper13/`. It is passed through to `prepare.ts` and
 ## 13" frame: art and photo modes
 
 The 13.3" frame can show either the album photos or the Rijksmuseum art set. Each mode
-lives in its own folder under `www/epaper13-modes/`, and `bun tools/museum/src/set-mode.ts`
+lives in its own folder under `www/epaper13-modes/`, and `bun apps/museum/src/set-mode.ts`
 publishes one into the live `www/epaper13/` folder and deploys it.
 
-After the one-time migration (`bun tools/museum/src/set-mode.ts --migrate`), refresh the 13"
+After the one-time migration (`bun apps/museum/src/set-mode.ts --migrate`), refresh the 13"
 photos with the existing override and the 13" destination, then republish:
 
 ```
 EPAPER_IMAGES=www/epaper13-modes/photos \
-  bun tools/icloud/src/sync-album.ts --profile spectra6-133 \
+  bun apps/icloud/src/sync-album.ts --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
-bun tools/museum/src/set-mode.ts --refresh
+bun apps/museum/src/set-mode.ts --refresh
 ```
 
-`--dest` is required: `tools/icloud/.env` points `EPAPER_DEST` at the 5.65" folder, and
+`--dest` is required: `apps/icloud/.env` points `EPAPER_DEST` at the 5.65" folder, and
 `push.ts` refuses a destination whose folder name does not match the profile's
 artwork folder. Running the sync without `EPAPER_IMAGES` writes the live folder directly
 and bypasses the modes; `set-mode.ts --status` shows the drift.
@@ -63,7 +63,7 @@ and bypasses the modes; `set-mode.ts --status` shows the drift.
 Every `SYNC_INTERVAL_H` hours, and at login:
 
 ```
-bun tools/icloud/src/sync-album.ts --print-plist \
+bun apps/icloud/src/sync-album.ts --print-plist \
   > ~/Library/LaunchAgents/com.sander.epaper-album.plist
 launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-album.plist
 launchctl list | grep epaper-album
@@ -71,7 +71,7 @@ launchctl list | grep epaper-album
 
 The plist runs `bun` by its stable PATH location (`/opt/homebrew/bin/bun`), not the versioned
 Homebrew install path, so a `brew upgrade` does not break it. The job logs to
-`tools/icloud/sync.log` and `sync.err.log`. Reload after a config change:
+`apps/icloud/sync.log` and `sync.err.log`. Reload after a config change:
 
 ```
 launchctl unload ~/Library/LaunchAgents/com.sander.epaper-album.plist
@@ -127,7 +127,7 @@ The old shell script broke at the first non-option, so options had to precede th
 input/output. `prepare.ts` accepts them in any order, but this tool still passes options first:
 
 ```
-bun tools/epaper/src/prepare.ts --out-dir DIR INPUT [OUTPUT]
+bun packages/epaper/src/prepare.ts --out-dir DIR INPUT [OUTPUT]
 ```
 
 ## Troubleshooting

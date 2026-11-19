@@ -145,7 +145,7 @@ describe("profile CLI (same output as device_profile.py)", () => {
   test("--artwork and --palette print absolute paths", async () => {
     expect(isAbsolute((await cli("acep565", "--artwork")).text)).toBe(true);
     expect(
-      (await cli("acep565", "--palette")).text.endsWith("tools/epaper/palette-acep7.png"),
+      (await cli("acep565", "--palette")).text.endsWith("packages/epaper/palette-acep7.png"),
     ).toBe(true);
   });
 

@@ -2,8 +2,12 @@
   "name": "@frame/museum",
   "version": "0.1.0",
   "private": true,
-  "main": "src/index.ts",
   "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p ."
+  },
   "dependencies": {
     "@frame/cli": "workspace:*",
     "@frame/epaper": "workspace:*"
