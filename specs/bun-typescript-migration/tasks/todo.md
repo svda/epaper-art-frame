@@ -20,14 +20,14 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-02: `@frame/cli` shared helpers
 **Acceptance:**
-- [ ] `UsageError`, `repoRoot`, `parseArgs`, `exec`/`Exec`, `parseEnvFile`, `main` as in the spec's API contract
-- [ ] The env-file cases from `icloud/tests/test_config.py` are ported. Exit codes are 2 for usage errors and 1 for other errors.
+- [x] `UsageError`, `repoRoot`, `parseArgs`, `exec`/`Exec`, `parseEnvFile`, `main` as in the spec's API contract
+- [x] The env-file cases from `icloud/tests/test_config.py` are ported. Exit codes are 2 for usage errors and 1 for other errors.
 
 **Verify:** `bun test tools/cli`
 **Files:** `tools/cli/package.json`, `tools/cli/src/index.ts`, `tools/cli/test/cli.test.ts` · **Deps:** T-01 · **Size:** S
 
 ### Checkpoint: Foundation
-- [ ] Workspace is green, and the uv projects still pass `uv run pytest`
+- [x] Workspace is green, and the uv projects still pass `uv run pytest`
 
 ---
 
