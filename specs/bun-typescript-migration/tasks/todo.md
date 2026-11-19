@@ -85,9 +85,9 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-08: Spike — read Photos.sqlite and export via osascript
 **Acceptance:**
-- [ ] A throwaway script lists the configured album's newest N assets (uuid, date, filename, local/cloud, adjusted) from a read-only copy of Photos.sqlite. The result matches the Python `--dry-run` selection.
-- [ ] Exports 1 cloud-only, 1 edited and 1 shared-album photo through `osascript`, and records the timing
-- [ ] Findings are noted in SPEC-icloud: the schema tables used, the macOS version, and the permissions needed
+- [x] A throwaway script lists the configured album's newest N assets (uuid, date, filename, local/cloud, adjusted) from a read-only copy of Photos.sqlite. The result matches the Python `--dry-run` selection.
+- [x] Exports 1 cloud-only, 1 edited and 1 shared-album photo through `osascript`, and records the timing
+- [x] Findings are noted in SPEC-icloud: the schema tables used, the macOS version, and the permissions needed
 
 **Verify:** Manual run on the real library · **Files:** `tools/icloud/spike/` (deleted in T-13), `../SPEC-icloud.md` · **Deps:** T-02 · **Size:** S
 **Stop rule:** if either half fails, stop and re-spec. Don't start T-09.
