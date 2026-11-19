@@ -21,6 +21,14 @@
         "@frame/cli": "workspace:*",
       },
     },
+    "tools/icloud": {
+      "name": "@frame/icloud",
+      "version": "0.1.0",
+      "dependencies": {
+        "@frame/cli": "workspace:*",
+        "@frame/epaper": "workspace:*",
+      },
+    },
     "tools/museum": {
       "name": "@frame/museum",
       "version": "0.1.0",
@@ -56,6 +64,8 @@
     "@frame/cli": ["@frame/cli@workspace:tools/cli"],
 
     "@frame/epaper": ["@frame/epaper@workspace:tools/epaper"],
+
+    "@frame/icloud": ["@frame/icloud@workspace:tools/icloud"],
 
     "@frame/museum": ["@frame/museum@workspace:tools/museum"],
 

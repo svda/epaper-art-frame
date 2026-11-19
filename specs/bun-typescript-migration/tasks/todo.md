@@ -94,8 +94,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-09: `PhotoSource` with sqlite reader
 **Acceptance:**
-- [ ] `src/photos-db.ts` implements `PhotoSource.list(album)`, detects the schema variant and fails closed
-- [ ] `photos-db.test.ts` runs against a synthetic SQLite database built inside the test
+- [x] `src/photos-db.ts` implements `PhotoSource.list(album)`, detects the schema variant and fails closed
+- [x] `photos-db.test.ts` runs against a synthetic SQLite database built inside the test
 
 **Verify:** `bun test tools/icloud` · **Files:** `tools/icloud/package.json`, `src/photo-source.ts`, `src/photos-db.ts`, `test/photos-db.test.ts` · **Deps:** T-08 · **Size:** M
 
