@@ -122,8 +122,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-13: Cut over icloud and delete its Python
 **Acceptance:**
-- [ ] Manual: the installed agent runs one scheduled sync end to end on the 5.65" frame, including a cloud-only photo
-- [ ] Delete `sync_album.py`, `conftest.py`, `tests/`, `pyproject.toml`, `uv.lock`, `.python-version` and `spike/`
+- [ ] Manual: the installed agent runs one scheduled sync end to end on the 5.65" frame, including a cloud-only photo — **agent reinstalled 2026-11-19; its first run fails closed with EPERM until Full Disk Access (and then Automation→Photos) is granted to the bun binary**
+- [x] Delete `sync_album.py`, `conftest.py`, `tests/`, `pyproject.toml`, `uv.lock`, `.python-version` and `spike/`
 
 **Verify:** `bun test` · **Files:** deletions, `README.md` · **Deps:** T-12 · **Size:** S
 

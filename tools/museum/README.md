@@ -57,7 +57,7 @@ bun tools/museum/src/set-mode.ts --migrate
 
 # Refresh 13" photos after the migration (existing tool, existing override)
 EPAPER_IMAGES=www/epaper13-modes/photos \
-  tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133 \
+  bun tools/icloud/src/sync-album.ts --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
 bun tools/museum/src/set-mode.ts --refresh
 

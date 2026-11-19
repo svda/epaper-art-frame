@@ -152,8 +152,13 @@ existing Home Assistant box; live "show now" device control; device firmware cha
 
 ## Files
 
-- `pyproject.toml` / `uv.lock` / `.python-version` — environment
-- `sync_album.py` — selection + prepare + mirror + deploy
+- `package.json` — the `@frame/icloud` workspace package
+- `src/photos-db.ts` — reads Photos.sqlite from a throwaway copy (Shared and user albums)
+- `src/selection.ts` — album selection (movies out, newest first, uuid ties, undated last)
+- `src/export.ts` — on-disk original or Photos.app export via `osascript`; RAW via `sips`; prepare
+- `src/mirror.ts` — staging, first-run adoption, managed state, never-wipe-on-total-failure
+- `src/sync-album.ts` — config, preflight, sync, deploy, CLI (`--print-plist` for launchd)
+- `src/agent.ts` — launchd plist rendering
 - `com.sander.epaper-album.plist.template` — launchd template (rendered by `--print-plist`)
-- `tests/` — pytest suite (`.venv/bin/python -m pytest tests`)
+- `test/` — bun test suite (synthetic Photos library, fakes for Photos.app and the host)
 - `README.md` — this file

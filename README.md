@@ -21,7 +21,7 @@ human action — the Mac syncs and deploys it automatically.
  ──────                    ───                                    ────────
  tap ♥  →  iCloud  →  Photos library
                        │
-                       ├─ tools/icloud/sync_album.py
+                       ├─ tools/icloud/src/sync-album.ts
                        │     select 50 newest favorites
                        │     → prepare.ts (600×448, 7-colour dither)
                        │     → mirror into www/epaper/ + regenerate manifest.json
@@ -140,15 +140,15 @@ device cycles the manifest round-robin via an index persisted across deep-sleep 
 
 Mirrors the 50 most recent iCloud Favorites (by capture date) from the Mac's Photos
 library into the artwork folder, prepares them, and deploys — on a `launchd` schedule,
-with no manual steps. Requires Full Disk Access. See
+with no manual steps. Requires Full Disk Access and Automation permission for Photos. See
 [`tools/icloud/README.md`](tools/icloud/README.md) for setup, configuration, and
 troubleshooting.
 
 ```
-uv sync
-.venv/bin/python tools/icloud/sync_album.py --dry-run   # preview, no writes
-.venv/bin/python tools/icloud/sync_album.py             # sync + deploy
-.venv/bin/python -m pytest tools/icloud/tests
+bun install
+bun tools/icloud/src/sync-album.ts --dry-run   # preview, no writes
+bun tools/icloud/src/sync-album.ts             # sync + deploy
+bun test tools/icloud
 ```
 
 ## Enclosure
