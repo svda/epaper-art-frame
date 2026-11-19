@@ -131,9 +131,12 @@ export function loadProfile(id: string | undefined, file = PROFILES_PATH): Profi
 4. The launchd agent and `set-mode` work on the real 13" frame, and the iCloud sync
    works on the real 5.65" frame.
 
-## Open Questions
+## Decisions (resolved 2026-11-19)
 
-- Command naming: keep the script names (`prepare_image`) or use one `frame` bin with
-  subcommands (`frame prepare`)? Default: one `bun` entry per command now, with an
-  optional `bin` later.
-- icloud: Photos.sqlite schema stability. See SPEC-icloud.md.
+- **Command naming:** one `bun tools/<tool>/src/<command>.ts` entry per command, named after the
+  old scripts (`prepare`, `manifest`, `push`, `sync-album`, `sync-prints`, `set-mode`, `placard`).
+  A single `frame` bin with subcommands is not worth building until the web UI needs it; the
+  commands are already importable as `main` functions, so adding one later is cheap.
+- **icloud schema stability:** the reader derives table names from `Z_PRIMARYKEY`, supports both
+  Shared Albums (`ZSHARE`, macOS 26+) and user albums, and fails closed on anything else. See
+  SPEC-icloud.md.

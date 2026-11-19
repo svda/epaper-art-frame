@@ -175,8 +175,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-19: Repo-wide cleanup and docs
 **Acceptance:**
-- [ ] No `pyproject.toml`, `uv.lock`, `*.py` or tool `*.sh` files under `tools/` (`fd -e py -e sh . tools` is empty)
-- [ ] The root README documents `bun install` and every command. Decide on the single `frame` bin (open question).
+- [x] No `pyproject.toml`, `uv.lock`, `*.py` or tool `*.sh` files under `tools/` (`fd -e py -e sh . tools` is empty)
+- [x] The root README documents `bun install` and every command. Decide on the single `frame` bin (open question).
 
 **Verify:** `bun install && bun test && bun run typecheck && bun run lint` on a fresh clone · **Files:** `README.md`, `tools/*/README.md` · **Deps:** T-13, T-18 · **Size:** S
 
