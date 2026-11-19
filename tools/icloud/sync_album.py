@@ -464,7 +464,7 @@ def render_plist(
 ) -> str:
     """Fill the launchd template for this machine (absolute paths required)."""
     return (
-        template.replace("__PYTHON__", python)
+        template.replace("__BUN__", python)
         .replace("__SCRIPT__", script)
         .replace("__WORKDIR__", workdir)
         .replace("__STDOUT__", stdout)

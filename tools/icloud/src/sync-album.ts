@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { expandUser, main, parseArgs, readEnvFile, repoRoot, UsageError } from "@frame/cli";
 import { defaultProfileId, loadProfile, manifestMain, pushMain } from "@frame/epaper";
+import { PLIST_TEMPLATE, renderPlist, resolveBunPath } from "./agent.ts";
 import { prepareOne as prepareOnePhoto } from "./export.ts";
 import {
   applyArtwork,
@@ -161,6 +163,7 @@ options:
   --album NAME       Photos album name to mirror (default: $ALBUM)
   --interval-h N     launchd interval hours (default: ${DEFAULT_INTERVAL_H})
   --config FILE      env file (default: ${DEFAULT_ENV_FILE})
+  --print-plist      print a launchd plist for this machine and exit (do not run the sync)
   -n, --dry-run      show what would happen; write nothing
   -h, --help         show this help`;
 
@@ -174,6 +177,7 @@ export interface SyncAlbumDeps {
   prepareOne?: PrepareOne<Photo>;
   manifest?: RunCli;
   push?: RunCli;
+  bunPath?: string;
 }
 
 export async function syncAlbumMain(argv: string[], deps: SyncAlbumDeps = {}): Promise<number> {
@@ -190,6 +194,7 @@ export async function syncAlbumMain(argv: string[], deps: SyncAlbumDeps = {}): P
         album: { type: "string" },
         "interval-h": { type: "string" },
         config: { type: "string" },
+        "print-plist": { type: "boolean" },
         "dry-run": { type: "boolean", short: "n" },
       },
     },
@@ -217,6 +222,20 @@ export async function syncAlbumMain(argv: string[], deps: SyncAlbumDeps = {}): P
     deps.env ?? process.env,
     envFile,
   );
+
+  if (values["print-plist"]) {
+    out(
+      renderPlist(readFileSync(PLIST_TEMPLATE, "utf8"), {
+        bun: deps.bunPath ?? resolveBunPath(),
+        script: join(ICLOUD_DIR, "src", "sync-album.ts"),
+        workdir: ICLOUD_DIR,
+        stdout: join(ICLOUD_DIR, "sync.log"),
+        stderr: join(ICLOUD_DIR, "sync.err.log"),
+        intervalH: cfg.intervalH,
+      }).trimEnd(),
+    );
+    return 0;
+  }
 
   const missing = (deps.preflight ?? preflight)();
   if (missing.length > 0) throw new Error(`missing required tools: ${missing.join(", ")}`);

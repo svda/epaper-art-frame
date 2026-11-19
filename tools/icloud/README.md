@@ -9,21 +9,22 @@ The only human action is adding/removing photos in the album.
 
 ## Environment
 
-Managed with [`uv`](https://docs.astral.sh/uv/). Python is pinned in `.python-version` (3.13);
-dependencies are in `pyproject.toml` / `uv.lock`.
+Bun/TypeScript, in the repo's workspace. From the repo root:
 
 ```
-uv sync                 # creates .venv with osxphotos + pytest
-.venv/bin/python -m pytest tests
+bun install
+bun test tools/icloud
 ```
 
-`osxphotos` is Python-only; there is no TypeScript library that reads the Photos database.
+The Photos database is read directly with `bun:sqlite` (from a throwaway copy, never in place),
+and photos that are not on disk (every Shared Album photo) are exported through Photos.app with
+`osascript`. Requires ImageMagick 7 (`magick`), `scp` and macOS `sips` (for camera RAW).
 
 ## Run
 
 ```
-.venv/bin/python sync_album.py            # sync + deploy
-.venv/bin/python sync_album.py --dry-run  # show what would happen; write nothing
+bun tools/icloud/src/sync-album.ts            # sync + deploy
+bun tools/icloud/src/sync-album.ts --dry-run  # show what would happen; write nothing
 ```
 
 Config comes from `tools/icloud/.env` (see `.env.example`), overridden by real environment
@@ -47,7 +48,7 @@ photos with the existing override and the 13" destination, then republish:
 
 ```
 EPAPER_IMAGES=www/epaper13-modes/photos \
-  tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133 \
+  bun tools/icloud/src/sync-album.ts --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
 bun tools/museum/src/set-mode.ts --refresh
 ```
@@ -62,36 +63,42 @@ and bypasses the modes; `set-mode.ts --status` shows the drift.
 Every `SYNC_INTERVAL_H` hours, and at login:
 
 ```
-.venv/bin/python sync_album.py --print-plist \
+bun tools/icloud/src/sync-album.ts --print-plist \
   > ~/Library/LaunchAgents/com.sander.epaper-album.plist
 launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-album.plist
 launchctl list | grep epaper-album
 ```
 
-The job logs to `tools/icloud/sync.log` and `sync.err.log`. Reload after a config change:
+The plist runs `bun` by its stable PATH location (`/opt/homebrew/bin/bun`), not the versioned
+Homebrew install path, so a `brew upgrade` does not break it. The job logs to
+`tools/icloud/sync.log` and `sync.err.log`. Reload after a config change:
 
 ```
 launchctl unload ~/Library/LaunchAgents/com.sander.epaper-album.plist
 launchctl load -w ~/Library/LaunchAgents/com.sander.epaper-album.plist
 ```
 
-**Full Disk Access for the job.** launchd runs the venv Python directly, so *that binary* — not
-your terminal — needs Full Disk Access. Add the resolved interpreter:
+## Permissions (required)
 
-```
-readlink -f .venv/bin/python    # e.g. ~/.local/share/uv/python/.../bin/python3.13
-```
+Two macOS privacy permissions are needed, for whatever runs the sync:
 
-## Full Disk Access (required)
-
-Reading the Photos database requires **Full Disk Access** for whatever runs the sync. Without it,
-osxphotos fails with `Operation not permitted: .../Photos.sqlite`.
+1. **Full Disk Access** — to read the Photos database. Without it the sync fails with
+   `Operation not permitted: .../Photos.sqlite`.
+2. **Automation → Photos** — to export photos through Photos.app. macOS asks the first time; if you
+   decline, the export fails with `Not authorized to send Apple events to Photos`.
+   Re-enable it under System Settings → Privacy & Security → **Automation**.
 
 System Settings → Privacy & Security → **Full Disk Access** → `+`:
 
 - **Interactive runs:** add your terminal (e.g. **iTerm**), then fully quit and reopen it — TCC is
   only re-read on process start.
-- **The launchd job:** add the resolved Python binary from `readlink -f .venv/bin/python` above.
+- **The launchd job:** launchd runs `bun` directly, so *that binary* — not your terminal — needs
+  Full Disk Access. Add the resolved executable (`readlink -f $(which bun)`), and answer the
+  Automation prompt for it the first time the job exports a photo. Run the job once by hand to
+  trigger the prompt: `launchctl kickstart -k gui/$(id -u)/com.sander.epaper-album`.
+
+Photos.app export is given 5 minutes per photo, so a permission prompt nobody answers cannot hang
+a scheduled run forever.
 
 ## Spike findings (T-01, 2026-10-01)
 
@@ -127,7 +134,8 @@ bun tools/epaper/src/prepare.ts --out-dir DIR INPUT [OUTPUT]
 
 | Symptom | Cause / fix |
 |---|---|
-| `Operation not permitted: .../Photos.sqlite` | Full Disk Access missing — see above |
+| `Operation not permitted: .../Photos.sqlite` | Full Disk Access missing — see Permissions |
+| `Not authorized to send Apple events to Photos` / `osascript timed out` | Automation permission for Photos missing or unanswered — see Permissions |
 | `original not available (still in iCloud?)` | Photo not downloadable; check iCloud sign-in. The run logs it and continues |
 | `prepare.ts failed` | ImageMagick missing or the file isn't an image — the message includes magick's stderr |
 | `no deploy destination configured` | Set `EPAPER_DEST` in `.env` |

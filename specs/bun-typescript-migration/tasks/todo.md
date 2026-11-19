@@ -115,8 +115,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-12: launchd agent rendering and install
 **Acceptance:**
-- [ ] `test_agent.py` is ported. ProgramArguments run `bun …/sync-album.ts`.
-- [ ] The README documents the Full Disk Access and Automation (Photos) grants for `bun`
+- [x] `test_agent.py` is ported. ProgramArguments run `bun …/sync-album.ts`.
+- [x] The README documents the Full Disk Access and Automation (Photos) grants for `bun`
 
 **Verify:** `bun test tools/icloud`, `plutil -lint` on the rendered plist · **Files:** `src/agent.ts`, `test/agent.test.ts`, `com.sander.epaper-album.plist.template`, `README.md` · **Deps:** T-11 · **Size:** S
 

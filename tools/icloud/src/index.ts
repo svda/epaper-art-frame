@@ -1,3 +1,4 @@
+export * from "./agent.ts";
 export * from "./export.ts";
 export * from "./mirror.ts";
 export * from "./photo-source.ts";
