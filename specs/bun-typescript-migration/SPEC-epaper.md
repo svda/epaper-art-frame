@@ -46,6 +46,5 @@ dropped along with dither.py. New tests:
 - After that, delete the Python files, `*.sh`, `pyproject.toml` and `uv.lock`, and
   update the README.
 
-## Open Questions
-- Should dither.py and the `epaper-dithering` backend go (proposed), or does a future
-  profile need them?
+## Decisions
+- 2026-11-19: dither.py and the `epaper-dithering` backend are removed (approved).

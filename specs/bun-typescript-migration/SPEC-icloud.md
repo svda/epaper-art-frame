@@ -12,10 +12,11 @@ launchd agent. osxphotos is replaced with native access.
   (`?mode=ro&immutable=1`, on a temp copy if the file is locked). Query the album
   membership plus each asset's uuid, date, original filename and directory, and
   whether it's local or in the cloud only.
-- **Export:** copy the original out of `<library>/originals/<dir>/<file>`. Assets that
-  are cloud-only or missing locally are **skipped and reported**, not downloaded.
-  This matches the current behaviour if osxphotos was also only exporting local
-  originals; verify that first.
+- **Export (parity with osxphotos `use_photos_export=True`):** if the original is on
+  disk and has no adjustments, copy it from `<library>/originals/<dir>/<file>`.
+  Otherwise (cloud-only, shared-album or edited), export it through Photos.app with
+  `osascript` (JXA `export … with using originals false`). This downloads from iCloud
+  and renders the edits. A photo that still fails is reported and skipped, as today.
 - All of this sits behind a `PhotoSource` interface, so the selection and mirror logic
   is tested with fakes and the SQL lives in one file (`src/photos-db.ts`).
 - If the schema differs between macOS versions, detect the variant from the table and
@@ -42,7 +43,7 @@ synthetic SQLite fixture built in the test, so no real library is committed.
 - Then delete the Python and uv files, and update the README.
 
 ## Open Questions
-- Does the current setup depend on osxphotos downloading iCloud-only originals? If it
-  does, we need a fallback (AppleScript/`osascript` export through Photos.app), and
-  that changes the scope.
+- Resolved 2026-11-19: osxphotos does download iCloud/shared photos and render edits,
+  so the osascript export path is required (the spike in T-08 de-risks it).
+- Automation permission: launchd's `bun` needs permission to control Photos.app.
 - Full Disk Access: launchd will need FDA granted to `bun` rather than to Python.
