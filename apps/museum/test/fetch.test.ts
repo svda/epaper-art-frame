@@ -5,7 +5,10 @@ import { join } from "node:path";
 import { Fetcher, HttpError } from "../src/fetcher.ts";
 
 function makeFetcher(
-  respond: (url: string, init: { headers: Record<string, string> }) => Response,
+  respond: (
+    url: string,
+    init: { headers: Record<string, string>; signal?: AbortSignal },
+  ) => Response,
   opts: { refresh?: boolean } = {},
 ) {
   const dir = mkdtempSync(join(tmpdir(), "rijks-cache-"));
@@ -91,6 +94,42 @@ describe("Fetcher", () => {
     const { fetcher, urls } = makeFetcher(() => new Response("no", { status: 500 }));
     await expect(fetcher.getJson("https://example.test/x")).rejects.toThrow(HttpError);
     expect(urls).toHaveLength(4);
+  });
+
+  test("a network error is retried, then succeeds", async () => {
+    let n = 0;
+    const { fetcher, urls } = makeFetcher(() => {
+      if (++n < 2) throw new TypeError("connection reset");
+      return json("{}");
+    });
+    await fetcher.getJson("https://example.test/x");
+    expect(urls).toHaveLength(2);
+  });
+
+  test("a persistent network error is rethrown after the retries", async () => {
+    const { fetcher, urls } = makeFetcher(() => {
+      throw new TypeError("connection reset");
+    });
+    await expect(fetcher.getJson("https://example.test/x")).rejects.toThrow("connection reset");
+    expect(urls).toHaveLength(4);
+  });
+
+  test("every request carries a timeout signal", async () => {
+    let signal: AbortSignal | undefined;
+    const { fetcher } = makeFetcher((_url, init) => {
+      signal = init.signal;
+      return json("{}");
+    });
+    await fetcher.getJson("https://example.test/x");
+    expect(signal).toBeInstanceOf(AbortSignal);
+  });
+
+  test("a corrupt cache entry is treated as a miss and re-fetched", async () => {
+    const { fetcher, dir, urls } = makeFetcher(() => json('{"live": true}'));
+    const digest = new Bun.CryptoHasher("sha256").update("https://example.test/bad").digest("hex");
+    await Bun.write(join(dir, "json", `${digest}.json`), '{"trunc');
+    expect(await fetcher.getJson("https://example.test/bad")).toEqual({ live: true });
+    expect(urls).toHaveLength(1);
   });
 
   test("a 404 is not retried", async () => {

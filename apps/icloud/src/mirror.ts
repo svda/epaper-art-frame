@@ -29,7 +29,17 @@ export type RegenerateManifest = (artworkDir: string) => Promise<unknown>;
 
 export function readManaged(artworkDir: string): Set<string> {
   const state = join(artworkDir, MANAGED_NAME);
-  return existsSync(state) ? new Set(JSON.parse(readFileSync(state, "utf8"))) : new Set();
+  if (!existsSync(state)) return new Set();
+  let names: unknown;
+  try {
+    names = JSON.parse(readFileSync(state, "utf8"));
+  } catch {
+    names = undefined;
+  }
+  if (!Array.isArray(names) || !names.every((n) => typeof n === "string")) {
+    throw new Error(`${state} is corrupt: expected a JSON array of file names`);
+  }
+  return new Set(names);
 }
 
 export function writeManaged(artworkDir: string, names: Set<string>): void {

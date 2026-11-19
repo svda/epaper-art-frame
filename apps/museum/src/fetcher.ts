@@ -19,7 +19,7 @@ export class HttpError extends Error {
 
 export type FetchImpl = (
   url: string,
-  init: { headers: Record<string, string> },
+  init: { headers: Record<string, string>; signal?: AbortSignal },
 ) => Promise<Response>;
 
 export interface FetcherOptions {
@@ -29,6 +29,7 @@ export interface FetcherOptions {
   clock?: () => number;
   minIntervalMs?: number;
   retries?: number;
+  timeoutMs?: number;
 }
 
 function writeFile(path: string, data: string | Uint8Array) {
@@ -45,6 +46,7 @@ export class Fetcher {
   private readonly clock: () => number;
   private readonly minIntervalMs: number;
   private readonly retries: number;
+  private readonly timeoutMs: number;
   private last: number | undefined;
 
   constructor(
@@ -57,6 +59,7 @@ export class Fetcher {
     this.clock = opts.clock ?? (() => performance.now());
     this.minIntervalMs = opts.minIntervalMs ?? 250;
     this.retries = opts.retries ?? 3;
+    this.timeoutMs = opts.timeoutMs ?? 30_000;
   }
 
   private cachePath(url: string, kind: string, suffix: string): string {
@@ -75,7 +78,17 @@ export class Fetcher {
   private async request(url: string): Promise<Uint8Array> {
     for (let attempt = 0; ; attempt++) {
       await this.throttle();
-      const response = await this.fetchImpl(url, { headers: HEADERS });
+      let response: Response;
+      try {
+        response = await this.fetchImpl(url, {
+          headers: HEADERS,
+          signal: AbortSignal.timeout(this.timeoutMs),
+        });
+      } catch (error) {
+        if (attempt >= this.retries) throw error;
+        await this.sleep(500 * 2 ** attempt);
+        continue;
+      }
       if (response.ok) return new Uint8Array(await response.arrayBuffer());
       const retryable =
         response.status === 429 || (response.status >= 500 && response.status < 600);
@@ -86,7 +99,13 @@ export class Fetcher {
 
   async getJson(url: string): Promise<Rec> {
     const path = this.cachePath(url, "json", "json");
-    if (existsSync(path) && !this.refresh) return JSON.parse(readFileSync(path, "utf8"));
+    if (existsSync(path) && !this.refresh) {
+      try {
+        return JSON.parse(readFileSync(path, "utf8"));
+      } catch {
+        // A truncated cache entry is a miss: fall through and re-fetch it.
+      }
+    }
     const data = JSON.parse(new TextDecoder().decode(await this.request(url)));
     writeFile(path, JSON.stringify(data));
     return data;

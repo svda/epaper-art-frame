@@ -76,6 +76,14 @@ describe("managed state", () => {
     expect(readManaged(dir)).toEqual(set("x.png", "y.png"));
   });
 
+  test("a corrupt state file fails with a clear error", () => {
+    for (const bad of ['["a.png"', '{"a": 1}', "[1, 2]"]) {
+      const dir = tempDir();
+      writeFileSync(join(dir, MANAGED_NAME), bad);
+      expect(() => readManaged(dir)).toThrow("is corrupt");
+    }
+  });
+
   test("an absent state file is empty", () => {
     expect(readManaged(tempDir())).toEqual(set());
   });
