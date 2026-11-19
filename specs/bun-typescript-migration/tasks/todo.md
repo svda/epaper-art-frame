@@ -61,8 +61,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-06: `push` and `push` CLI (replaces push_to_ha.sh)
 **Acceptance:**
-- [ ] Same options and positional `[user@]host:/path`. rsync/ssh argv go through `Exec`.
-- [ ] Golden argv test, and `--dry-run` prints the same command as the sh version
+- [x] Same options and positional `[user@]host:/path`. ssh/scp argv go through `Exec`.
+- [x] Golden argv test, and `--dry-run` prints the same command as the sh version
 
 **Verify:** `bun test tools/epaper`. Manual: dry-run both versions and compare.
 **Files:** `src/push.ts`, `test/push.test.ts` · **Deps:** T-03 · **Size:** S

@@ -1,0 +1,218 @@
+[
+  {
+    "name": "dry-run",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>",
+      "-n",
+      "ha:/config/www/epaper13/"
+    ],
+    "stale": null,
+    "staleFail": false,
+    "code": 0,
+    "stdout": "regenerating manifest.json\ndestination: ha:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\n(dry run \u2014 nothing copied)\n",
+    "stderrHas": [],
+    "calls": [],
+    "manifest": "[\"E.PNG\", \"a.png\", \"b.png\", \"c.jpg\", \"d.jpeg\"]\n"
+  },
+  {
+    "name": "push-and-prune",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>",
+      "user@ha.local:/config/www/epaper13"
+    ],
+    "stale": "a.png\nold1.png\nold2.png\n",
+    "staleFail": false,
+    "code": 0,
+    "stdout": "regenerating manifest.json\ndestination: user@ha.local:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 5 file(s) to user@ha.local:/config/www/epaper13/\nremoved stale old1.png\nremoved stale old2.png\n",
+    "stderrHas": [],
+    "calls": [
+      [
+        "ssh",
+        "user@ha.local",
+        "mkdir -p '/config/www/epaper13/'"
+      ],
+      [
+        "scp",
+        "<dir>/manifest.json",
+        "<dir>/a.png",
+        "<dir>/b.png",
+        "<dir>/c.jpg",
+        "<dir>/d.jpeg",
+        "user@ha.local:/config/www/epaper13/"
+      ],
+      [
+        "ssh",
+        "user@ha.local",
+        "cd '/config/www/epaper13/' && for f in *.png; do [ -f \"$f\" ] && printf '%s\\n' \"$f\"; done"
+      ],
+      [
+        "ssh",
+        "-n",
+        "user@ha.local",
+        "rm -f -- '/config/www/epaper13//old1.png'"
+      ],
+      [
+        "ssh",
+        "-n",
+        "user@ha.local",
+        "rm -f -- '/config/www/epaper13//old2.png'"
+      ]
+    ],
+    "manifest": "[\"E.PNG\", \"a.png\", \"b.png\", \"c.jpg\", \"d.jpeg\"]\n"
+  },
+  {
+    "name": "push-stale-listing-fails",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>",
+      "ha:/cfg/www/epaper/"
+    ],
+    "stale": null,
+    "staleFail": true,
+    "code": 0,
+    "stdout": "regenerating manifest.json\ndestination: ha:/cfg/www/epaper/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 5 file(s) to ha:/cfg/www/epaper/\n",
+    "stderrHas": [],
+    "calls": [
+      [
+        "ssh",
+        "ha",
+        "mkdir -p '/cfg/www/epaper/'"
+      ],
+      [
+        "scp",
+        "<dir>/manifest.json",
+        "<dir>/a.png",
+        "<dir>/b.png",
+        "<dir>/c.jpg",
+        "<dir>/d.jpeg",
+        "ha:/cfg/www/epaper/"
+      ],
+      [
+        "ssh",
+        "ha",
+        "cd '/cfg/www/epaper/' && for f in *.png; do [ -f \"$f\" ] && printf '%s\\n' \"$f\"; done"
+      ]
+    ],
+    "manifest": "[\"E.PNG\", \"a.png\", \"b.png\", \"c.jpg\", \"d.jpeg\"]\n"
+  },
+  {
+    "name": "guard-wrong-panel",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--profile",
+      "spectra6-133",
+      "ha:/config/www/epaper/"
+    ],
+    "stale": null,
+    "staleFail": false,
+    "code": 2,
+    "stdout": "",
+    "stderrHas": [
+      "error: destination '/config/www/epaper/' does not match profile 'spectra6-133' artwork folder '<repo>/www/epaper13'"
+    ],
+    "calls": [],
+    "manifest": null
+  },
+  {
+    "name": "no-images",
+    "files": [
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>",
+      "ha:/x/"
+    ],
+    "stale": null,
+    "staleFail": false,
+    "code": 1,
+    "stdout": "regenerating manifest.json\n",
+    "stderrHas": [
+      "error: no images to push in <dir>"
+    ],
+    "calls": [],
+    "manifest": "[]\n"
+  },
+  {
+    "name": "dest-without-colon",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>",
+      "nohost"
+    ],
+    "stale": null,
+    "staleFail": false,
+    "code": 2,
+    "stdout": "",
+    "stderrHas": [
+      "error: destination must be [user@]host:/path"
+    ],
+    "calls": [],
+    "manifest": null
+  },
+  {
+    "name": "no-dest",
+    "files": [
+      "a.png",
+      "b.png",
+      "c.jpg",
+      "d.jpeg",
+      "E.PNG",
+      "x.txt"
+    ],
+    "args": [
+      "--dir",
+      "<dir>"
+    ],
+    "stale": null,
+    "staleFail": false,
+    "code": 2,
+    "stdout": "",
+    "stderrHas": [
+      "usage: push_to_ha.sh [options] [user@]host:/path/to/config/www/epaper/"
+    ],
+    "calls": [],
+    "manifest": null
+  }
+]

@@ -14,7 +14,7 @@ CLIs that keep today's flags.
 | prepare_image.sh | `src/prepare.ts` | same flags: `--profile --out-dir --fit --rotate --dither`, `INPUT [OUTPUT]`, `$EPAPER_PROFILE`, `$EPAPER_IMAGES` |
 | dither.py | **removed** | No profile uses `backend: epaper-dithering`; every profile is `magick`. `prepare` rejects unknown backends with a clear error. |
 | generate_manifest.py | `src/manifest.ts` | same flags, including the HEIC-convert option, and byte-identical manifest JSON |
-| push_to_ha.sh | `src/push.ts` | same options and positional `[user@]host:/path`; still rsync/ssh |
+| push_to_ha.sh | `src/push.ts` | same options and positional `[user@]host:/path`; still ssh/scp, including the stale-file pruning and the wrong-panel guard |
 
 `profiles.json` and the palette PNGs stay where they are, unchanged.
 
@@ -41,7 +41,7 @@ dropped along with dither.py. New tests:
   output on 3 sample photos, including one HEIC.
 - `manifest` on an existing `www/epaper13` folder produces JSON identical to the
   Python version's.
-- `push --dry-run` produces the same rsync command as the sh version.
+- `push --dry-run` prints the same plan and runs the same ssh/scp commands as the sh version.
 - The ESPHome devices keep loading the manifest.
 - After that, delete the Python files, `*.sh`, `pyproject.toml` and `uv.lock`, and
   update the README.

@@ -118,7 +118,7 @@ export async function runMain(fn: Command, argv: string[], sinks: Sinks = stdio)
       sinks.out(`${error.usage}\n`);
       return 0;
     }
-    sinks.err(`${(error as Error).message}\n`);
+    sinks.err(`error: ${(error as Error).message}\n`);
     return error instanceof UsageError ? 2 : 1;
   }
 }

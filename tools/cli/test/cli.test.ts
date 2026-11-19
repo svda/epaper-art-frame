@@ -106,7 +106,7 @@ describe("runMain", () => {
       { out: () => {}, err: (line) => errors.push(line) },
     );
     expect(code).toBe(2);
-    expect(errors.join("")).toContain("bad flag");
+    expect(errors.join("")).toBe("error: bad flag\n");
   });
 
   test("maps other errors to exit 1", async () => {

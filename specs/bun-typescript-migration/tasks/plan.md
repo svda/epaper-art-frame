@@ -42,7 +42,7 @@ Checkpoints come after T-02, T-07, T-13, T-18 and T-19 (see todo.md).
 | osascript export is slow, or permission prompts break launchd | High | T-08 measures speed. Document the Automation + FDA grant for `bun`. |
 | magick argv drift changes how the images look | Med | Golden argv tests, plus a size/palette check on sample photos (T-04) |
 | Manifest JSON differs, so ESPHome breaks | High | Byte-for-byte golden test against the Python output (T-05) |
-| rsync/push behaviour drifts | Med | Compare `--dry-run` command output with the sh version (T-06) |
+| ssh/scp push behaviour drifts | Med | Compare `--dry-run` command output with the sh version (T-06) |
 
 ## Open Questions
 - Single `frame` bin vs per-command entries (default: one entry per command; revisit in T-19).

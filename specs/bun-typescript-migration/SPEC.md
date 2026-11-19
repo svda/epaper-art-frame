@@ -37,7 +37,7 @@ Dependencies point one way only. museum and icloud import epaper as a library
 - TypeScript 5.x, `strict: true`, run directly by Bun (no build step)
 - Biome for format + lint
 - External CLIs, unchanged from today: ImageMagick 7 (`magick`, with HEIC support),
-  `rsync`/`ssh` for deploy, `launchctl`
+  `ssh`/`scp` for deploy, `launchctl`
 - npm runtime dependencies: **none planned.** Adding any needs approval (see Boundaries).
 
 ## Commands (repo root)
