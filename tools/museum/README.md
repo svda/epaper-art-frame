@@ -2,7 +2,7 @@
 
 Resolves a **Rijksstudio set**, renders each object as a 1600×1200 palette-only PNG with a
 gallery placard, and mirrors the result into the 13.3" frame's art mode folder.
-`set_mode.sh` publishes either the art or the photo set into the live folder and deploys
+`set-mode.ts` publishes either the art or the photo set into the live folder and deploys
 it. The device is unchanged.
 
 See [`../../specs/print-wall/SPEC.md`](../../specs/print-wall/SPEC.md).
@@ -20,9 +20,9 @@ tool fetches whatever is in the set, in the set's order.
    culture = "nl"
    ```
 
-2. Validate: `uv run --directory tools/museum python sync_prints.py --dry-run`
-3. Sync: `EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ uv run --directory tools/museum python sync_prints.py`
-4. Show: `tools/museum/set_mode.sh art` if the frame is not already in art mode.
+2. Validate: `bun tools/museum/src/sync-prints.ts --dry-run`
+3. Sync: `EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun tools/museum/src/sync-prints.ts`
+4. Show: `bun tools/museum/src/set-mode.ts art` if the frame is not already in art mode.
 
 The set page itself is fetched live on every run, so a newly added object appears on the
 next sync. Object metadata and images stay cached (they are immutable by URL);
@@ -35,39 +35,42 @@ The set's order is preserved: filenames are prefixed with the set index (`001-..
 
 ```
 # Preview: resolve the set and show rights, type and skips
-uv run --directory tools/museum python sync_prints.py --dry-run
+bun tools/museum/src/sync-prints.ts --dry-run
 
 # Override the configured set
-uv run --directory tools/museum python sync_prints.py --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
+bun tools/museum/src/sync-prints.ts --set epaper--aa3048ce-24d5-437f-b1ae-08df3f4239e6
 
 # The one command: fetch, render, mirror; deploy if art mode is active.
-# The deploy needs EPAPER13_DEST, exactly as set_mode.sh does.
+# The deploy needs EPAPER13_DEST, exactly as set-mode.ts does.
 EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ \
-  uv run --directory tools/museum python sync_prints.py
+  bun tools/museum/src/sync-prints.ts
 
 # Switch the 13" frame (publish + deploy); preview; status; republish the active mode
-EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ tools/museum/set_mode.sh art
-tools/museum/set_mode.sh photos
-tools/museum/set_mode.sh --dry-run art
-tools/museum/set_mode.sh --status
-tools/museum/set_mode.sh --refresh
+EPAPER13_DEST=server:/srv/home-assistant/config/www/epaper13/ bun tools/museum/src/set-mode.ts art
+bun tools/museum/src/set-mode.ts photos
+bun tools/museum/src/set-mode.ts --dry-run art
+bun tools/museum/src/set-mode.ts --status
+bun tools/museum/src/set-mode.ts --refresh
 
 # One-time: move today's 13" photos into their mode folder
-tools/museum/set_mode.sh --migrate
+bun tools/museum/src/set-mode.ts --migrate
 
 # Refresh 13" photos after the migration (existing tool, existing override)
 EPAPER_IMAGES=www/epaper13-modes/photos \
   tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
-tools/museum/set_mode.sh --refresh
+bun tools/museum/src/set-mode.ts --refresh
 
 # Render one placard by hand (debugging)
-uv run --directory tools/museum python -m placard <image.jpg> "<title>" "<artist>" "<date>" out.png
+bun tools/museum/src/placard.ts <image.jpg> "<title>" "<artist>" "<date>" out.png
 
-# Tests and lint
-uv run --directory tools/museum pytest
-uv run --directory tools/epaper pytest
-shellcheck tools/museum/*.sh
+# Tests, typecheck and lint (whole workspace)
+bun test tools/museum
+bun run typecheck
+bun run lint
+
+# Re-record the Linked Art fixtures (only when the API shape changes)
+bun tools/museum/test/record-fixtures.ts
 ```
 
 ## Modes
@@ -78,10 +81,10 @@ Each mode is a folder under `www/epaper13-modes/`:
 www/epaper13-modes/art/      ← the museum sync writes here (.managed.json)
 www/epaper13-modes/photos/   ← the album sync writes here
 www/epaper13-modes/ACTIVE    ← "art" or "photos"
-www/epaper13/                ← live folder; only set_mode.sh writes here
+www/epaper13/                ← live folder; only set-mode.ts writes here
 ```
 
-`set_mode.sh art|photos` copies that mode's PNGs into the live folder, regenerates the
+`set-mode.ts art|photos` copies that mode's PNGs into the live folder, regenerates the
 manifest, records `ACTIVE`, and deploys. `--refresh` republishes whichever mode is active
 without changing it. `--no-deploy` publishes and records but skips the push.
 
@@ -108,7 +111,7 @@ you publish or resell the images, revisit the rights question.
 
 ## Rotation order
 
-`sync_prints.py` prefixes each file with its position in the set (`001-…`, `002-…`) and
+`sync-prints.ts` prefixes each file with its position in the set (`001-…`, `002-…`) and
 `manifest.ts` writes a sorted list, so the device rotates in the set's order.
 The prefix is three digits, so a set with more than 999 objects would sort wrongly after
 `999-`.
@@ -117,22 +120,25 @@ The prefix is three digits, so a set with more than 999 objects would sort wrong
 
 | Symptom | Cause / fix |
 |---|---|
-| `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path tools/museum/set_mode.sh art` |
+| `EPAPER13_DEST is not set` | Export it, or pass it inline: `EPAPER13_DEST=host:/path bun tools/museum/src/set-mode.ts art` |
 | `Rijksstudio set '...' is empty or not found` | Check the set ID and that the set has items |
-| `mode 'art' has no PNGs` | Run `sync_prints.py` first; the art folder is empty |
-| `no ACTIVE mode recorded` | Run `set_mode.sh art` or `set_mode.sh photos` once |
-| A stale object stays on the wall | Remove it from `prints.toml` and re-run `sync_prints.py`; the mirror deletes it |
+| `mode 'art' has no PNGs` | Run `sync-prints.ts` first; the art folder is empty |
+| `no ACTIVE mode recorded` | Run `set-mode.ts art` or `set-mode.ts photos` once |
+| A stale object stays on the wall | Remove it from `prints.toml` and re-run `sync-prints.ts`; the mirror deletes it |
 | The API rate-limits | The fetcher retries 429/5xx with backoff and caches every response under `.cache/` |
-| `--refresh` shows the wrong set | Check `set_mode.sh --status`; `ACTIVE` names the mode being republished |
+| `--refresh` shows the wrong set | Check `set-mode.ts --status`; `ACTIVE` names the mode being republished |
 | The placard strip looks off-white | The image is pure `#FFFFFF`; the Spectra 6 white ink is slightly warm/grey. This is the panel, not the image |
 
 ## Files
 
-- `pyproject.toml` / `uv.lock` — environment (no runtime dependencies)
+- `package.json` — the `@frame/museum` workspace package (no runtime dependencies beyond `@frame/epaper`)
 - `prints.toml` — the Rijksstudio set id and culture
-- `rijks.py` — resolve, rights, orientation, metadata, HTTP fetcher and cache
-- `placard.py` — compose, dither through `prepare.ts`, letter the placard
-- `sync_prints.py` — resolve → render → mirror → manifest → deploy-if-active
-- `set_mode.sh` — publish, record, deploy, refresh, migrate, status
-- `tests/` — pytest suite; `tests/fixtures/` holds recorded Linked Art JSON
-- `.cache/` — git-ignored API and image cache
+- `src/rijks.ts` — resolve, rights, orientation, metadata
+- `src/fetcher.ts` — HTTP fetcher with the disk cache, spacing and retry/backoff
+- `src/placard.ts` — compose, dither through `prepareImage`, letter the placard
+- `src/sync-prints.ts` — resolve → render → mirror → manifest → deploy-if-active
+- `src/set-mode.ts` — publish, record, deploy, refresh, migrate, status
+- `test/` — bun test suite; `test/fixtures/` holds recorded Linked Art JSON,
+  `test/golden/` the magick argv captured from the old Python renderer,
+  `test/record-fixtures.ts` the manual fixture recorder
+- `.cache/` — git-ignored API and image cache (the layout is shared with the old Python tool)

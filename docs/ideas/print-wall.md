@@ -88,10 +88,10 @@ its `.managed.json`, so two syncs in one folder would delete each other's files.
 ```
 www/epaper13-modes/art/      ← museum sync writes here (.managed.json)
 www/epaper13-modes/photos/   ← iCloud sync writes here
-www/epaper13/                ← live; set_mode.sh publishes one into it
+www/epaper13/                ← live; set-mode.ts publishes one into it
 ```
 
-`set_mode.sh art|photos` rsyncs the chosen mode into the live folder and regenerates the
+`set-mode.ts art|photos` rsyncs the chosen mode into the live folder and regenerates the
 manifest. The prev/next buttons navigate artworks for free — no firmware work.
 
 ---
@@ -126,7 +126,7 @@ Open: strip (shrinks the artwork) vs overlay (covers the artwork).
 - Rijksmuseum only, keyless Linked Art, with a local three-hop cache.
 - Hand-curated list of ~20 object IDs, all PD/CC0.
 - Prepare with placard → `www/epaper13-modes/art/` → manifest → deploy.
-- `set_mode.sh art|photos`.
+- `set-mode.ts art|photos`.
 - Manual runs only; no scheduling.
 
 ---

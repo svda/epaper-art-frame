@@ -39,23 +39,23 @@ Spectra 6 frame and `www/epaper13/`. It is passed through to `prepare.ts` and
 ## 13" frame: art and photo modes
 
 The 13.3" frame can show either the album photos or the Rijksmuseum art set. Each mode
-lives in its own folder under `www/epaper13-modes/`, and `tools/museum/set_mode.sh`
+lives in its own folder under `www/epaper13-modes/`, and `bun tools/museum/src/set-mode.ts`
 publishes one into the live `www/epaper13/` folder and deploys it.
 
-After the one-time migration (`tools/museum/set_mode.sh --migrate`), refresh the 13"
+After the one-time migration (`bun tools/museum/src/set-mode.ts --migrate`), refresh the 13"
 photos with the existing override and the 13" destination, then republish:
 
 ```
 EPAPER_IMAGES=www/epaper13-modes/photos \
   tools/icloud/.venv/bin/python tools/icloud/sync_album.py --profile spectra6-133 \
   --dest "$EPAPER13_DEST"
-tools/museum/set_mode.sh --refresh
+bun tools/museum/src/set-mode.ts --refresh
 ```
 
 `--dest` is required: `tools/icloud/.env` points `EPAPER_DEST` at the 5.65" folder, and
 `push.ts` refuses a destination whose folder name does not match the profile's
 artwork folder. Running the sync without `EPAPER_IMAGES` writes the live folder directly
-and bypasses the modes; `set_mode.sh --status` shows the drift.
+and bypasses the modes; `set-mode.ts --status` shows the drift.
 
 ## Schedule (launchd)
 

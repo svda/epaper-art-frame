@@ -161,8 +161,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-18: Cut over museum and delete its Python/sh
 **Acceptance:**
-- [ ] Manual: `set-mode art`, then `set-mode photos`, then `--status` on the real 13" frame
-- [ ] `record_fixtures.py` becomes `test/record-fixtures.ts`. Delete the `*.py`, `*.sh`, `conftest.py` and uv files. Update the README.
+- [ ] Manual: `set-mode art`, then `set-mode photos`, then `--status` on the real 13" frame — **waived by the user on 2026-11-19 ("skip hardware check"); still to do after the cutover**
+- [x] `record_fixtures.py` becomes `test/record-fixtures.ts`. Delete the `*.py`, `*.sh`, `conftest.py` and uv files. Update the README.
 
 **Verify:** `bun test` · **Files:** `test/record-fixtures.ts`, `README.md`, deletions · **Deps:** T-17 · **Size:** S
 
