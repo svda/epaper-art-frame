@@ -9,6 +9,7 @@ import {
   DeployError,
   loadConfig,
   planDeletions,
+  refreshActive,
   run,
   sync,
   syncPrintsMain,
@@ -289,14 +290,14 @@ describe("sync", () => {
   test("reports a deploy failure without throwing and exits 1", async () => {
     const { args: a, lines } = args({
       deployFn: async () => {
-        throw new DeployError(["set_mode.sh", "--refresh"], 1);
+        throw new DeployError(["set-mode.ts", "--refresh"], 1);
       },
     });
     expect(await sync(a)).toBe(1);
-    expect(lines.some((l) => l.startsWith("deploy failed: set_mode.sh --refresh exited 1"))).toBe(
+    expect(lines.some((l) => l.startsWith("deploy failed: set-mode.ts --refresh exited 1"))).toBe(
       true,
     );
-    expect(lines.some((l) => l.includes("set_mode.sh --refresh"))).toBe(true);
+    expect(lines.some((l) => l.includes("set-mode.ts --refresh"))).toBe(true);
   });
 
   test("only stages when photos is active", async () => {
@@ -347,6 +348,24 @@ describe("sync", () => {
     const { args: a, lines } = args({ active: "photos" });
     await sync(a);
     expect(lines).toContain("sync: resolved=1 skipped=0 rendered=1 deleted=0");
+  });
+});
+
+describe("refreshActive (the default deploy)", () => {
+  test("asks set-mode to refresh the active mode", async () => {
+    const calls: string[][] = [];
+    await refreshActive(async (argv) => void calls.push(argv));
+    expect(calls).toEqual([["--refresh"]]);
+  });
+
+  test("turns a set-mode failure into a DeployError after printing why", async () => {
+    const errors: string[] = [];
+    const failing = async () => {
+      throw new Error("EPAPER13_DEST is not set");
+    };
+    const attempt = refreshActive(failing, (l) => errors.push(l));
+    await expect(attempt).rejects.toBeInstanceOf(DeployError);
+    expect(errors).toEqual(["error: EPAPER13_DEST is not set"]);
   });
 });
 

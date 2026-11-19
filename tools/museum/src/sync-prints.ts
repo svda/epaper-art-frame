@@ -16,6 +16,7 @@ import { manifestMain, renderManifest } from "@frame/epaper";
 import { Fetcher } from "./fetcher.ts";
 import { render as renderPlacard, sanitise } from "./placard.ts";
 import { type Fetch, type FetchText, type Print, resolve, type Skip, setMembers } from "./rijks.ts";
+import { setModeMain } from "./set-mode.ts";
 
 const MUSEUM_DIR = join(import.meta.dir, "..");
 const PROFILE = "spectra6-133-art";
@@ -24,7 +25,6 @@ const DEFAULT_CONFIG = join(MUSEUM_DIR, "prints.toml");
 const DEFAULT_CACHE = join(MUSEUM_DIR, ".cache");
 const MODES_DIR = join(repoRoot(), "www", "epaper13-modes");
 const ART_DIR = join(MODES_DIR, "art");
-const SET_MODE = join(MUSEUM_DIR, "set_mode.sh");
 
 type Out = (line: string) => void;
 type Result = Print | Skip;
@@ -168,10 +168,16 @@ export function activeMode(modesDir: string): string | undefined {
 const regenerateManifest: RegenerateManifest = (artDir) =>
   manifestMain(["--profile", PROFILE, "--dir", artDir], { out: () => {} });
 
-async function refresh(): Promise<void> {
-  const cmd = [SET_MODE, "--refresh"];
-  const code = await Bun.spawn(cmd, { stdout: "inherit", stderr: "inherit" }).exited;
-  if (code !== 0) throw new DeployError(cmd, code);
+export async function refreshActive(
+  setMode: (argv: string[]) => Promise<unknown> = setModeMain,
+  err: (line: string) => void = console.error,
+): Promise<void> {
+  try {
+    await setMode(["--refresh"]);
+  } catch (error) {
+    err(`error: ${(error as Error).message}`);
+    throw new DeployError(["set-mode.ts", "--refresh"], 1);
+  }
 }
 
 export interface SyncArgs {
@@ -211,20 +217,20 @@ export async function sync(args: SyncArgs): Promise<number> {
 
   if (args.active === "art" && args.deploy) {
     try {
-      await (args.deployFn ?? refresh)();
+      await (args.deployFn ?? refreshActive)();
     } catch (error) {
       if (!(error instanceof DeployError)) throw error;
       out(
         `deploy failed: ${error.cmd.join(" ")} exited ${error.code} (art is staged in ${args.artDir})`,
       );
-      out("fix the error above, then run tools/museum/set_mode.sh --refresh");
+      out("fix the error above, then run bun tools/museum/src/set-mode.ts --refresh");
       return 1;
     }
     out("deploy: refreshed art mode");
   } else {
     out(
       `art staged (${prints.length} objects); active mode is ${args.active ?? "none"} ` +
-        "— run set_mode.sh art to show them",
+        "— run set-mode.ts art to show them",
     );
   }
   return result.failures.length > 0 ? 1 : 0;

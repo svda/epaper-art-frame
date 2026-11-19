@@ -155,7 +155,7 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-17: `set-mode` (replaces set_mode.sh)
 **Acceptance:**
-- [ ] `test_set_mode.py` is ported. It supports `art|photos`, `--refresh`, `--migrate`, `--status`, `-n`, `--no-deploy` and `$EPAPER13_DEST`, and calls `@frame/epaper` directly.
+- [x] `test_set_mode.py` is ported. It supports `art|photos`, `--refresh`, `--migrate`, `--status`, `-n`, `--no-deploy` and `$EPAPER13_DEST`, and calls `@frame/epaper` directly.
 
 **Verify:** `bun test tools/museum` · **Files:** `src/set-mode.ts`, `test/set-mode.test.ts` · **Deps:** T-16 · **Size:** M
 
