@@ -35,9 +35,9 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-03: Device profiles library and `profile` CLI
 **Acceptance:**
-- [ ] `loadProfile`, `listProfiles`, `defaultProfileId`, honouring `$EPAPER_PROFILE`, with snake_case → camelCase mapping
-- [ ] CLI flags match `device_profile.py`: `[profile] [field]`, `--default --list --artwork --palette --json`
-- [ ] `test_profile.py` and `test_palettes.py` are ported
+- [x] `loadProfile`, `listProfiles`, `defaultProfileId`, honouring `$EPAPER_PROFILE`, with snake_case → camelCase mapping
+- [x] CLI flags match `device_profile.py`: `[profile] [field]`, `--default --list --artwork --palette --json`
+- [x] `test_profile.py` and `test_palettes.py` are ported
 
 **Verify:** `bun test tools/epaper`, and diff `bun tools/epaper/src/profile.ts --json spectra6-133` against the Python output
 **Files:** `tools/epaper/package.json`, `src/profile.ts`, `test/profile.test.ts`, `test/palettes.test.ts` · **Deps:** T-02 · **Size:** M
