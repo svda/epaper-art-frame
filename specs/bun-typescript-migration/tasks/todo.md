@@ -11,9 +11,9 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-01: Root Bun workspace with typecheck, lint and test
 **Acceptance:**
-- [ ] Root `package.json` (workspaces `tools/*`, scripts test/typecheck/lint/format), `tsconfig.json`, `biome.json`, `node_modules/` in `.gitignore`
-- [ ] Dev deps only: `typescript`, `@types/bun`, `@biomejs/biome`
-- [ ] One smoke test passes under `bun test`
+- [x] Root `package.json` (workspaces `tools/*`, scripts test/typecheck/lint/format), `tsconfig.json`, `biome.json`, `node_modules/` in `.gitignore`
+- [x] Dev deps only: `typescript`, `@types/bun`, `@biomejs/biome`
+- [x] One smoke test passes under `bun test`
 
 **Verify:** `bun install && bun test && bun run typecheck && bun run lint`
 **Files:** `package.json`, `tsconfig.json`, `biome.json`, `.gitignore`, `bun.lock` · **Deps:** none · **Size:** S
