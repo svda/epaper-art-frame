@@ -45,7 +45,7 @@ export interface ExecResult {
 
 export type Exec = (
   argv: string[],
-  opts?: { cwd?: string; env?: Record<string, string> },
+  opts?: { cwd?: string; env?: Record<string, string>; timeoutMs?: number },
 ) => Promise<ExecResult>;
 
 export const exec: Exec = async (argv, opts = {}) => {
@@ -54,13 +54,20 @@ export const exec: Exec = async (argv, opts = {}) => {
     env: opts.env ? { ...process.env, ...opts.env } : process.env,
     stdout: "pipe",
     stderr: "pipe",
+    timeout: opts.timeoutMs,
+    killSignal: "SIGKILL",
   });
   const [stdout, stderr, code] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
     proc.exited,
   ]);
-  return { code, stdout, stderr };
+  const timedOut = opts.timeoutMs !== undefined && proc.signalCode === "SIGKILL";
+  return {
+    code,
+    stdout,
+    stderr: timedOut ? `${stderr}${argv[0]} timed out after ${opts.timeoutMs} ms\n` : stderr,
+  };
 };
 
 export async function runOrThrow(

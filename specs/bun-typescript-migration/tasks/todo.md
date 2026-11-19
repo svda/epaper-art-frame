@@ -101,7 +101,7 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-10: Export (copy local original, or osascript) and selection
 **Acceptance:**
-- [ ] `test_export.py` and `test_selection.py` are ported. The local copy, the osascript path for cloud/edited photos, and the failure → reported skip are all covered with fakes.
+- [x] `test_export.py` and `test_selection.py` are ported. The local copy, the osascript path for cloud/edited photos, and the failure → reported skip are all covered with fakes.
 
 **Verify:** `bun test tools/icloud` · **Files:** `src/export.ts`, `src/selection.ts`, `test/export.test.ts`, `test/selection.test.ts` · **Deps:** T-09 · **Size:** M
 

@@ -161,6 +161,14 @@ describe("exec", () => {
     expect(result.stdout).toContain("yes");
   });
 
+  test("kills a command that outlives timeoutMs and says so", async () => {
+    const started = performance.now();
+    const result = await exec(["sleep", "5"], { timeoutMs: 100 });
+    expect(performance.now() - started).toBeLessThan(2000);
+    expect(result.code).not.toBe(0);
+    expect(result.stderr).toContain("timed out after 100 ms");
+  });
+
   test("runOrThrow throws with stderr on a non-zero exit", async () => {
     await expect(runOrThrow(["sh", "-c", "echo bad >&2; exit 1"])).rejects.toThrow("bad");
   });
