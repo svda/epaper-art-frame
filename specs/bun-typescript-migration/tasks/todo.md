@@ -136,7 +136,7 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-14: Rijksmuseum client
 **Acceptance:**
-- [ ] `test_rijks.py` and `test_fetch.py` are ported with an injected fetcher. The cache layout, retry/backoff and hashing are unchanged. The fixtures move to `test/fixtures/` as-is.
+- [x] `test_rijks.py` and `test_fetch.py` are ported with an injected fetcher. The cache layout, retry/backoff and hashing are unchanged. The fixtures move to `test/fixtures/` as-is.
 
 **Verify:** `bun test tools/museum` · **Files:** `tools/museum/package.json`, `src/rijks.ts`, `test/{rijks,fetch}.test.ts`, `test/fixtures/` · **Deps:** T-07 · **Size:** M
 

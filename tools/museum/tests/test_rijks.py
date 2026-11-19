@@ -7,7 +7,7 @@ import pytest
 
 from rijks import Print, Skip, resolve, rights_of, set_members
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).parent.parent / "test" / "fixtures"
 
 
 def fixture_fetch(object_number: str):

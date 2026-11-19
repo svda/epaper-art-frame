@@ -5,7 +5,7 @@ Run from the repo root:
 
     python3 tools/museum/tests/record_fixtures.py
 
-Writes one JSON file per object number under ``tests/fixtures/``. The tests never
+Writes one JSON file per object number under ``test/fixtures/``. The tests never
 touch the network; re-run this only when the API shape changes.
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).parent.parent / "test" / "fixtures"
 UA = {"User-Agent": "epaper-art-frame/print-wall", "Accept": "application/json"}
 
 OBJECT_NUMBERS = [

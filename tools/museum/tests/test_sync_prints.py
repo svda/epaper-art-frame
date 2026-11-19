@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 import rijks
 from sync_prints import apply_artwork, plan_deletions, run, sync
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).parent.parent / "test" / "fixtures"
 
 
 def make_print(number: str = "A") -> rijks.Print:
