@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sync_album import apply_artwork, export_photo, prepare_one
+from sync_album import BUN, apply_artwork, export_photo, prepare_one
 
 
 @dataclass
@@ -94,13 +94,13 @@ def test_prepare_one_exports_then_prepares_with_options_before_input(tmp_path):
         dest,
         export_fn=export_fn,
         run_fn=run_fn,
-        prepare_script=Path("/repo/tools/epaper/prepare_image.sh"),
+        prepare_script=Path("/repo/tools/epaper/src/prepare.ts"),
     )
 
-    assert calls["argv"][0] == "/repo/tools/epaper/prepare_image.sh"
+    assert calls["argv"][:2] == [BUN, "/repo/tools/epaper/src/prepare.ts"]
     # --profile comes first, then --out-dir, then the positional input/output.
-    assert calls["argv"][1:3] == ["--profile", "acep565"]
-    assert calls["argv"][3:5] == ["--out-dir", str(dest.parent)]
+    assert calls["argv"][2:4] == ["--profile", "acep565"]
+    assert calls["argv"][4:6] == ["--out-dir", str(dest.parent)]
     assert Path(calls["argv"][-2]).name == "IMG_0001.HEIC"
     assert calls["argv"][-1] == str(dest)
     assert dest.read_bytes() == b"png"
@@ -125,12 +125,12 @@ def test_prepare_one_converts_raw_before_preparing(tmp_path):
         dest,
         export_fn=export_fn,
         run_fn=run_fn,
-        prepare_script=Path("/repo/tools/epaper/prepare_image.sh"),
+        prepare_script=Path("/repo/tools/epaper/src/prepare.ts"),
     )
 
     assert calls[0][0] == "sips"
     assert calls[0][1:3] == ["-s", "format"]
-    assert calls[-1][0] == "/repo/tools/epaper/prepare_image.sh"
+    assert calls[-1][:2] == [BUN, "/repo/tools/epaper/src/prepare.ts"]
     assert Path(calls[-1][-2]).suffix == ".jpg"
 
 
@@ -141,7 +141,7 @@ def test_prepare_one_raises_when_export_yields_nothing(tmp_path):
             tmp_path / "d.png",
             export_fn=lambda photo, export_dir: [],
             run_fn=lambda argv: None,
-            prepare_script=Path("/p/prepare_image.sh"),
+            prepare_script=Path("/p/prepare.ts"),
         )
 
 
@@ -155,7 +155,7 @@ def test_prepare_one_propagates_prepare_failure(tmp_path):
             tmp_path / "d.png",
             export_fn=lambda photo, export_dir: [str(tmp_path / "x.heic")],
             run_fn=run_fn,
-            prepare_script=Path("/p/prepare_image.sh"),
+            prepare_script=Path("/p/prepare.ts"),
         )
 
 
@@ -173,7 +173,7 @@ def test_prepare_one_cleans_up_its_export_dir(tmp_path):
         tmp_path / "d.png",
         export_fn=export_fn,
         run_fn=lambda argv: Path(argv[-1]).write_bytes(b"png"),
-        prepare_script=Path("/p/prepare_image.sh"),
+        prepare_script=Path("/p/prepare.ts"),
     )
 
     assert not seen["dir"].exists()

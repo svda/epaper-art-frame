@@ -23,9 +23,9 @@ human action — the Mac syncs and deploys it automatically.
                        │
                        ├─ tools/icloud/sync_album.py
                        │     select 50 newest favorites
-                       │     → prepare_image.sh (600×448, 7-colour dither)
+                       │     → prepare.ts (600×448, 7-colour dither)
                        │     → mirror into www/epaper/ + regenerate manifest.json
-                       │     → push_to_ha.sh (scp)
+                       │     → push.ts (scp)
                        ▼
                  HA host: config/www/epaper/  ──HTTP──▶  daily wake:
                                                           fetch manifest.json
@@ -42,7 +42,7 @@ voltage, last image, WiFi). It never directs the device.
 | Path | Contents |
 |---|---|
 | `config/esphome/` | Device firmware (ESPHome YAML). `common/` holds the shared packages — `base.yaml` (api/ota/wifi/logger) and `art-frame.yaml` (the fetch→render→sleep pipeline); `devices/` holds one file per flashable config, the deployed frames plus the bring-up aids. `devices/secrets.yaml` is git-ignored. |
-| `tools/epaper/` | Image pipeline: `prepare_image.sh` (HEIC/JPEG → 600×448 7-colour dithered PNG), `generate_manifest.py` (manifest writer), `push_to_ha.sh` (deploy to HA). See [`tools/epaper/README.md`](tools/epaper/README.md). |
+| `tools/epaper/` | Image pipeline (Bun/TypeScript): `prepare.ts` (HEIC/JPEG → 600×448 7-colour dithered PNG), `manifest.ts` (manifest writer), `push.ts` (deploy to HA). See [`tools/epaper/README.md`](tools/epaper/README.md). |
 | `tools/icloud/` | Automatic sync of the 50 most recent iCloud Favorites from the Mac's Photos library. See [`tools/icloud/README.md`](tools/icloud/README.md). |
 | `www/epaper/` | Artwork folder: prepared images + generated `manifest.json`. Images and the manifest are git-ignored. |
 | `specs/` | Specs and task lists: [`epaper-art-frame`](specs/epaper-art-frame/SPEC.md) (device), [`icloud-album-sync`](specs/icloud-album-sync/SPEC.md) (source), [`wooden-frame`](specs/wooden-frame/SPEC.md) (enclosure), [`ee02-13in-spectra6`](specs/ee02-13in-spectra6/SPEC.md) (second frame + multi-device support). |
@@ -123,13 +123,13 @@ The artwork folder defaults to `<repo>/www/epaper` and is served by HA at
 
 ```
 # Prepare one photo (HEIC/JPEG/...) to a 600×448 7-colour dithered PNG
-tools/epaper/prepare_image.sh ~/Downloads/IMG_1234.HEIC
+bun tools/epaper/src/prepare.ts ~/Downloads/IMG_1234.HEIC
 
 # Regenerate the manifest (its only writer)
-python3 tools/epaper/generate_manifest.py
+bun tools/epaper/src/manifest.ts
 
 # Deploy manifest + images to the HA host
-tools/epaper/push_to_ha.sh user@host:/path/to/config/www/epaper/
+bun tools/epaper/src/push.ts user@host:/path/to/config/www/epaper/
 ```
 
 On-device quantisation is not used: images are pre-dithered to the panel's exact 7-colour

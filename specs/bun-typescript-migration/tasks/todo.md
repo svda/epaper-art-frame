@@ -69,9 +69,9 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-07: Cut over epaper and delete its Python/sh
 **Acceptance:**
-- [ ] Manual: prepare, manifest and push to the real 13" frame works end to end, and ESPHome loads the result
-- [ ] Delete `*.py`, `*.sh`, `tests/`, `pyproject.toml` and `uv.lock` in `tools/epaper`. Update the README.
-- [ ] museum and icloud Python still work. They shell out to the old scripts, so point their path constants at `bun tools/epaper/src/*.ts` until they're ported.
+- [ ] Manual: prepare, manifest and push to the real 13" frame works end to end, and ESPHome loads the result — **waived by the user on 2026-11-19 ("skip hardware check"); still to do after the cutover**
+- [x] Delete `*.py`, `*.sh`, `tests/`, `pyproject.toml` and `uv.lock` in `tools/epaper`. Update the README.
+- [x] museum and icloud Python still work. They shell out to the old scripts, so point their path constants at `bun tools/epaper/src/*.ts` until they're ported.
 
 **Verify:** `bun test`, plus `uv run pytest` in museum and icloud
 **Files:** `tools/epaper/README.md`, `tools/museum/set_mode.sh`, `tools/museum/sync_prints.py`, `tools/icloud/sync_album.py`, deletions · **Deps:** T-04, T-05, T-06 · **Size:** M

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sync_album import Config, SyncResult, exit_code, manifest_writer, summarize, sync
+from sync_album import BUN, Config, SyncResult, exit_code, manifest_writer, summarize, sync
 
 ALBUM = "epaper art frame"
 
@@ -91,11 +91,11 @@ def test_summarize_marks_dry_run():
 def test_manifest_writer_calls_generate_manifest_with_dir(tmp_path):
     calls = []
     regenerate = manifest_writer(
-        script=Path("/repo/tools/epaper/generate_manifest.py"),
+        script=Path("/repo/tools/epaper/src/manifest.ts"),
         run_fn=calls.append,
     )
     regenerate(Path("/art"))
 
-    assert calls[0][0] == sys.executable
-    assert calls[0][1] == "/repo/tools/epaper/generate_manifest.py"
+    assert calls[0][0] == BUN
+    assert calls[0][1] == "/repo/tools/epaper/src/manifest.ts"
     assert calls[0][2:] == ["--profile", "acep565", "--dir", "/art"]

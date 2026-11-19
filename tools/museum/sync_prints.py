@@ -20,7 +20,7 @@ DEFAULT_CONFIG = HERE / "prints.toml"
 DEFAULT_CACHE = HERE / ".cache"
 ART_DIR = REPO / "www" / "epaper13-modes" / "art"
 MODES_DIR = REPO / "www" / "epaper13-modes"
-GENERATE = REPO / "tools" / "epaper" / "generate_manifest.py"
+GENERATE = REPO / "tools" / "epaper" / "src" / "manifest.ts"
 SET_MODE = REPO / "tools" / "museum" / "set_mode.sh"
 PROFILE = "spectra6-133-art"
 MANAGED_NAME = ".managed.json"
@@ -141,7 +141,7 @@ def active_mode(modes_dir: Path) -> str | None:
 
 def regenerate_manifest(art_dir: Path) -> None:
     subprocess.run(
-        [sys.executable, str(GENERATE), "--profile", PROFILE, "--dir", str(art_dir)],
+        ["bun", str(GENERATE), "--profile", PROFILE, "--dir", str(art_dir)],
         check=True,
         capture_output=True,
     )

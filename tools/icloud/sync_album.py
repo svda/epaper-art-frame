@@ -29,16 +29,16 @@ REPO = HERE.parent.parent
 
 # Panel profiles are shared with the image tooling; tools/epaper/profiles.json is
 # the single source of truth for what each panel needs.
-sys.path.insert(0, str(REPO / "tools" / "epaper"))
-import device_profile  # noqa: E402
+PROFILES_FILE = REPO / "tools" / "epaper" / "profiles.json"
+BUN = shutil.which("bun") or "bun"
 
 DEFAULT_ARTWORK = REPO / "www" / "epaper"
 DEFAULT_ENV_FILE = HERE / ".env"
 DEFAULT_INTERVAL_H = 6
 MANAGED_NAME = ".managed.json"
-PREPARE_SCRIPT = REPO / "tools" / "epaper" / "prepare_image.sh"
-MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "generate_manifest.py"
-PUSH_SCRIPT = REPO / "tools" / "epaper" / "push_to_ha.sh"
+PREPARE_SCRIPT = REPO / "tools" / "epaper" / "src" / "prepare.ts"
+MANIFEST_SCRIPT = REPO / "tools" / "epaper" / "src" / "manifest.ts"
+PUSH_SCRIPT = REPO / "tools" / "epaper" / "src" / "push.ts"
 PLIST_TEMPLATE = HERE / "com.sander.epaper-album.plist.template"
 
 # ImageMagick cannot decode camera RAW without a delegate (darktable etc.);
@@ -96,10 +96,23 @@ def _as_int(value, key: str) -> int:
         raise ValueError(f"invalid {key}: {value!r} (expected an integer)") from None
 
 
+def default_profile_name() -> str:
+    return json.loads(PROFILES_FILE.read_text(encoding="utf-8"))["default"]
+
+
+def _resolve_profile(profile: str | None) -> dict:
+    data = json.loads(PROFILES_FILE.read_text(encoding="utf-8"))
+    name = profile or data["default"]
+    try:
+        return data["profiles"][name]
+    except KeyError:
+        known = ", ".join(sorted(data["profiles"]))
+        raise ValueError(f"unknown profile '{name}' (known: {known})") from None
+
+
 def artwork_dir_for(profile: str | None = None) -> Path:
     """The artwork folder for *profile* (the configured default when None)."""
-    _, prof = device_profile.resolve(profile)
-    return device_profile.artwork_dir(prof)
+    return (REPO / _resolve_profile(profile)["artwork"]).resolve()
 
 
 def resolve_config(
@@ -116,10 +129,7 @@ def resolve_config(
     # `--profile` selects the panel, and its artwork folder is the default folder.
     # Validate it even when an artwork dir is given, so a typo fails loudly.
     profile = _pick(args.profile, env, env_file, "EPAPER_PROFILE", None)
-    try:
-        device_profile.resolve(profile)
-    except SystemExit as exc:  # device_profile is CLI-oriented; normalise for this caller
-        raise ValueError(str(exc.code)) from exc
+    _resolve_profile(profile)
     artwork = _pick(args.artwork_dir, env, env_file, "EPAPER_IMAGES", None)
     if artwork:
         artwork_dir = Path(artwork).expanduser()
@@ -146,6 +156,8 @@ def preflight() -> list[str]:
     missing = []
     if importlib.util.find_spec("osxphotos") is None:
         missing.append("osxphotos (uv sync)")
+    if shutil.which("bun") is None:
+        missing.append("bun")
     if shutil.which("magick") is None:
         missing.append("magick (ImageMagick 7)")
     if shutil.which("scp") is None:
@@ -322,7 +334,8 @@ def _run(argv: list[str]) -> None:
     result = subprocess.run(argv, capture_output=True, text=True)
     if result.returncode != 0:
         detail = (result.stderr or result.stdout or "").strip()
-        raise RuntimeError(f"{Path(argv[0]).name} failed ({result.returncode}): {detail}")
+        tool = Path(argv[1] if Path(argv[0]).name == "bun" and len(argv) > 1 else argv[0]).name
+        raise RuntimeError(f"{tool} failed ({result.returncode}): {detail}")
 
 
 def _maybe_convert_raw(src: Path, export_dir: Path, run_fn) -> Path:
@@ -347,8 +360,7 @@ def prepare_one(
 ) -> None:
     """Export one photo and prepare it to *dest* as a panel-ready PNG.
 
-    Options precede the positional input/output for prepare_image.sh (its arg
-    loop breaks at the first non-option). The profile is passed through so the
+    Options precede the positional input/output for prepare.ts. The profile is passed through so the
     output matches the right panel's dimensions and palette.
     """
     dest = Path(dest)
@@ -360,9 +372,10 @@ def prepare_one(
         src = _maybe_convert_raw(Path(paths[0]), export_dir, run_fn)
         run_fn(
             [
+                BUN,
                 str(prepare_script),
                 "--profile",
-                profile or device_profile.default_name(),
+                profile or default_profile_name(),
                 "--out-dir",
                 str(dest.parent),
                 str(src),
@@ -374,15 +387,15 @@ def prepare_one(
 
 
 def manifest_writer(script: Path = MANIFEST_SCRIPT, run_fn=_run, profile: str | None = None):
-    """A manifest regenerator that calls generate_manifest.py (its only writer)."""
+    """A manifest regenerator that calls manifest.ts (its only writer)."""
 
     def regenerate(artwork_dir: Path) -> None:
         run_fn(
             [
-                sys.executable,
+                BUN,
                 str(script),
                 "--profile",
-                profile or device_profile.default_name(),
+                profile or default_profile_name(),
                 "--dir",
                 str(artwork_dir),
             ]
@@ -436,7 +449,7 @@ def deploy(dest: str | None, changed: bool, run_fn=_run, profile: str | None = N
         return
     if not dest:
         raise RuntimeError("no deploy destination configured (set EPAPER_DEST or --dest)")
-    run_fn([str(PUSH_SCRIPT), "--profile", profile or device_profile.default_name(), dest])
+    run_fn([BUN, str(PUSH_SCRIPT), "--profile", profile or default_profile_name(), dest])
 
 
 def render_plist(

@@ -14,8 +14,8 @@ SCRIPT = REPO / "tools" / "museum" / "set_mode.sh"
 EPAPER = REPO / "tools" / "epaper"
 
 pytestmark = pytest.mark.skipif(
-    shutil.which("magick") is None or shutil.which("rsync") is None,
-    reason="needs ImageMagick and rsync",
+    shutil.which("magick") is None or shutil.which("rsync") is None or shutil.which("bun") is None,
+    reason="needs ImageMagick, rsync and bun",
 )
 
 
@@ -27,16 +27,17 @@ def make_tree(tmp_path: Path) -> Path:
     (tmp_path / "tools" / "museum").mkdir(parents=True)
     (tmp_path / "tools" / "epaper").mkdir(parents=True)
     shutil.copy(SCRIPT, tmp_path / "tools" / "museum" / "set_mode.sh")
-    for name in (
-        "generate_manifest.py",
-        "device_profile.py",
-        "profiles.json",
-        "palette-spectra6.png",
-    ):
+    for name in ("profiles.json", "palette-spectra6.png"):
         shutil.copy(EPAPER / name, tmp_path / "tools" / "epaper" / name)
-    stub = tmp_path / "tools" / "epaper" / "push_to_ha.sh"
-    stub.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$PUSH_LOG\"\n")
-    stub.chmod(0o755)
+    shutil.copytree(EPAPER / "src", tmp_path / "tools" / "epaper" / "src")
+    shutil.copytree(REPO / "tools" / "cli", tmp_path / "tools" / "cli")
+    scope = tmp_path / "node_modules" / "@frame"
+    scope.mkdir(parents=True)
+    (scope / "cli").symlink_to(tmp_path / "tools" / "cli")
+    stub = tmp_path / "tools" / "epaper" / "src" / "push.ts"
+    stub.write_text(
+        'await Bun.write(process.env.PUSH_LOG!, `${process.argv.slice(2).join("\\n")}\\n`);\n'
+    )
     for mode in ("art", "photos"):
         folder = tmp_path / "www" / "epaper13-modes" / mode
         folder.mkdir(parents=True)

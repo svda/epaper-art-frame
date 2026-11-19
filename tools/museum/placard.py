@@ -9,7 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-PREPARE = REPO / "tools" / "epaper" / "prepare_image.sh"
+PREPARE = REPO / "tools" / "epaper" / "src" / "prepare.ts"
 PROFILE = "spectra6-133-art"
 
 WIDTH, HEIGHT = 1600, 1200
@@ -148,7 +148,7 @@ def letter(
 
 def _prepare(composed: Path, out: Path) -> None:
     subprocess.run(
-        [str(PREPARE), "--profile", PROFILE, str(composed), str(out)],
+        ["bun", str(PREPARE), "--profile", PROFILE, str(composed), str(out)],
         check=True,
         capture_output=True,
     )

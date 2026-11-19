@@ -109,7 +109,7 @@ you publish or resell the images, revisit the rights question.
 ## Rotation order
 
 `sync_prints.py` prefixes each file with its position in the set (`001-…`, `002-…`) and
-`generate_manifest.py` writes a sorted list, so the device rotates in the set's order.
+`manifest.ts` writes a sorted list, so the device rotates in the set's order.
 The prefix is three digits, so a set with more than 999 objects would sort wrongly after
 `999-`.
 
@@ -131,7 +131,7 @@ The prefix is three digits, so a set with more than 999 objects would sort wrong
 - `pyproject.toml` / `uv.lock` — environment (no runtime dependencies)
 - `prints.toml` — the Rijksstudio set id and culture
 - `rijks.py` — resolve, rights, orientation, metadata, HTTP fetcher and cache
-- `placard.py` — compose, dither through `prepare_image.sh`, letter the placard
+- `placard.py` — compose, dither through `prepare.ts`, letter the placard
 - `sync_prints.py` — resolve → render → mirror → manifest → deploy-if-active
 - `set_mode.sh` — publish, record, deploy, refresh, migrate, status
 - `tests/` — pytest suite; `tests/fixtures/` holds recorded Linked Art JSON

@@ -7,8 +7,8 @@ REPO=$(CDPATH='' cd -- "$DIR/../.." && pwd)
 MODES="$REPO/www/epaper13-modes"
 LIVE="$REPO/www/epaper13"
 PROFILE=spectra6-133
-GENERATE="$REPO/tools/epaper/generate_manifest.py"
-PUSH="$REPO/tools/epaper/push_to_ha.sh"
+GENERATE="$REPO/tools/epaper/src/manifest.ts"
+PUSH="$REPO/tools/epaper/src/push.ts"
 DEST=${EPAPER13_DEST:-}
 
 dry_run=0
@@ -59,19 +59,19 @@ publish() {
     fi
     echo "would write ACTIVE=$m"
     if [ "$deploy" -eq 1 ]; then
-      echo "would deploy: $PUSH --profile $PROFILE $DEST"
+      echo "would deploy: bun $PUSH --profile $PROFILE $DEST"
     fi
     return 0
   fi
 
   mkdir -p "$LIVE"
   rsync -a --delete --include='*.png' --exclude='*' "$src/" "$LIVE/"
-  python3 "$GENERATE" --profile "$PROFILE" --dir "$LIVE" >/dev/null
+  bun "$GENERATE" --profile "$PROFILE" --dir "$LIVE" >/dev/null
   printf '%s\n' "$m" > "$MODES/ACTIVE"
   echo "published $m -> $LIVE"
 
   if [ "$deploy" -eq 1 ]; then
-    "$PUSH" --profile "$PROFILE" "$DEST"
+    bun "$PUSH" --profile "$PROFILE" "$DEST"
   fi
   echo "note: the frame keeps one rotation counter across modes; it continues from wherever it is."
 }

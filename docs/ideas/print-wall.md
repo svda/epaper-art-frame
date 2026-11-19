@@ -57,7 +57,7 @@ collection's centre of gravity and the dithering spike (below) shows they hold u
 ## Dithering Evidence (spike, 2026-11-14)
 
 Six public-domain prints, one per technique class, fetched at 1600px and run through the
-real pipeline: `prepare_image.sh --profile spectra6-133 --fit`.
+real pipeline: `bun tools/epaper/src/prepare.ts --profile spectra6-133 --fit`.
 
 | Sample | Technique | Result |
 |---|---|---|

@@ -32,8 +32,8 @@ variables, overridden by CLI flags. Keys: `EPAPER_DEST`, `PHOTOS_LIBRARY`, `ALBU
 
 `EPAPER_PROFILE` selects which panel to prepare for, and with it the artwork folder: the default
 (`acep565`) is the deployed 5.65" frame and `www/epaper/`, while `spectra6-133` is the 13.3"
-Spectra 6 frame and `www/epaper13/`. It is passed through to `prepare_image.sh` and
-`generate_manifest.py`, so the prepared images match that panel's dimensions and palette. See
+Spectra 6 frame and `www/epaper13/`. It is passed through to `prepare.ts` and
+`manifest.ts`, so the prepared images match that panel's dimensions and palette. See
 [`../epaper/profiles.json`](../epaper/profiles.json).
 
 ## 13" frame: art and photo modes
@@ -53,7 +53,7 @@ tools/museum/set_mode.sh --refresh
 ```
 
 `--dest` is required: `tools/icloud/.env` points `EPAPER_DEST` at the 5.65" folder, and
-`push_to_ha.sh` refuses a destination whose folder name does not match the profile's
+`push.ts` refuses a destination whose folder name does not match the profile's
 artwork folder. Running the sync without `EPAPER_IMAGES` writes the live folder directly
 and bypasses the modes; `set_mode.sh --status` shows the drift.
 
@@ -111,17 +111,16 @@ the original via Photos.app (proven: a 1.18 MB HEIC). Note the per-photo `export
 `download_missing` argument — that is an `ExportOptions` (CLI) field; the per-photo equivalent is
 `use_photos_export=True`.
 
-**Full chain proven:** newest favorite (off-disk HEIC) → download → `prepare_image.sh` →
+**Full chain proven:** newest favorite (off-disk HEIC) → download → `prepare.ts` →
 `600×448, colors=7`.
 
-### Gotcha: `prepare_image.sh` argument order
+### Note: `prepare.ts` argument order
 
-Options must come **before** the positional input/output — its arg loop breaks at the first
-non-option, so `prepare_image.sh INPUT --out-dir DIR` silently treats `--out-dir` as the output
-path. Correct:
+The old shell script broke at the first non-option, so options had to precede the positional
+input/output. `prepare.ts` accepts them in any order, but this tool still passes options first:
 
 ```
-tools/epaper/prepare_image.sh --out-dir DIR INPUT [OUTPUT]
+bun tools/epaper/src/prepare.ts --out-dir DIR INPUT [OUTPUT]
 ```
 
 ## Troubleshooting
@@ -130,18 +129,18 @@ tools/epaper/prepare_image.sh --out-dir DIR INPUT [OUTPUT]
 |---|---|
 | `Operation not permitted: .../Photos.sqlite` | Full Disk Access missing — see above |
 | `original not available (still in iCloud?)` | Photo not downloadable; check iCloud sign-in. The run logs it and continues |
-| `prepare_image.sh failed` | ImageMagick missing or the file isn't an image — the message includes magick's stderr |
+| `prepare.ts failed` | ImageMagick missing or the file isn't an image — the message includes magick's stderr |
 | `no deploy destination configured` | Set `EPAPER_DEST` in `.env` |
 | `deploy failed: ...` | HA host unreachable or the path is wrong; the local folder is left intact |
 | A photo doesn't appear | Photos hasn't synced it yet — it appears on a later run |
-| Stale files linger on the HA host | `push_to_ha.sh` copies but never deletes; the device is manifest-driven so they are inert. Remove manually if desired |
+| Stale files linger on the HA host | `push.ts` prunes stale PNGs on the host after each push; if the listing over ssh fails it skips pruning, and the device is manifest-driven so leftovers are inert |
 | Edited photos | The sync uses the **original** (`photo.path`), not the edited render |
 
 ## Non-goals
 
 `icloudpd` / disabling Advanced Data Protection; iCloud Shared Albums; any host beyond the
 existing Home Assistant box; live "show now" device control; device firmware changes; porting
-`generate_manifest.py` to another language.
+`manifest.ts` to another language.
 
 ## Files
 

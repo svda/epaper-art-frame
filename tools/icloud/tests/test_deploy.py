@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from sync_album import PUSH_SCRIPT, deploy
+from sync_album import BUN, PUSH_SCRIPT, deploy
 
 
 def test_deploy_skips_when_nothing_changed():
@@ -15,7 +15,7 @@ def test_deploy_runs_push_script_with_the_destination():
     calls = []
     deploy("ha:/cfg/www/epaper", changed=True, run_fn=calls.append)
     # --profile is always passed so the push uses the right artwork folder.
-    assert calls == [[str(PUSH_SCRIPT), "--profile", "acep565", "ha:/cfg/www/epaper"]]
+    assert calls == [[BUN, str(PUSH_SCRIPT), "--profile", "acep565", "ha:/cfg/www/epaper"]]
 
 
 def test_deploy_requires_a_destination_when_changed():
