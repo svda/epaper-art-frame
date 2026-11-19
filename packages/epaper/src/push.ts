@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import { basename } from "node:path";
 import {
   exec as defaultExec,
@@ -10,8 +10,6 @@ import {
 } from "@frame/cli";
 import { generateManifest } from "./manifest.ts";
 import { loadProfile, type Profile } from "./profile.ts";
-
-const PUSH_EXTS = [".png", ".jpg", ".jpeg"];
 
 export interface PushOptions {
   profile: Profile;
@@ -29,28 +27,8 @@ function shQuote(text: string): string {
   return `'${text.replaceAll("'", "'\\''")}'`;
 }
 
-function isFile(path: string): boolean {
-  try {
-    return statSync(path).isFile();
-  } catch {
-    return false;
-  }
-}
-
 function lastSegment(path: string): string {
   return basename(path.replace(/\/$/, ""));
-}
-
-function artworkFiles(images: string): string[] {
-  const names = readdirSync(images).filter(
-    (name) => !name.startsWith(".") && isFile(`${images}/${name}`),
-  );
-  return PUSH_EXTS.flatMap((ext) =>
-    names
-      .filter((name) => name.endsWith(ext))
-      .sort()
-      .map((name) => `${images}/${name}`),
-  );
 }
 
 export async function push(opts: PushOptions, deps: PushDeps = {}): Promise<void> {
@@ -63,6 +41,7 @@ export async function push(opts: PushOptions, deps: PushDeps = {}): Promise<void
   const dest = `${opts.dest.replace(/\/$/, "")}/`;
   const host = dest.slice(0, dest.indexOf(":"));
   const remoteDir = dest.slice(dest.indexOf(":") + 1);
+  if (host.startsWith("-")) throw new UsageError(`invalid destination host '${host}'`);
 
   // The destination is not profile-aware: without this guard a non-default profile pushed to
   // the default destination would overwrite the other panel's rotation with wrong-sized images.
@@ -77,7 +56,7 @@ export async function push(opts: PushOptions, deps: PushDeps = {}): Promise<void
   out("regenerating manifest.json");
   const { images: listed } = generateManifest(images);
 
-  const files = artworkFiles(images);
+  const files = listed.map((name) => `${images}/${name}`);
   if (files.length === 0) throw new Error(`no images to push in ${images}`);
 
   const manifest = `${images}/manifest.json`;
@@ -101,6 +80,10 @@ export async function push(opts: PushOptions, deps: PushDeps = {}): Promise<void
     host,
     `cd ${shQuote(remoteDir)} && for f in *.png; do [ -f "$f" ] && printf '%s\\n' "$f"; done`,
   ]);
+  if (listing.code !== 0) {
+    out(`warning: could not list remote folder, skipping prune: ${listing.stderr.trim()}`);
+    return;
+  }
   const keep = new Set(listed);
   const stale = listing.stdout
     .split("\n")

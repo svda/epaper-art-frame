@@ -128,6 +128,23 @@ describe("push", () => {
     expect(calls.filter((c) => c.join(" ").includes("rm -f"))).toHaveLength(0);
   });
 
+  test("copies every file the manifest lists, including uppercase extensions", async () => {
+    const dir = folderWith(["a.png", "B.JPG"]);
+    const { calls, exec } = fakeRemote();
+    await push({ profile: acep, dir, dest: "ha:/d/" }, { exec, out: () => {} });
+    const scp = calls.find((c) => c[0] === "scp");
+    expect(scp).toEqual(["scp", `${dir}/manifest.json`, `${dir}/B.JPG`, `${dir}/a.png`, "ha:/d/"]);
+  });
+
+  test("rejects a host that ssh would parse as an option", async () => {
+    const dir = folderWith(["a.png"]);
+    const { calls, exec } = fakeRemote();
+    await expect(
+      push({ profile: acep, dir, dest: "-oProxyCommand=x:/d/" }, { exec, out: () => {} }),
+    ).rejects.toThrow(UsageError);
+    expect(calls).toHaveLength(0);
+  });
+
   test("a failing ssh mkdir aborts before scp and carries ssh's stderr", async () => {
     const dir = folderWith(["a.png"]);
     const { calls, exec } = fakeRemote({ failOn: "mkdir" });

@@ -18,7 +18,7 @@
     "stale": null,
     "staleFail": false,
     "code": 0,
-    "stdout": "regenerating manifest.json\ndestination: ha:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\n(dry run \u2014 nothing copied)\n",
+    "stdout": "regenerating manifest.json\ndestination: ha:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/E.PNG\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\n(dry run \u2014 nothing copied)\n",
     "stderrHas": [],
     "calls": [],
     "manifest": "[\"E.PNG\", \"a.png\", \"b.png\", \"c.jpg\", \"d.jpeg\"]\n"
@@ -41,7 +41,7 @@
     "stale": "a.png\nold1.png\nold2.png\n",
     "staleFail": false,
     "code": 0,
-    "stdout": "regenerating manifest.json\ndestination: user@ha.local:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 5 file(s) to user@ha.local:/config/www/epaper13/\nremoved stale old1.png\nremoved stale old2.png\n",
+    "stdout": "regenerating manifest.json\ndestination: user@ha.local:/config/www/epaper13/\nfiles:\n  <dir>/manifest.json\n  <dir>/E.PNG\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 6 file(s) to user@ha.local:/config/www/epaper13/\nremoved stale old1.png\nremoved stale old2.png\n",
     "stderrHas": [],
     "calls": [
       [
@@ -52,6 +52,7 @@
       [
         "scp",
         "<dir>/manifest.json",
+        "<dir>/E.PNG",
         "<dir>/a.png",
         "<dir>/b.png",
         "<dir>/c.jpg",
@@ -96,7 +97,7 @@
     "stale": null,
     "staleFail": true,
     "code": 0,
-    "stdout": "regenerating manifest.json\ndestination: ha:/cfg/www/epaper/\nfiles:\n  <dir>/manifest.json\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 5 file(s) to ha:/cfg/www/epaper/\n",
+    "stdout": "regenerating manifest.json\ndestination: ha:/cfg/www/epaper/\nfiles:\n  <dir>/manifest.json\n  <dir>/E.PNG\n  <dir>/a.png\n  <dir>/b.png\n  <dir>/c.jpg\n  <dir>/d.jpeg\npushed 6 file(s) to ha:/cfg/www/epaper/\nwarning: could not list remote folder, skipping prune: \n",
     "stderrHas": [],
     "calls": [
       [
@@ -107,6 +108,7 @@
       [
         "scp",
         "<dir>/manifest.json",
+        "<dir>/E.PNG",
         "<dir>/a.png",
         "<dir>/b.png",
         "<dir>/c.jpg",
