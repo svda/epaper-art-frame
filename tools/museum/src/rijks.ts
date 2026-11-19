@@ -1,3 +1,5 @@
+import { UsageError } from "@frame/cli";
+
 export type Rec = Record<string, unknown>;
 
 const ENGLISH = "http://vocab.getty.edu/aat/300388277";
@@ -213,6 +215,7 @@ export async function setMembers(
   const url = SET_PAGE.replace("{culture}", culture).replace("{setId}", setId);
   const html = await fetchText(url);
   const members = [...new Set([...html.matchAll(OBJECT_NUMBER)].map((m) => m[1] as string))];
-  if (members.length === 0) throw new Error(`Rijksstudio set '${setId}' is empty or not found`);
+  if (members.length === 0)
+    throw new UsageError(`Rijksstudio set '${setId}' is empty or not found`);
   return members;
 }

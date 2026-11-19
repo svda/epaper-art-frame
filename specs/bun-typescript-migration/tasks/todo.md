@@ -148,8 +148,8 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-16: `sync-prints`
 **Acceptance:**
-- [ ] `test_sync_prints.py` is ported. `prints.toml` is read with `Bun.TOML.parse`, and the flags are `--config --set --dry-run --refresh --no-deploy`.
-- [ ] `--dry-run` plan output matches the Python version for the current `prints.toml`
+- [x] `test_sync_prints.py` is ported. `prints.toml` is read with `Bun.TOML.parse`, and the flags are `--config --set --dry-run --refresh --no-deploy`.
+- [x] `--dry-run` plan output matches the Python version for the current `prints.toml`
 
 **Verify:** `bun test tools/museum`, and diff both versions' dry-run output · **Files:** `src/sync-prints.ts`, `test/sync-prints.test.ts` · **Deps:** T-15 · **Size:** M
 
