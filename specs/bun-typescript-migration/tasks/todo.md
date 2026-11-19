@@ -142,7 +142,7 @@ Every task also has to meet the **Definition of Done** in `plan.md`. Module spec
 
 ### T-15: Placard render
 **Acceptance:**
-- [ ] `test_placard.py` is ported. The golden `magick` argv matches `placard.py`, and the positional args are the same.
+- [x] `test_placard.py` is ported. The golden `magick` argv matches `placard.py`, and the positional args are the same.
 
 **Verify:** `bun test tools/museum` · **Files:** `src/placard.ts`, `test/placard.test.ts` · **Deps:** T-14 · **Size:** S
 
