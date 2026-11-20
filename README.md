@@ -44,7 +44,7 @@ voltage, last image, WiFi). It never directs the device.
 | `config/esphome/` | Device firmware (ESPHome YAML). `common/` holds the shared packages — `base.yaml` (api/ota/wifi/logger) and `art-frame.yaml` (the fetch→render→sleep pipeline); `devices/` holds one file per flashable config, the deployed frames plus the bring-up aids. `devices/secrets.yaml` is git-ignored. |
 | `packages/epaper/` | Image pipeline (Bun/TypeScript): `prepare.ts` (HEIC/JPEG → 600×448 7-colour dithered PNG), `manifest.ts` (manifest writer), `push.ts` (deploy to HA). See [`packages/epaper/README.md`](packages/epaper/README.md). |
 | `apps/icloud/` | Automatic sync of a Photos album (the shared album "epaper art frame") from the Mac's Photos library. See [`apps/icloud/README.md`](apps/icloud/README.md). |
-| `apps/museum/` | Rijksmuseum print wall for the 13" frame: Rijksstudio set → placarded PNGs, plus `set-mode` to switch between art and photos. See [`apps/museum/README.md`](apps/museum/README.md). |
+| `apps/museum/` | Rijksmuseum print wall for the 13" frame: Rijksstudio set → PNGs, plus `set-mode` to switch between art and photos. See [`apps/museum/README.md`](apps/museum/README.md). |
 | `packages/cli/` | `@frame/cli`: shared helpers (argument parsing, subprocesses, env files, exit codes) used by the tools above. |
 | `www/epaper/` | Artwork folder: prepared images + generated `manifest.json`. Images and the manifest are git-ignored. |
 | `specs/` | Specs and task lists: [`epaper-art-frame`](specs/epaper-art-frame/SPEC.md) (device), [`icloud-album-sync`](specs/icloud-album-sync/SPEC.md) (source), [`wooden-frame`](specs/wooden-frame/SPEC.md) (enclosure), [`ee02-13in-spectra6`](specs/ee02-13in-spectra6/SPEC.md) (second frame + multi-device support). |
@@ -142,7 +142,7 @@ bun run format         # biome check --write
 | `bun apps/icloud/src/sync-album.ts` | Mirror the Photos album, then deploy (`--dry-run`, `--print-plist`) |
 | `bun apps/museum/src/sync-prints.ts` | Rijksstudio set → art-mode PNGs (`--dry-run`) |
 | `bun apps/museum/src/set-mode.ts art\|photos` | Switch the 13" frame's mode (`--status`, `--refresh`, `--migrate`) |
-| `bun apps/museum/src/placard.ts IMG TITLE ARTIST DATE OUT` | Render one placarded print |
+| `bun apps/museum/src/print.ts IMG OUT` | Render one print |
 
 Each command takes `-h`/`--help`. Per-tool details are in the READMEs under `apps/` and `packages/`. Every package also has its own
 `bun test` and `bun run typecheck`; from the root, `bun run --filter @frame/icloud test` runs one.

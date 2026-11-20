@@ -14,7 +14,7 @@ import { extname, join } from "node:path";
 import { main, parseArgs, repoRoot, UsageError } from "@frame/cli";
 import { manifestMain, renderManifest } from "@frame/epaper";
 import { Fetcher } from "./fetcher.ts";
-import { render as renderPlacard, sanitise } from "./placard.ts";
+import { render as renderPrint, sanitise } from "./print.ts";
 import { type Fetch, type FetchText, type Print, resolve, type Skip, setMembers } from "./rijks.ts";
 import { setModeMain } from "./set-mode.ts";
 
@@ -290,7 +290,7 @@ export async function syncPrintsMain(argv: string[], deps: SyncPrintsDeps = {}):
       const tmp = mkdtempSync(join(tmpdir(), "print_wall_src_"));
       try {
         const source = await fetcher.download(item.imageUrl, join(tmp, "source.jpg"));
-        await renderPlacard(source, item.title, item.artist, item.date, dest);
+        await renderPrint(source, dest);
       } finally {
         rmSync(tmp, { recursive: true, force: true });
       }

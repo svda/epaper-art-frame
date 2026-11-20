@@ -1,7 +1,6 @@
 # Museum art tooling
 
-Resolves a **Rijksstudio set**, renders each object as a 1600×1200 palette-only PNG with a
-gallery placard, and mirrors the result into the 13.3" frame's art mode folder.
+Resolves a **Rijksstudio set**, renders each object as a full-bleed 1600×1200 palette-only PNG, and mirrors the result into the 13.3" frame's art mode folder.
 `set-mode.ts` publishes either the art or the photo set into the live folder and deploys
 it. The device is unchanged.
 
@@ -61,8 +60,8 @@ EPAPER_IMAGES=www/epaper13-modes/photos \
   --dest "$EPAPER13_DEST"
 bun apps/museum/src/set-mode.ts --refresh
 
-# Render one placard by hand (debugging)
-bun apps/museum/src/placard.ts <image.jpg> "<title>" "<artist>" "<date>" out.png
+# Render one print by hand (debugging)
+bun apps/museum/src/print.ts <image.jpg> out.png
 
 # Tests, typecheck and lint (whole workspace)
 bun test apps/museum
@@ -127,7 +126,7 @@ The prefix is three digits, so a set with more than 999 objects would sort wrong
 | A stale object stays on the wall | Remove it from `prints.toml` and re-run `sync-prints.ts`; the mirror deletes it |
 | The API rate-limits | The fetcher retries 429/5xx with backoff and caches every response under `.cache/` |
 | `--refresh` shows the wrong set | Check `set-mode.ts --status`; `ACTIVE` names the mode being republished |
-| The placard strip looks off-white | The image is pure `#FFFFFF`; the Spectra 6 white ink is slightly warm/grey. This is the panel, not the image |
+| The white letterbox looks off-white | The image is pure `#FFFFFF`; the Spectra 6 white ink is slightly warm/grey. This is the panel, not the image |
 
 ## Files
 
@@ -135,10 +134,9 @@ The prefix is three digits, so a set with more than 999 objects would sort wrong
 - `prints.toml` — the Rijksstudio set id and culture
 - `src/rijks.ts` — resolve, rights, orientation, metadata
 - `src/fetcher.ts` — HTTP fetcher with the disk cache, spacing and retry/backoff
-- `src/placard.ts` — compose, dither through `prepareImage`, letter the placard
+- `src/print.ts` — fit the image to the canvas and dither it through `prepareImage`
 - `src/sync-prints.ts` — resolve → render → mirror → manifest → deploy-if-active
 - `src/set-mode.ts` — publish, record, deploy, refresh, migrate, status
 - `test/` — bun test suite; `test/fixtures/` holds recorded Linked Art JSON,
-  `test/golden/` the magick argv captured from the old Python renderer,
   `test/record-fixtures.ts` the manual fixture recorder
 - `.cache/` — git-ignored API and image cache (the layout is shared with the old Python tool)

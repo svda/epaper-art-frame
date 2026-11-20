@@ -81,7 +81,7 @@ function stripQualifier(name: string): string {
 }
 
 // The Rijksmuseum puts the artist in `referred_to_by` (AAT 300435417) and the publisher/printer
-// in `carried_out_by`; preferring the name field keeps the publisher off the placard.
+// in `carried_out_by`; preferring the name field keeps the publisher out of the metadata.
 export function artistsOf(obj: Rec): string[] {
   const prod = rec(obj.produced_by);
   const parts = [prod, ...asList(prod.part)];

@@ -3,6 +3,10 @@
 Status: **approved** (2026-11-16) · Revision 9 (2026-11-17: rights and orientation are no longer filters)
 Slug: `print-wall`
 
+> **Update (2026-11-20): the placard was removed.** Prints are now rendered full-bleed (fitted,
+> never cropped, on white) with no title/artist/date strip, no `PLACARD_FONT`, and
+> `placard.ts` became `print.ts`. Placard references below are historical.
+
 > **What this adds.** An **art mode** for the 13.3" Spectra 6 frame: a curated set of
 > objects from the Rijksmuseum, each rendered with a gallery placard (title,
 > artist, date), switchable against the existing photo rotation with one command. It is a
